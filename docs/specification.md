@@ -26,6 +26,9 @@ Long-term goal: read the attendees from CampTix directly and run on every WordCa
 - One design per site (one WordCamp, one design) in the first phase. The rare event that needs variants, for example for organizers, exports the JSON, adjusts the design, generates those badges and goes back.
 - The badge design (background, print size, bleed, fields and their styles) is saved on the site. When the organizer opens the editor again, it shows the work exactly as they left it. Example: the organizers of WordCamp Valencia upload their background, prepare their badges, and find everything as it was the next time they open the editor.
 - The design can be exported to a JSON file and imported from it, for example to reuse last year's design on next year's WordCamp site. The JSON does not include the background: after importing it, the organizer uploads the background again, and every field keeps its position, fonts, colors and styles.
+  - The file (`badge-design.json`) holds the print size, the options and the elements. Not exported: the background and the fixed Gravatar image, which are files of the site's Media Library; after importing, the Gravatar falls back to none until an image is chosen again.
+  - Importing asks for confirmation, keeps the current background, and is one undo step. Fonts the site does not have are listed (the text uses Inter until they are installed). Files that are not a badge design, or come from a newer plugin version, are refused.
+- Uninstalling the plugin deletes the design (the `ctbg_design` option). The background and the images stay in the Media Library.
 
 ## Attendee data
 
