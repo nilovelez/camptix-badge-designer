@@ -132,6 +132,8 @@ The model is data merge, as in Adobe InDesign: the design holds fields that act 
 - The editor shows the design filled with one attendee, and the organizer can step through the attendees. This is how they check difficult cases: names with accents, very long names, attendees without a Gravatar.
 - **Preview:** a button that generates a one-page PDF with the attendee currently shown in the editor, to check the result before generating everything.
 - **Generate:** one page per attendee (300 tickets sold, 300 pages). Like a print dialog, the organizer chooses the range: all pages by default (1 to the last), or a range such as 1-100 or 250-300. Typical use: send the first 100 badges to the print shop, and generate 101 onwards later, when more tickets have been sold.
+- **Before generating**, the dialog shows how many badges the range has, the page size, and how many of them have no QR code or have text that is cut. Generation shows its progress, can be cancelled, and downloads `badges-<first>-<last>.pdf`.
+- **Preview** shows the one-page PDF itself in the editor, rendered with PDF.js, with buttons to download it or open it in a new tab.
 - **Stable order.** Attendees are numbered in purchase order, never alphabetically, so a new ticket never shifts existing ones: page 101 of a later batch is never someone already printed.
 
 ## Architecture

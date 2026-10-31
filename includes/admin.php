@@ -1,7 +1,6 @@
 <?php
 /**
- * Admin pages: the badge editor (Badges) and, until real generation
- * replaces it, the milestone 1 technical spike (Badges > Technical test).
+ * Admin page: the badge editor (Badges).
  *
  * @package Camptix_Badge_Generator
  */
@@ -11,10 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Registers the admin pages.
+ * Registers the Badges admin page.
  */
-function ctbg_register_admin_pages() {
-	$editor = add_menu_page(
+function ctbg_register_admin_page() {
+	$GLOBALS['ctbg_admin_hook'] = add_menu_page(
 		__( 'Badges', 'camptix-badge-generator' ),
 		__( 'Badges', 'camptix-badge-generator' ),
 		'manage_options',
@@ -22,54 +21,17 @@ function ctbg_register_admin_pages() {
 		'ctbg_render_editor_page',
 		'dashicons-id-alt'
 	);
-
-	// Repeat the parent so the first submenu item is "Editor", not "Badges".
-	add_submenu_page(
-		'ctbg-badges',
-		__( 'Badges', 'camptix-badge-generator' ),
-		__( 'Editor', 'camptix-badge-generator' ),
-		'manage_options',
-		'ctbg-badges',
-		'ctbg_render_editor_page'
-	);
-
-	$spike = add_submenu_page(
-		'ctbg-badges',
-		__( 'Technical test', 'camptix-badge-generator' ),
-		__( 'Technical test', 'camptix-badge-generator' ),
-		'manage_options',
-		'ctbg-technical-test',
-		'ctbg_render_spike_page'
-	);
-
-	$GLOBALS['ctbg_admin_hooks'] = array(
-		'editor' => $editor,
-		'spike'  => $spike,
-	);
 }
-add_action( 'admin_menu', 'ctbg_register_admin_pages' );
+add_action( 'admin_menu', 'ctbg_register_admin_page' );
 
 /**
- * Which of our pages is being shown.
+ * Whether an admin page is the editor.
  *
- * @param string $hook_suffix The current admin page.
- * @return string 'editor', 'spike' or ''.
+ * @param string $hook_suffix The admin page.
+ * @return bool Whether it is the editor.
  */
-function ctbg_current_page( $hook_suffix ) {
-	if ( empty( $GLOBALS['ctbg_admin_hooks'] ) ) {
-		return '';
-	}
-	$page = array_search( $hook_suffix, $GLOBALS['ctbg_admin_hooks'], true );
-	return false === $page ? '' : $page;
-}
-
-/**
- * Prints the notice shown when the JavaScript has not been built.
- */
-function ctbg_print_missing_build_notice() {
-	echo '<div class="notice notice-error"><p>';
-	echo esc_html__( 'The JavaScript build is missing. Run "npm install" and "npm run build" in the plugin folder.', 'camptix-badge-generator' );
-	echo '</p></div>';
+function ctbg_is_editor_page( $hook_suffix ) {
+	return ! empty( $GLOBALS['ctbg_admin_hook'] ) && $hook_suffix === $GLOBALS['ctbg_admin_hook'];
 }
 
 /**
@@ -82,30 +44,12 @@ function ctbg_render_editor_page() {
 
 	echo '<h1 class="screen-reader-text">' . esc_html__( 'Badges', 'camptix-badge-generator' ) . '</h1>';
 	if ( ! file_exists( CTBG_PLUGIN_DIR . 'build/editor.asset.php' ) ) {
-		echo '<div class="wrap">';
-		ctbg_print_missing_build_notice();
-		echo '</div>';
+		echo '<div class="wrap"><div class="notice notice-error"><p>';
+		echo esc_html__( 'The JavaScript build is missing. Run "npm install" and "npm run build" in the plugin folder.', 'camptix-badge-generator' );
+		echo '</p></div></div>';
 		return;
 	}
 	echo '<div id="ctbg-editor" class="ctbg-editor"></div>';
-}
-
-/**
- * Prints the container the spike renders into.
- */
-function ctbg_render_spike_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
-
-	echo '<div class="wrap">';
-	echo '<h1>' . esc_html__( 'Badges: technical test', 'camptix-badge-generator' ) . '</h1>';
-	if ( ! file_exists( CTBG_PLUGIN_DIR . 'build/spike.asset.php' ) ) {
-		ctbg_print_missing_build_notice();
-	} else {
-		echo '<div id="ctbg-spike"></div>';
-	}
-	echo '</div>';
 }
 
 /**
@@ -117,7 +61,7 @@ function ctbg_render_spike_page() {
  */
 function ctbg_admin_body_class( $classes ) {
 	$screen = get_current_screen();
-	if ( $screen && 'editor' === ctbg_current_page( $screen->id ) ) {
+	if ( $screen && ctbg_is_editor_page( $screen->id ) ) {
 		$classes .= ' ctbg-editor-page';
 	}
 	return $classes;
@@ -125,58 +69,27 @@ function ctbg_admin_body_class( $classes ) {
 add_filter( 'admin_body_class', 'ctbg_admin_body_class' );
 
 /**
- * Enqueues a built script, its CSS if there is one, and its settings.
- *
- * @param string $name     Entry name in build/.
- * @param array  $settings Settings exposed as window.ctbgSettings.
- */
-function ctbg_enqueue_build( $name, $settings ) {
-	$asset_file = CTBG_PLUGIN_DIR . 'build/' . $name . '.asset.php';
-	if ( ! file_exists( $asset_file ) ) {
-		return;
-	}
-	$asset  = require $asset_file;
-	$handle = 'ctbg-' . $name;
-
-	wp_enqueue_script( $handle, CTBG_PLUGIN_URL . 'build/' . $name . '.js', $asset['dependencies'], $asset['version'], true );
-	wp_enqueue_style( 'wp-components' );
-	if ( file_exists( CTBG_PLUGIN_DIR . 'build/' . $name . '.css' ) ) {
-		wp_enqueue_style( $handle, CTBG_PLUGIN_URL . 'build/' . $name . '.css', array( 'wp-components' ), $asset['version'] );
-	}
-
-	wp_add_inline_script( $handle, 'window.ctbgSettings = ' . wp_json_encode( $settings ) . ';', 'before' );
-}
-
-/**
- * Loads the scripts of our admin pages, only on those pages.
+ * Loads the editor script, its CSS and its settings, on the editor only.
  *
  * @param string $hook_suffix The current admin page.
  */
 function ctbg_enqueue_admin_assets( $hook_suffix ) {
-	$page = ctbg_current_page( $hook_suffix );
-	if ( '' === $page ) {
+	$asset_file = CTBG_PLUGIN_DIR . 'build/editor.asset.php';
+	if ( ! ctbg_is_editor_page( $hook_suffix ) || ! file_exists( $asset_file ) ) {
 		return;
 	}
+	$asset = require $asset_file;
+
+	// The Media Library modal, to pick the background and images.
+	wp_enqueue_media();
+	wp_enqueue_script( 'ctbg-editor', CTBG_PLUGIN_URL . 'build/editor.js', $asset['dependencies'], $asset['version'], true );
+	wp_enqueue_style( 'ctbg-editor', CTBG_PLUGIN_URL . 'build/editor.css', array( 'wp-components' ), $asset['version'] );
 
 	$settings = array(
 		'pdfWorkerUrl' => CTBG_PLUGIN_URL . 'build/pdf.worker.min.js',
-		'fonts'        => array(
-			'400' => CTBG_PLUGIN_URL . 'fonts/inter/Inter-Regular.ttf',
-			'600' => CTBG_PLUGIN_URL . 'fonts/inter/Inter-SemiBold.ttf',
-			'700' => CTBG_PLUGIN_URL . 'fonts/inter/Inter-Bold.ttf',
-		),
+		'fontFamilies' => ctbg_get_fonts(),
+		'palette'      => ctbg_get_palette(),
 	);
-
-	if ( 'editor' === $page ) {
-		$settings['fontFamilies'] = ctbg_get_fonts();
-		$settings['palette']      = ctbg_get_palette();
-		// The Media Library modal, to pick the background.
-		wp_enqueue_media();
-		ctbg_enqueue_build( 'editor', $settings );
-		return;
-	}
-
-	$settings['woff2Url'] = CTBG_PLUGIN_URL . 'tests/fixtures/Inter-Regular.woff2';
-	ctbg_enqueue_build( 'spike', $settings );
+	wp_add_inline_script( 'ctbg-editor', 'window.ctbgSettings = ' . wp_json_encode( $settings ) . ';', 'before' );
 }
 add_action( 'admin_enqueue_scripts', 'ctbg_enqueue_admin_assets' );

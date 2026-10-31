@@ -11,14 +11,14 @@ Build the editor with `@wordpress/element` (React) and `@wordpress/components`, 
 - WordPress loads React itself, so the plugin does not ship it.
 - Drag and resize are done with pointer events on an absolutely positioned layer over the background, in millimeters scaled to the screen. That logic is small and fully under our control.
 
-The milestone 1 spike already uses this stack for its admin page (`src/spike/`), and it works. The editor (`src/editor/`, milestone 3) is built on it.
+The milestone 1 spike used this stack for its admin page, and it worked. The editor (`src/editor/`, milestone 3) is built on it.
 
 ## Editor behavior (decided by Nilo, milestone 3)
 
 - The editor lives inside the normal admin, with the admin bar and the admin menu (see the layout in `docs/milestones.md`).
 - The design is saved automatically, one second after the last change, in the `ctbg_design` option through the REST route `ctbg/v1/design`. The toolbar shows "Saved", "Unsaved changes", "Saving…" or "Not saved". Leaving the page with unsaved changes asks for confirmation.
 - The safe area is configurable, 5 mm inside the trim by default.
-- The milestone 1 spike stays under Badges › Technical test until real generation replaces it in milestone 6.
+- The milestone 1 spike stayed under Badges › Technical test until real generation replaced it in milestone 6; its code was removed then (it is in the Git history).
 - One Media Library frame is created and reused: a new frame each time adds another modal to the page.
 
 ## Screen and paper match (milestone 4)
@@ -29,7 +29,7 @@ The milestone 1 spike already uses this stack for its admin page (`src/spike/`),
 - Font Library fonts are usually WOFF2: the editor converts them to TTF before measuring, as the PDF has to (see the WOFF2 finding above). Only upright, single-weight faces are offered; variable fonts and italics are left out.
 - Designs carry a format version (2 since elements). A design with no elements yet (version 1 from milestone 3, or `elements: null`) gets the default elements once, sized for its print size.
 
-## PDF: generated in the browser with pdf-lib (proposal, confirmed by the spike)
+## PDF: generated in the browser with pdf-lib (decided; built in milestone 6)
 
 - pdf-lib embeds a page of a PDF background as a vector object, so vector backgrounds stay vector, and the background is embedded once and reused on every page, which keeps large PDFs small.
 - Text is real text with embedded fonts (pdf-lib with `@pdf-lib/fontkit`, subset to the glyphs in use), not images.
@@ -61,7 +61,7 @@ Gravatar sizes with the real test export (aggregate only): 78 of 174 addresses h
 
 - **Gravatar ignores the requested format.** The `.png` or `.jpg` extension makes no difference: Gravatar returns the image as it was uploaded (in the sample, 49 PNG with transparency and 29 JPEG). The generator detects the format from the first bytes and embeds PNG or JPEG accordingly. PNG transparency is kept when the uploaded image has it.
 - **"None" fallback uses `d=404`, not `d=blank`.** With `d=404`, attendees without a Gravatar get a 404 and nothing is downloaded or drawn, so the background shows through. `d=blank` returns tiny PNG files, some of which pdf-lib cannot decode. Browsers log every 404 in the console; that is expected.
-- **Gravatar hashes are made on the server.** `crypto.subtle` only exists in secure contexts (HTTPS or localhost), so test sites reached by IP over HTTP do not have it. Since milestone 2 the server sends the hash instead of the email address, which also keeps email addresses out of the browser. The JavaScript SHA-256 in `src/spike/sha256.js` only hashes the spike's invented addresses.
+- **Gravatar hashes are made on the server.** `crypto.subtle` only exists in secure contexts (HTTPS or localhost), so test sites reached by IP over HTTP do not have it. Since milestone 2 the server sends the hash instead of the email address, which also keeps email addresses out of the browser. The spike's JavaScript SHA-256 was removed with the spike.
 - **WOFF2 fonts are converted to TTF first.** `@pdf-lib/fontkit` reads WOFF2 but crashes when it subsets it (`RangeError: Index out of range`). The current `fontkit` 2.x does not work with pdf-lib. Converting with `woff2-encoder` (MIT, WebAssembly, 288 KB, loaded only when a WOFF2 font is used) takes about 15 ms per font, and the result subsets fine.
 - **Gravatar resolution.** The pixel size is computed from the element size at 300 dpi (40 mm → 472 px). Gravatar serves up to 2048 px.
 
@@ -80,3 +80,13 @@ The PDF needs the font files, not only CSS.
 
 - JavaScript is built with `@wordpress/scripts` into `build/`, which is ignored by Git: after cloning, run `npm install` and `npm run build`. The PDF.js worker is copied to `build/pdf.worker.min.js` by `tools/copy-pdf-worker.mjs`.
 - To decide before the first release: whether to commit `build/` so `git archive` includes it, or build the release zip from the working tree.
+
+## PDF generation (milestone 6)
+
+- `src/editor/build-pdf.js` builds the PDF in the browser from the same layout code as the editor (`src/shared/`): text, QR codes and Gravatar URLs come out identical on screen and on paper.
+- Each page is the trim size plus the bleed, plus 6 mm on every side for crop marks when they are on (118 × 168 mm by default).
+- Embedded once and reused on every page: the background (a PDF stays vector), the fonts (subset to the glyphs in use), each distinct Gravatar and the fixed fallback image.
+- Text boxes are clipped to their box, so text that does not fit is cut exactly as in the editor.
+- Gravatars are requested at the element size at 300 dpi. Formats other than PNG and JPEG are converted to PNG in the browser. A failed download is counted and reported; it never stops the build.
+- The build reports progress and can be cancelled. The file downloads as `badges-<first>-<last>.pdf`.
+- Checked with invented attendees: every page has the right real text and a QR code that decodes to the right profile, or none without a username. With the real test export: 178 badges, 16.5 MB, 8.6 s, about 180 MB of JavaScript memory.

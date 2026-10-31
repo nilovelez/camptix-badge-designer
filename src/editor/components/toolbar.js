@@ -1,8 +1,6 @@
 /**
  * Toolbar above the canvas: add element, undo and redo; the attendee
  * pagination; the save state, Preview badge and Generate PDF.
- *
- * Preview and generation arrive in milestone 6: they are shown disabled.
  */
 import { useEffect, useState } from '@wordpress/element';
 import { Button, DropdownMenu } from '@wordpress/components';
@@ -89,6 +87,8 @@ export function Toolbar( {
 	history,
 	saveStatus,
 	saveError,
+	onPreview,
+	onGenerate,
 } ) {
 	return (
 		<div className="ctbg-toolbar">
@@ -145,10 +145,10 @@ export function Toolbar( {
 			>
 				{ SAVE_LABELS[ saveStatus ] }
 			</span>
-			<Button variant="secondary" disabled>
+			<Button variant="secondary" onClick={ onPreview }>
 				Preview badge
 			</Button>
-			<Button variant="primary" disabled>
+			<Button variant="primary" onClick={ onGenerate }>
 				Generate PDF
 			</Button>
 		</div>

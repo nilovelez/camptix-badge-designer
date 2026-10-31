@@ -1,0 +1,472 @@
+/**
+ * Builds the badges PDF in the browser with pdf-lib: one page per
+ * attendee, from the same layout code the editor uses, so the paper
+ * matches the screen.
+ *
+ * Positions in the design are in millimeters from the top-left corner of
+ * the trim box; PDF coordinates are points from the bottom-left corner.
+ */
+import {
+	PDFDocument,
+	rgb,
+	pushGraphicsState,
+	popGraphicsState,
+	moveTo,
+	appendBezierCurve,
+	closePath,
+	rectangle,
+	clip,
+	endPath,
+} from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
+import { layoutText } from '../shared/text-layout';
+import { profileQr } from '../shared/qr';
+import { gravatarUrl } from '../shared/gravatar';
+import { faceKey, loadFace, resolveFace } from './fonts';
+
+const PT_PER_MM = 72 / 25.4;
+const pt = ( mm ) => mm * PT_PER_MM;
+
+// Crop marks: 5 mm long, starting at the edge of the bleed. The page grows
+// by the bleed plus 6 mm on every side to make room for them.
+const CROP_MARK_LENGTH = 5;
+const CROP_MARK_SPARE = 1;
+const PRINT_DPI = 300;
+// Gravatar requests running at once.
+const GRAVATAR_LANES = 8;
+
+const BLACK = rgb( 0, 0, 0 );
+const WHITE = rgb( 1, 1, 1 );
+
+/**
+ * Size of each PDF page.
+ *
+ * @param {Object} design Design.
+ * @return {{margin: number, width: number, height: number}} In mm: the space around the trim box and the page size.
+ */
+export function pageGeometry( design ) {
+	const { width, height, bleed } = design.size;
+	let margin = bleed;
+	if ( design.cropMarks ) {
+		margin = bleed + CROP_MARK_LENGTH + CROP_MARK_SPARE;
+	}
+	return { margin, width: width + 2 * margin, height: height + 2 * margin };
+}
+
+/**
+ * @param {string} hex Color as #rrggbb.
+ * @return {Object} pdf-lib color.
+ */
+function hexToRgb( hex ) {
+	const value = String( hex ).replace( '#', '' ).padEnd( 6, '0' );
+	const channel = ( start ) =>
+		( parseInt( value.slice( start, start + 2 ), 16 ) || 0 ) / 255;
+	return rgb( channel( 0 ), channel( 2 ), channel( 4 ) );
+}
+
+async function fetchBytes( url, options ) {
+	const response = await fetch( url, options );
+	if ( ! response.ok ) {
+		const error = new Error( 'HTTP ' + response.status + ' for ' + url );
+		error.status = response.status;
+		throw error;
+	}
+	return new Uint8Array( await response.arrayBuffer() );
+}
+
+/**
+ * Embeds a PNG or a JPEG. Any other format the browser can read (a GIF
+ * uploaded to Gravatar, for example) is converted to PNG first.
+ *
+ * @param {Object}     doc   PDF document.
+ * @param {Uint8Array} bytes Image file.
+ * @return {Promise<Object>} Embedded image.
+ */
+async function embedImage( doc, bytes ) {
+	if (
+		bytes[ 0 ] === 0x89 &&
+		bytes[ 1 ] === 0x50 &&
+		bytes[ 2 ] === 0x4e &&
+		bytes[ 3 ] === 0x47
+	) {
+		return doc.embedPng( bytes );
+	}
+	if ( bytes[ 0 ] === 0xff && bytes[ 1 ] === 0xd8 ) {
+		return doc.embedJpg( bytes );
+	}
+	const bitmap = await window.createImageBitmap(
+		new window.Blob( [ bytes ] )
+	);
+	const canvas = document.createElement( 'canvas' );
+	canvas.width = bitmap.width;
+	canvas.height = bitmap.height;
+	canvas.getContext( '2d' ).drawImage( bitmap, 0, 0 );
+	const blob = await new Promise( ( resolve ) =>
+		canvas.toBlob( resolve, 'image/png' )
+	);
+	return doc.embedPng( new Uint8Array( await blob.arrayBuffer() ) );
+}
+
+/**
+ * Runs `worker` over `items` with at most `limit` running at once.
+ *
+ * @param {Array}                       items  Items.
+ * @param {number}                      limit  Lanes.
+ * @param {(item: any) => Promise<any>} worker Async worker.
+ */
+async function runPool( items, limit, worker ) {
+	let next = 0;
+	async function lane() {
+		while ( next < items.length ) {
+			const item = items[ next ];
+			next++;
+			await worker( item );
+		}
+	}
+	const lanes = [];
+	for ( let i = 0; i < Math.min( limit, items.length ); i++ ) {
+		lanes.push( lane() );
+	}
+	await Promise.all( lanes );
+}
+
+function circlePath( cx, cy, r ) {
+	const k = 0.5522847498 * r;
+	return [
+		moveTo( cx + r, cy ),
+		appendBezierCurve( cx + r, cy + k, cx + k, cy + r, cx, cy + r ),
+		appendBezierCurve( cx - k, cy + r, cx - r, cy + k, cx - r, cy ),
+		appendBezierCurve( cx - r, cy - k, cx - k, cy - r, cx, cy - r ),
+		appendBezierCurve( cx + k, cy - r, cx + r, cy - k, cx + r, cy ),
+		closePath(),
+	];
+}
+
+/**
+ * Draws an image to cover a box, cropped to the box or to its circle.
+ *
+ * @param {Object}  page  PDF page.
+ * @param {Object}  image Embedded image.
+ * @param {Object}  box   {x, y, size} in points; y is the bottom edge.
+ * @param {boolean} round Crop to a circle.
+ */
+function drawCoverImage( page, image, box, round ) {
+	const scale = Math.max( box.size / image.width, box.size / image.height );
+	const width = image.width * scale;
+	const height = image.height * scale;
+	const shape = round
+		? circlePath( box.x + box.size / 2, box.y + box.size / 2, box.size / 2 )
+		: [ rectangle( box.x, box.y, box.size, box.size ) ];
+	page.pushOperators( pushGraphicsState(), ...shape, clip(), endPath() );
+	page.drawImage( image, {
+		x: box.x + ( box.size - width ) / 2,
+		y: box.y + ( box.size - height ) / 2,
+		width,
+		height,
+	} );
+	page.pushOperators( popGraphicsState() );
+}
+
+function drawCropMarks( page, left, bottom, right, top, offset ) {
+	const length = pt( CROP_MARK_LENGTH );
+	const line = { thickness: 0.25, color: BLACK };
+	const corners = [
+		[ left, top, -1, 1 ],
+		[ right, top, 1, 1 ],
+		[ left, bottom, -1, -1 ],
+		[ right, bottom, 1, -1 ],
+	];
+	for ( const [ x, y, dx, dy ] of corners ) {
+		// On the line of the trim edges, outside the bleed.
+		page.drawLine( {
+			start: { x: x + dx * offset, y },
+			end: { x: x + dx * ( offset + length ), y },
+			...line,
+		} );
+		page.drawLine( {
+			start: { x, y: y + dy * offset },
+			end: { x, y: y + dy * ( offset + length ) },
+			...line,
+		} );
+	}
+}
+
+function gravatarPixels( element ) {
+	return Math.round( ( element.width / 25.4 ) * PRINT_DPI );
+}
+
+/**
+ * Builds the PDF.
+ *
+ * @param {Object}                     options
+ * @param {Object}                     options.design         Design.
+ * @param {Object|null}                options.backgroundFile {url} of the background, or null.
+ * @param {Object}                     options.images         Fallback image URLs by attachment id.
+ * @param {Array}                      options.attendees      Attendees, one page each, in order.
+ * @param {(progress: Object) => void} [options.onProgress]   Called with {step, done, total}.
+ * @param {AbortSignal}                [options.signal]       Cancels the build.
+ * @return {Promise<{bytes: Uint8Array, stats: Object}>} The PDF and what happened.
+ */
+export async function buildBadgesPdf( {
+	design,
+	backgroundFile,
+	images,
+	attendees,
+	onProgress = () => {},
+	signal,
+} ) {
+	const checkCancelled = () => {
+		if ( signal && signal.aborted ) {
+			throw new DOMException( 'Cancelled', 'AbortError' );
+		}
+	};
+	const elements = design.elements || [];
+	const stats = {
+		pages: attendees.length,
+		gravatars: 0,
+		gravatarsMissing: 0,
+		gravatarsFailed: 0,
+	};
+
+	const doc = await PDFDocument.create();
+	doc.setTitle( 'Badges' );
+	doc.setCreator( 'Camptix Badge Generator' );
+	doc.setProducer( 'Camptix Badge Generator with pdf-lib' );
+	doc.registerFontkit( fontkit );
+
+	// Fonts: the same files the editor measured, subset to the glyphs in use.
+	onProgress( { step: 'fonts' } );
+	const fonts = {};
+	for ( const element of elements ) {
+		if ( element.type !== 'text' ) {
+			continue;
+		}
+		const face = resolveFace( element.font, element.weight );
+		const key = face && faceKey( face );
+		if ( key && ! fonts[ key ] ) {
+			const loaded = await loadFace( face );
+			fonts[ key ] = {
+				font: loaded.font,
+				pdfFont: await doc.embedFont( loaded.bytes, { subset: true } ),
+			};
+		}
+	}
+	checkCancelled();
+
+	// Background: embedded once, drawn on every page. A PDF stays vector.
+	onProgress( { step: 'background' } );
+	let background = null;
+	if ( design.background && backgroundFile ) {
+		const bytes = await fetchBytes( backgroundFile.url );
+		if ( design.background.type === 'pdf' ) {
+			const [ embedded ] = await doc.embedPdf( bytes, [ 0 ] );
+			background = { kind: 'page', object: embedded };
+		} else {
+			background = {
+				kind: 'image',
+				object: await embedImage( doc, bytes ),
+			};
+		}
+	}
+
+	// Fixed Gravatar fallback images, embedded once each.
+	const fallbackImages = {};
+	for ( const element of elements ) {
+		const id =
+			element.type === 'gravatar' &&
+			element.fallback === 'image' &&
+			element.fallbackImage;
+		if ( id && images[ id ] && ! fallbackImages[ id ] ) {
+			fallbackImages[ id ] = await embedImage(
+				doc,
+				await fetchBytes( images[ id ] )
+			);
+		}
+	}
+	checkCancelled();
+
+	// Gravatars: one request per distinct image, a few at a time, at print
+	// resolution. A missing or failed one never stops the build.
+	const gravatarUrls = new Set();
+	for ( const element of elements ) {
+		if ( element.type !== 'gravatar' ) {
+			continue;
+		}
+		for ( const attendee of attendees ) {
+			const url = gravatarUrl(
+				attendee.gravatarHash,
+				gravatarPixels( element ),
+				element.fallback
+			);
+			if ( url ) {
+				gravatarUrls.add( url );
+			}
+		}
+	}
+	const gravatars = new Map();
+	let fetched = 0;
+	await runPool( [ ...gravatarUrls ], GRAVATAR_LANES, async ( url ) => {
+		checkCancelled();
+		try {
+			const bytes = await fetchBytes( url, {
+				mode: 'cors',
+				credentials: 'omit',
+				signal,
+			} );
+			gravatars.set( url, await embedImage( doc, bytes ) );
+			stats.gravatars++;
+		} catch ( error ) {
+			if ( error.name === 'AbortError' ) {
+				throw error;
+			}
+			gravatars.set( url, null );
+			if ( error.status === 404 ) {
+				stats.gravatarsMissing++;
+			} else {
+				stats.gravatarsFailed++;
+			}
+		}
+		fetched++;
+		onProgress( {
+			step: 'gravatars',
+			done: fetched,
+			total: gravatarUrls.size,
+		} );
+	} );
+
+	// Pages.
+	const geometry = pageGeometry( design );
+	const { size } = design;
+	const trimLeft = pt( geometry.margin );
+	const trimBottom = pt( geometry.margin );
+	const trimRight = trimLeft + pt( size.width );
+	const trimTop = trimBottom + pt( size.height );
+	const fromLeft = ( mm ) => trimLeft + pt( mm );
+	const fromTop = ( mm ) => trimTop - pt( mm );
+
+	for ( let index = 0; index < attendees.length; index++ ) {
+		const attendee = attendees[ index ];
+		const page = doc.addPage( [
+			pt( geometry.width ),
+			pt( geometry.height ),
+		] );
+
+		if ( background ) {
+			const box = {
+				x: trimLeft - pt( size.bleed ),
+				y: trimBottom - pt( size.bleed ),
+				width: pt( size.width + 2 * size.bleed ),
+				height: pt( size.height + 2 * size.bleed ),
+			};
+			if ( background.kind === 'page' ) {
+				page.drawPage( background.object, box );
+			} else {
+				page.drawImage( background.object, box );
+			}
+		}
+
+		for ( const element of elements ) {
+			if ( element.type === 'text' ) {
+				const face = resolveFace( element.font, element.weight );
+				const font = face && fonts[ faceKey( face ) ];
+				if ( ! font ) {
+					continue;
+				}
+				const layout = layoutText( font.font, element, attendee );
+				if ( ! layout.text ) {
+					continue;
+				}
+				// Text that does not fit is cut at the edge of the box.
+				page.pushOperators(
+					pushGraphicsState(),
+					rectangle(
+						fromLeft( element.x ),
+						fromTop( element.y + element.height ),
+						pt( element.width ),
+						pt( element.height )
+					),
+					clip(),
+					endPath()
+				);
+				page.drawText( layout.text, {
+					x: fromLeft( element.x + layout.x ),
+					y: fromTop( element.y + layout.baseline ),
+					size: layout.size,
+					font: font.pdfFont,
+					color: hexToRgb( element.color ),
+				} );
+				page.pushOperators( popGraphicsState() );
+			} else if ( element.type === 'qr' ) {
+				if ( ! attendee.username ) {
+					continue;
+				}
+				const qr = profileQr( attendee.username );
+				const side = pt( element.width );
+				const x = fromLeft( element.x );
+				const top = fromTop( element.y );
+				page.drawRectangle( {
+					x,
+					y: top - side,
+					width: side,
+					height: side,
+					color: WHITE,
+				} );
+				page.drawSvgPath( qr.path, {
+					x,
+					y: top,
+					scale: side / qr.size,
+					color: BLACK,
+					borderWidth: 0,
+				} );
+			} else if ( element.type === 'gravatar' ) {
+				const url = gravatarUrl(
+					attendee.gravatarHash,
+					gravatarPixels( element ),
+					element.fallback
+				);
+				let image = url ? gravatars.get( url ) : null;
+				if ( ! image && element.fallback === 'image' ) {
+					image = fallbackImages[ element.fallbackImage ] || null;
+				}
+				if ( image ) {
+					drawCoverImage(
+						page,
+						image,
+						{
+							x: fromLeft( element.x ),
+							y: fromTop( element.y + element.height ),
+							size: pt( element.width ),
+						},
+						element.shape === 'round'
+					);
+				}
+			}
+		}
+
+		if ( design.cropMarks ) {
+			drawCropMarks(
+				page,
+				trimLeft,
+				trimBottom,
+				trimRight,
+				trimTop,
+				pt( size.bleed )
+			);
+		}
+
+		// Let the browser breathe and show progress every few pages.
+		if ( index % 10 === 9 || index === attendees.length - 1 ) {
+			onProgress( {
+				step: 'pages',
+				done: index + 1,
+				total: attendees.length,
+			} );
+			await new Promise( ( resolve ) => setTimeout( resolve, 0 ) );
+			checkCancelled();
+		}
+	}
+
+	onProgress( { step: 'saving' } );
+	const bytes = await doc.save( { useObjectStreams: true } );
+	return { bytes, stats };
+}

@@ -4,11 +4,11 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Current state
 
-- Milestone 5 (QR code and Gravatar options) is done and waiting for Nilo's review. Milestones, and the approved editor layout, are in `docs/milestones.md`.
-- **Badges** in the admin menu is the editor (`src/editor/`): toolbar with the + inserter, undo, redo and the attendee pagination; canvas with guides and the elements (text boxes, Gravatar, QR code), which can be selected, dragged, resized and nudged; the Document and Element sidebar. The background comes from the Media Library (PDF, PNG or JPG). The design is saved automatically in the `ctbg_design` option through the REST route `ctbg/v1/design` (`includes/design.php`, which also validates the elements). Fonts (Inter and the Font Library) and the site palette come from `includes/fonts.php`. Preview and generation are shown disabled until milestone 6.
-- `src/shared/` holds the text layout, the QR path and the Gravatar URL, shared with the future PDF generator so screen and paper match.
+- Milestone 6 (PDF generation) is done and waiting for Nilo's review. Milestones, and the approved editor layout, are in `docs/milestones.md`.
+- **Badges** in the admin menu is the editor (`src/editor/`): toolbar with the + inserter, undo, redo and the attendee pagination; canvas with guides and the elements (text boxes, Gravatar, QR code), which can be selected, dragged, resized and nudged; the Document and Element sidebar. The background comes from the Media Library (PDF, PNG or JPG). The design is saved automatically in the `ctbg_design` option through the REST route `ctbg/v1/design` (`includes/design.php`, which also validates the elements). Fonts (Inter and the Font Library) and the site palette come from `includes/fonts.php`. Preview badge and Generate PDF build the PDF in the browser (`src/editor/build-pdf.js`).
+- `src/shared/` holds the text layout, the QR path and the Gravatar URL, shared by the editor and the PDF generator so screen and paper match.
 - Ideas for later are in `docs/backlog.md`.
-- **Badges › Technical test** holds the milestone 1 spike (`src/spike/`). Spike results and findings are in `docs/decisions.md`.
+- The milestone 1 spike was removed in milestone 6; its results and findings are in `docs/decisions.md`.
 - `includes/attendees.php` reads the newest CSV in `test-data/` and serves the attendees at the REST route `ctbg/v1/attendees` (administrators only), without email addresses. Tests: `php tests/php/attendees-test.php` (no WordPress needed).
 - Test backgrounds, all invented, are in `tests/fixtures/` (`tools/make-fixtures.mjs` rebuilds the PDFs).
 - Playground mounts the whole repo, so the CSV in `test-data/` can be downloaded from the test site by URL. Nilo accepted this: test sites are only reachable locally.
@@ -18,8 +18,8 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Next steps
 
-1. Nilo reviews milestone 5 on the Playground site.
-2. With his OK, milestone 6: PDF generation (preview and page ranges).
+1. Nilo reviews milestone 6 on the Playground site.
+2. With his OK, milestone 7: export and import of the design, polish, Plugin Check and the release zip.
 
 ## Open questions
 

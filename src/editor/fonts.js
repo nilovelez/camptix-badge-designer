@@ -72,12 +72,13 @@ async function toTtf( bytes ) {
 }
 
 /**
- * Loads a face: fontkit font plus a CSS family registered with the browser.
+ * Loads a face: fontkit font, a CSS family registered with the browser,
+ * and the TTF bytes the PDF embeds.
  *
  * @param {Object} face From resolveFace().
- * @return {Promise<{font: Object, css: string}>} Loaded face.
+ * @return {Promise<{font: Object, css: string, bytes: Uint8Array}>} Loaded face.
  */
-function loadFace( face ) {
+export function loadFace( face ) {
 	const key = faceKey( face );
 	if ( ! faces.has( key ) ) {
 		const promise = ( async () => {
@@ -91,10 +92,11 @@ function loadFace( face ) {
 			const font = fontkit.create( bytes );
 			// One CSS family per face, so the browser never synthesizes a weight.
 			const css = 'ctbg-' + key.replace( /[^A-Za-z0-9]+/g, '-' );
-			const fontFace = new window.FontFace( css, bytes );
+			// A copy, so the bytes kept for the PDF are never detached.
+			const fontFace = new window.FontFace( css, bytes.slice() );
 			await fontFace.load();
 			document.fonts.add( fontFace );
-			return { font, css };
+			return { font, css, bytes };
 		} )();
 		promise.catch( () => faces.delete( key ) );
 		faces.set( key, promise );

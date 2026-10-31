@@ -24,7 +24,6 @@ This file is the single source of working rules for any agent or person picking 
 | `fonts/inter/` | Inter 4.1 static TTF files and their license. |
 | `src/editor/` | The badge editor (Badges admin page). |
 | `src/shared/` | Code shared by the editor and the PDF generator: text layout, QR codes, Gravatar URLs. |
-| `src/spike/` | The milestone 1 technical test (Badges › Technical test). |
 | `tools/` | Build helpers, and `make-fixtures.mjs` for the test backgrounds. |
 | `tests/` | Test fixtures, all invented (backgrounds, a WOFF2 font), and PHP tests. |
 | `test-data/` | Real CampTix exports for testing. Ignored by Git: never commit them. |

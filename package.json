@@ -6,8 +6,8 @@
 	"license": "GPL-2.0-or-later",
 	"private": true,
 	"scripts": {
-		"build": "wp-scripts build editor=./src/editor/index.js spike=./src/spike/index.js && node tools/copy-pdf-worker.mjs",
-		"start": "wp-scripts start editor=./src/editor/index.js spike=./src/spike/index.js",
+		"build": "wp-scripts build editor=./src/editor/index.js && node tools/copy-pdf-worker.mjs",
+		"start": "wp-scripts start editor=./src/editor/index.js",
 		"lint:js": "wp-scripts lint-js src"
 	},
 	"devDependencies": {

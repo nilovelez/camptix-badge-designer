@@ -7,6 +7,7 @@ import { Toolbar } from './components/toolbar';
 import { Canvas } from './components/canvas';
 import { Sidebar } from './components/sidebar';
 import { BackgroundSizeDialog } from './components/background-size-dialog';
+import { GenerateDialog, PreviewDialog } from './components/pdf-dialogs';
 import { useAttendees, useDesign } from './use-design';
 import { faceKey, resolveFace, useFonts } from './fonts';
 import { newElement } from './elements';
@@ -127,6 +128,8 @@ function App() {
 	// A background waiting for the organizer to confirm its print size.
 	const [ pending, setPending ] = useState( null );
 	const [ error, setError ] = useState( null );
+	// 'preview' or 'generate' while a PDF dialog is open.
+	const [ pdfDialog, setPdfDialog ] = useState( null );
 
 	const elements = design ? design.elements || [] : [];
 	const fonts = useFonts( elements );
@@ -364,6 +367,8 @@ function App() {
 				history={ history }
 				saveStatus={ saveStatus }
 				saveError={ saveError }
+				onPreview={ () => setPdfDialog( 'preview' ) }
+				onGenerate={ () => setPdfDialog( 'generate' ) }
 			/>
 			{ error && (
 				<Notice status="error" onRemove={ () => setError( null ) }>
@@ -411,6 +416,25 @@ function App() {
 					}
 				/>
 			</div>
+			{ pdfDialog === 'preview' && (
+				<PreviewDialog
+					design={ design }
+					backgroundFile={ backgroundFile }
+					images={ images }
+					attendee={ attendee }
+					onClose={ () => setPdfDialog( null ) }
+				/>
+			) }
+			{ pdfDialog === 'generate' && (
+				<GenerateDialog
+					design={ design }
+					backgroundFile={ backgroundFile }
+					images={ images }
+					attendees={ attendees.list }
+					overflows={ overflows }
+					onClose={ () => setPdfDialog( null ) }
+				/>
+			) }
 			{ pending && (
 				<BackgroundSizeDialog
 					background={ pending.background }
