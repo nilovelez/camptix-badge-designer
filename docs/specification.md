@@ -81,7 +81,7 @@ The server (`includes/attendees.php`, REST route `ctbg/v1/attendees`, administra
 
 ## Elements
 
-The design is made of elements placed over the background. A new design starts with the most common ones already in place: the Gravatar, the QR code, the first name and the last name.
+The design is made of elements placed over the background. A new design starts with the most common ones already in place: the Gravatar, the QR code, the first name and the last name (Nilo confirmed it). They can be removed, and more can be added. Designs saved before elements existed get these four once; after that, removed elements never come back on their own.
 
 Every element:
 
@@ -91,7 +91,10 @@ Every element:
 ### Text box
 
 - Holds text with variables, which are replaced with each attendee's data (for example the first name or the last name).
-- Properties: font family, size and weight, as a minimum. More properties will be defined later.
+- Always one line: text never wraps to a second line.
+- Properties (decided by Nilo): font family, weight, size, color, alignment, uppercase, and shrink to fit with a minimum size. No line height or letter spacing.
+- Text that does not fit: it shrinks down to the minimum size; if it still does not fit, it is cut at the edge of the box and the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing.
+- Color: picked from the site's color palette (the theme's `theme.json` palette and the custom colors; the WordPress default palette when the theme has none). The design stores the hex value, so the color survives an import on a site with another palette.
 - Font families offered:
   - Inter, shipped with the plugin so it works out of the box, in weights 400, 600 and 700 (SIL Open Font License, accepted on WordPress.org). Chosen over Montserrat because it is narrower (long names fit), very legible at a distance, neutral over any background, and covers Latin Extended, Cyrillic, Greek and Vietnamese.
   - Every font installed on the site through the WordPress Font Library (Appearance > Fonts), including Google Fonts installed there.
