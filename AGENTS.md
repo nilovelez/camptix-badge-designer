@@ -30,9 +30,12 @@ Everything an agent needs to resume the work lives in this repository. Do not re
 
 - **Milestones.** Work is split into milestones, listed in `docs/milestones.md`. Ask Nilo for an OK before starting each one. When it is done, present it and stop: Nilo reviews it and must give an explicit, clear OK before the next one starts. Never chain milestones.
 - **Branches.** Work directly on `main`. Once something is working, a new feature to try out goes in its own feature branch; otherwise only when Nilo asks. No pull requests unless asked.
-- **Push** only when Nilo asks.
+- **Push** only when Nilo asks, or when he closes a session (below).
 - **Ignored files.** Nilo will add test documents (for example real CampTix exports) that must stay out of Git. Add them to `.gitignore` as he points them out, and never commit personal data from attendee lists.
-- **End of every session:** update `HANDOFF.md` and the Guppy status (below), and commit them.
+- **End of a session.** When Nilo says the session is over (usually after a milestone or a feature), unless he says otherwise:
+  1. Update `HANDOFF.md` and the Guppy status (below).
+  2. Check that nothing is left uncommitted, and commit what is.
+  3. Push everything to the remote, so the work can be resumed from another computer.
 
 ## WordPress development
 
