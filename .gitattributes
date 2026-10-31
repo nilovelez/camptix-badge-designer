@@ -14,8 +14,11 @@
 /.claude         export-ignore
 /.github         export-ignore
 /guppy           export-ignore
+/AGENTS.md       export-ignore
 /CLAUDE.md       export-ignore
+/HANDOFF.md      export-ignore
 /README.md       export-ignore
+/docs            export-ignore
 /blueprint.json  export-ignore
 /composer.json   export-ignore
 /composer.lock   export-ignore
