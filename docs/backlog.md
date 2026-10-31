@@ -13,9 +13,9 @@ Use the avatar of the attendee's WordPress.org profile when the CampTix email ad
 ## Quick jumps in the attendee pagination
 
 Buttons to go to the next attendee without a QR code, without a Gravatar, or with text that is cut, to review them before printing. Nilo moved it here from milestone 5: it will probably be done another way (October 2026).
-## Release zip
+## Release zip and built plugin
 
-Build the release zip with `git archive` (see the `wp-agentic-workflow` skill). First decide whether `build/` is committed so `git archive` includes it, or the zip is built from the working tree after `npm run build`. Plugin Check already passes on a release-like copy (milestone 7). Nilo postponed it (October 2026).
+`build/` stays out of `main` (decided by Nilo, November 2026). A GitHub Action builds the plugin on every push to `main` and publishes it, ready to install, to a `dist` branch, with only what goes in the plugin (no `src/`, tests or docs). The public Playground demo (milestone 9) installs it from that branch, and the release zip comes from the same place. Plugin Check already passes on a release-like copy (milestone 7).
 
 ## Translatable editor strings
 

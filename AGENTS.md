@@ -16,9 +16,10 @@ This file is the single source of working rules for any agent or person picking 
 | `README.md` | Project overview for GitHub. |
 | `docs/` | Project documentation: specification, milestones, decisions, backlog. |
 | `guppy/` | Project status published to Guppy (see below). |
-| `blueprint.json` | WordPress Playground blueprint for the test site. |
+| `blueprint.json` | WordPress Playground blueprint for the test site (attendees from the CSV in `test-data/`). |
+| `sandbox/` | WordCamp sandbox: a Playground blueprint with the real CampTix from `WordPress/wordcamp.org` and a must-use plugin with invented tickets, questions and attendees. Development only. |
 | `composer.json`, `phpcs.xml.dist` | WordPress Coding Standards (PHPCS). |
-| `includes/` | PHP code loaded by the main file. |
+| `includes/` | PHP code loaded by the main file. `camptix.php` reads the attendees live from CampTix; `attendees.php` turns them, or a CSV export, into the badge list. |
 | `src/` | JavaScript sources, built with `@wordpress/scripts` (`npm run build`) into `build/`, which is not in Git. |
 | `src/vendor/ladyqr/qr.js` | QR encoder copied from LadyQR (GPLv2). |
 | `fonts/inter/` | Inter 4.1 static TTF files and their license. |
@@ -67,6 +68,8 @@ Nilo often works from another computer, reaching this one through Tailscale. Eve
   ```bash
   npx @wp-playground/cli@latest server --blueprint ./blueprint.json --mount-dir . /wordpress/wp-content/plugins/camptix-badge-designer --site-url http://<Tailscale or LAN IP>:9400
   ```
+
+- **WordCamp sandbox** (Playground, disposable): the same command with `--blueprint ./sandbox/blueprint.json`. It installs the real CampTix, pinned to a commit of `WordPress/wordcamp.org`, stands in for the few WordCamp.org functions it needs, and creates the same invented data every time (`sandbox/wordcamp-sandbox.php`: raise `CTBD_SANDBOX_VERSION` to rebuild it). The editor is at Tickets › Badge Designer. PHP errors go to `sandbox/debug.log` (ignored by Git), because the site's own files live inside Playground.
 
 - **Studio** (persistent): created at `~/Studio/camptix-badge-designer`, with the repo linked as the plugin. Start it with `studio start --path <site> --skip-browser`; it is then at `http://camptix-badge-designer.local/` and the other computer needs `<IP> camptix-badge-designer.local` in its hosts file. WP-CLI: `studio wp --path <site> <command>`.
 

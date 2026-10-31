@@ -10,9 +10,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Registers the Badges admin page.
+ * Registers the editor page: Tickets > Badge Designer on sites with
+ * CampTix, next to its other tools, and Badges in the main menu otherwise.
  */
 function ctbd_register_admin_page() {
+	if ( ctbd_camptix_is_active() ) {
+		$GLOBALS['ctbd_admin_hook'] = add_submenu_page(
+			'edit.php?post_type=tix_ticket',
+			__( 'Badge Designer', 'camptix-badge-designer' ),
+			__( 'Badge Designer', 'camptix-badge-designer' ),
+			'manage_options',
+			'ctbd-badges',
+			'ctbd_render_editor_page'
+		);
+		return;
+	}
+
 	$GLOBALS['ctbd_admin_hook'] = add_menu_page(
 		__( 'Badges', 'camptix-badge-designer' ),
 		__( 'Badges', 'camptix-badge-designer' ),

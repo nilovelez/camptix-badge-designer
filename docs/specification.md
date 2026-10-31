@@ -6,7 +6,7 @@ Draft. It grows as Nilo defines the project; open points are listed at the end.
 
 A WordPress plugin for WordCamp sites that generates printed badges. Organizers place the attendees' CampTix fields over a background image in a visual editor, and get a print-ready PDF to send to a print shop.
 
-Long-term goal: read the attendees from CampTix directly and run on every WordCamp site. Until then, development happens on test sites, with a CampTix CSV export as the attendee source (see Attendee data).
+Long-term goal: run on every WordCamp site, as part of WordCamp.org's badge plugin (see "Name, and the road to WordCamp.org" in `docs/decisions.md`). The plugin reads the attendees from CampTix when it is active, and from a CampTix CSV export on test sites without it (see Attendee data).
 
 ## Workflow
 
@@ -32,9 +32,18 @@ Long-term goal: read the attendees from CampTix directly and run on every WordCa
 
 ## Attendee data
 
-- On test sites, the attendee list is read from a CampTix CSV export at a fixed path in `test-data/`.
-- On real WordCamp sites, the attendee list will be read live from the site's CampTix attendees. No CSV upload is planned for production.
+- When CampTix is active, as on WordCamp sites, the attendee list is read live from its `tix_attendee` posts (`includes/camptix.php`, milestone 8). It is built as the same table CampTix's own CSV export produces, with the same functions and hooks (`get_all_questions()`, `get_attendee_answers()`, the `camptix_attendee_report_*` filters), so both sources go through the same reader and a design works with either. The add-on columns (Username, Severe allergy…) get their English names by internal key, because the export translates its headers into the user's language. The editor is then under Tickets › Badge Designer.
+- Without CampTix, on test sites, the list is read from a CampTix CSV export at a fixed path in `test-data/`, and the editor is Badges in the main menu. No CSV upload is planned for production.
 - Attendee data is not part of the saved design.
+
+### CampTix data model
+
+From `WordPress/wordcamp.org` (`public_html/wp-content/plugins/camptix/`), where CampTix lives now:
+
+- `tix_ticket`: ticket types. `tix_question`: the event's questions (`tix_type`, `tix_values`, `tix_required`), linked to tickets with `tix_question_id` and `tix_questions_order`.
+- `tix_attendee`: one post per attendee, not per order. Statuses: `publish` (paid), `pending`, `draft` (checkout in progress), `cancel`, `failed`, `timeout`, `refund`. The export covers `publish` and `pending`.
+- Attendee meta: `tix_first_name`, `tix_last_name`, `tix_email`, `tix_ticket_id`, `tix_timestamp`, `tix_access_token` (shared by an order; the buyer is the first), `tix_questions` (answers by question ID), and `tix_username` from the require-login add-on, which holds `[[ unconfirmed ]]` for a ticket not claimed yet.
+- A ticket bought for an "unknown attendee" holds placeholder data (`Unknown Attendee`, `unknown.attendee@example.org`) until someone claims it. It gets no badge, from either source; the real export had one.
 
 ### CampTix CSV export format
 
@@ -161,4 +170,3 @@ CampTix exports contain real names and email addresses.
 ## Out of the first phase
 
 - Several designs per site, or styles that depend on the ticket type (organizer, speaker, volunteer...).
-- Reading attendees live from CampTix.

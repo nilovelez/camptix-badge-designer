@@ -42,6 +42,7 @@ function is_wp_error( $thing ) {
 	return $thing instanceof WP_Error;
 }
 
+require CTBD_PLUGIN_DIR . 'includes/camptix.php';
 require CTBD_PLUGIN_DIR . 'includes/attendees.php';
 
 $failures = 0;
@@ -82,6 +83,7 @@ $csv    = array(
 		array( '12', 'General', 'luis', 'PEÑA', 'Luis@Example.com ', 'Publish', 'luispena', 'No', 'Yes', 'Sí' ),
 		array( '3', 'General', 'Ana', 'Ruiz', 'ana@example.com', 'Publish', 'Awaiting attendee ([[ unconfirmed ]])', 'Yes (we will contact you)', 'No', 'No' ),
 		array( '7', 'General', 'Eva', 'Vidal', 'not-an-email', 'Refund', 'eva', 'No', 'No', 'No' ),
+		array( '15', 'General', 'Unknown', 'Attendee', 'unknown.attendee@example.org', 'Publish', 'Awaiting attendee ([[ unconfirmed ]])', '', '', '' ),
 	),
 	'malformed' => 1,
 );
@@ -95,7 +97,8 @@ check( 'no email in the output', false !== strpos( json_encode( $result ), 'exam
 check( 'placeholder username removed', $result['attendees'][0]['username'], '' );
 check( 'questions: event ones and first time, never allergies', array_column( $result['questions'], 'label' ), array( 'First Time Attending', '¿Vendrás el domingo?' ) );
 check( 'answers keyed by question', $result['attendees'][1]['answers'], array( 'first-time-attending' => 'Yes', 'vendras-el-domingo' => 'Sí' ) );
-check( 'stats', array( $result['stats']['rows'], $result['stats']['malformed'], $result['stats']['withoutUsername'] ), array( 4, 1, 1 ) );
+check( 'stats', array( $result['stats']['rows'], $result['stats']['malformed'], $result['stats']['withoutUsername'] ), array( 5, 1, 1 ) );
+check( 'unknown attendee placeholder left out', $result['stats']['placeholders'], 1 );
 
 echo $failures ? "\n$failures failed\n" : "\nAll passed\n";
 exit( $failures ? 1 : 0 );

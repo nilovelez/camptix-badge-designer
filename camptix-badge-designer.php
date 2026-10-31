@@ -23,6 +23,7 @@ define( 'CTBD_PLUGIN_FILE', __FILE__ );
 define( 'CTBD_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CTBD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+require_once CTBD_PLUGIN_DIR . 'includes/camptix.php';
 require_once CTBD_PLUGIN_DIR . 'includes/attendees.php';
 require_once CTBD_PLUGIN_DIR . 'includes/design.php';
 require_once CTBD_PLUGIN_DIR . 'includes/fonts.php';

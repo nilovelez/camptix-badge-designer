@@ -2,7 +2,8 @@
 /**
  * Attendee data.
  *
- * On test sites the attendees come from a CampTix CSV export in test-data/.
+ * The attendees come from CampTix when it is active (includes/camptix.php),
+ * and otherwise, on test sites, from a CampTix CSV export in test-data/.
  * Only the fields a badge may show leave this file: email addresses are
  * turned into Gravatar hashes here and never reach the browser.
  *
@@ -233,14 +234,16 @@ function ctbd_parse_attendees( $csv ) {
 		}
 	}
 
-	$stats = array(
+	$stats         = array(
 		'rows'            => count( $csv['rows'] ) + $csv['malformed'],
 		'malformed'       => $csv['malformed'],
 		'skippedByStatus' => array(),
 		'withoutUsername' => 0,
 		'withoutEmail'    => 0,
 		'namesNormalized' => 0,
+		'placeholders'    => 0,
 	);
+	$unknown_email = ctbd_unknown_attendee_email();
 
 	$attendees = array();
 	foreach ( $csv['rows'] as $row ) {
@@ -256,6 +259,13 @@ function ctbd_parse_attendees( $csv ) {
 			continue;
 		}
 
+		// Tickets bought for an unknown attendee have no name to print yet.
+		$email = isset( $data['E-mail Address'] ) ? strtolower( trim( $data['E-mail Address'] ) ) : '';
+		if ( $unknown_email === $email ) {
+			++$stats['placeholders'];
+			continue;
+		}
+
 		$first_name = ctbd_normalize_name( $data['First Name'] );
 		$last_name  = ctbd_normalize_name( $data['Last Name'] );
 		if ( trim( preg_replace( '/\s+/u', ' ', $data['First Name'] ) ) !== $first_name || trim( preg_replace( '/\s+/u', ' ', $data['Last Name'] ) ) !== $last_name ) {
@@ -268,7 +278,6 @@ function ctbd_parse_attendees( $csv ) {
 		}
 
 		// Gravatar addresses images by the SHA-256 of the trimmed, lowercase email.
-		$email         = isset( $data['E-mail Address'] ) ? strtolower( trim( $data['E-mail Address'] ) ) : '';
 		$gravatar_hash = '';
 		if ( is_email( $email ) ) {
 			$gravatar_hash = hash( 'sha256', $email );
@@ -312,11 +321,20 @@ function ctbd_parse_attendees( $csv ) {
 }
 
 /**
- * The attendee list for badges, from the current source.
+ * The attendee list for badges, from the current source: CampTix when it
+ * is active on the site, otherwise the CSV export in test-data/.
  *
  * @return array|WP_Error {source, attendees, questions, stats}.
  */
 function ctbd_get_attendees() {
+	if ( ctbd_camptix_is_active() ) {
+		$result = ctbd_parse_attendees( ctbd_read_camptix() );
+		if ( ! is_wp_error( $result ) ) {
+			$result['source'] = 'CampTix';
+		}
+		return $result;
+	}
+
 	$path = ctbd_get_test_csv_path();
 	$csv  = ctbd_read_csv( $path );
 	if ( is_wp_error( $csv ) ) {

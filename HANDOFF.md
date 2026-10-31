@@ -5,7 +5,8 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 ## Current state
 
 - The plugin was renamed from Camptix Badge Generator to **CampTix Badge Designer** (`camptix-badge-designer`, prefix `ctbd`), because WordCamp.org already runs a plugin with the old name. Why, and the plan to take this to WordCamp.org, are in "Name, and the road to WordCamp.org" in `docs/decisions.md`. Read it first.
-- Milestones 0 to 7 are done. Milestone 8 (WordCamp sandbox with the real CampTix, attendees read live) is proposed and waits for Nilo's OK. Milestones, and the approved editor layout, are in `docs/milestones.md`.
+- Milestones 0 to 7 are done. Milestone 8 (WordCamp sandbox with the real CampTix, attendees read live) is done and waiting for Nilo's review. Milestones, and the approved editor layout, are in `docs/milestones.md`.
+- With CampTix active, the attendees come live from `tix_attendee` (`includes/camptix.php`), as the same table as CampTix's CSV export, and the editor is under Tickets › Badge Designer. The WordCamp sandbox (`sandbox/`, see `AGENTS.md`) has the real CampTix and invented data.
 - **Badges** in the admin menu is the editor (`src/editor/`): toolbar with the + inserter, undo, redo and the attendee pagination; canvas with guides and the elements (text boxes, Gravatar, QR code), which can be selected, dragged, resized and nudged; the Document and Element sidebar. The background comes from the Media Library (PDF, PNG or JPG). The design is saved automatically in the `ctbd_design` option through the REST route `ctbd/v1/design` (`includes/design.php`, which also validates the elements). Fonts (Inter and the Font Library) and the site palette come from `includes/fonts.php`. Preview badge and Generate PDF build the PDF in the browser (`src/editor/build-pdf.js`).
 - `src/shared/` holds the text layout, the QR path and the Gravatar URL, shared by the editor and the PDF generator so screen and paper match.
 - Ideas for later are in `docs/backlog.md`.
@@ -19,7 +20,8 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Next steps
 
-1. Milestone 8, when Nilo gives the OK.
+1. Nilo reviews milestone 8 in the WordCamp sandbox.
+2. Milestone 9 (public demo and proposal upstream), when Nilo gives the OK. It needs the GitHub Action that publishes the built plugin to a `dist` branch (see `docs/backlog.md`).
 
 ## Open questions
 

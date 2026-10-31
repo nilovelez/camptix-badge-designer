@@ -30,6 +30,12 @@ function Summary( { data } ) {
 					.
 				</li>
 			) }
+			{ stats.placeholders > 0 && (
+				<li>
+					Tickets bought for an unknown attendee, left out until
+					claimed: { stats.placeholders }.
+				</li>
+			) }
 			{ stats.malformed > 0 && (
 				<li>Malformed rows skipped: { stats.malformed }.</li>
 			) }

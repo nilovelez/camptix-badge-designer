@@ -40,7 +40,7 @@ Features:
 
 = Where does the attendee list come from? =
 
-In this development version, from a CampTix CSV export placed in the plugin's `test-data` folder. Reading the attendees live from CampTix is planned.
+From CampTix, live, when it is active on the site: only paid tickets get a badge, in purchase order. The editor is then under Tickets > Badge Designer. On a development site without CampTix, from a CampTix CSV export placed in the plugin's `test-data` folder.
 
 = Why do some badges have no QR code? =
 

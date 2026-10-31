@@ -10,6 +10,9 @@ node_modules/
 /test-data/
 *.csv
 
+# PHP log of the WordCamp sandbox.
+/sandbox/debug.log
+
 # Release zips built with `git archive`.
 /*.zip
 
