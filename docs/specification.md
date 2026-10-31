@@ -56,7 +56,7 @@ The variables a text box can insert:
 
 Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("McDonald") stay as typed. Particles such as "de" or "del" stay in lowercase. The organizer can still turn a text box to uppercase as a style.
 
-Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). Event questions with sensitive answers can be excluded with the `ctbg_excluded_questions` filter.
+Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). Every question the event adds stays available, whatever it asks (decided by Nilo); a site can still exclude one with the `ctbg_excluded_questions` filter.
 
 ### What reaches the browser
 
