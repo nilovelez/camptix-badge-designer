@@ -61,7 +61,12 @@ async function fetchBytes( url ) {
 }
 
 function imageType( bytes ) {
-	if ( bytes[ 0 ] === 0x89 && bytes[ 1 ] === 0x50 && bytes[ 2 ] === 0x4e && bytes[ 3 ] === 0x47 ) {
+	if (
+		bytes[ 0 ] === 0x89 &&
+		bytes[ 1 ] === 0x50 &&
+		bytes[ 2 ] === 0x4e &&
+		bytes[ 3 ] === 0x47
+	) {
 		return 'png';
 	}
 	if ( bytes[ 0 ] === 0xff && bytes[ 1 ] === 0xd8 ) {
@@ -96,9 +101,9 @@ async function runPool( items, limit, worker ) {
 /**
  * Shrinks the size until the text fits the box width, down to minSize.
  *
- * @param {Object} font  Embedded pdf-lib font.
- * @param {string} text  Text to fit.
- * @param {Object} box   Element with width (mm), size and minSize (pt).
+ * @param {Object} font Embedded pdf-lib font.
+ * @param {string} text Text to fit.
+ * @param {Object} box  Element with width (mm), size and minSize (pt).
  * @return {{size: number, width: number, overflow: boolean}} Fitted size and text width in points.
  */
 function fitText( font, text, box ) {
@@ -162,9 +167,17 @@ function drawCropMarks( page, left, bottom, right, top, offset ) {
 	];
 	for ( const [ x, y, dx, dy ] of corners ) {
 		// Horizontal mark, on the line of the top or bottom trim edge.
-		page.drawLine( { start: { x: x + dx * offset, y }, end: { x: x + dx * ( offset + length ), y }, ...line } );
+		page.drawLine( {
+			start: { x: x + dx * offset, y },
+			end: { x: x + dx * ( offset + length ), y },
+			...line,
+		} );
 		// Vertical mark, on the line of the left or right trim edge.
-		page.drawLine( { start: { x, y: y + dy * offset }, end: { x, y: y + dy * ( offset + length ) }, ...line } );
+		page.drawLine( {
+			start: { x, y: y + dy * offset },
+			end: { x, y: y + dy * ( offset + length ) },
+			...line,
+		} );
 	}
 }
 
@@ -203,36 +216,79 @@ export async function generateBadges( options ) {
 	const fonts = {};
 	for ( const weight of [ '700', '600' ] ) {
 		const bytes = await fetchBytes( options.fonts[ weight ] );
-		fonts[ weight ] = await doc.embedFont( bytes, { subset: options.subset } );
+		fonts[ weight ] = await doc.embedFont( bytes, {
+			subset: options.subset,
+		} );
 	}
-	step( 'Fonts loaded and embedded', options.subset ? 'Inter 700 and 600, subset' : 'Inter 700 and 600, full fonts' );
+	step(
+		'Fonts loaded and embedded',
+		options.subset
+			? 'Inter 700 and 600, subset'
+			: 'Inter 700 and 600, full fonts'
+	);
 
 	// Background, embedded once and drawn on every page.
 	let background = null;
 	if ( options.background ) {
 		if ( options.background.type === 'pdf' ) {
-			const [ embedded ] = await doc.embedPdf( options.background.bytes, [ 0 ] );
+			const [ embedded ] = await doc.embedPdf(
+				options.background.bytes,
+				[ 0 ]
+			);
 			background = { kind: 'page', object: embedded };
 		} else if ( options.background.type === 'png' ) {
-			background = { kind: 'image', object: await doc.embedPng( options.background.bytes ) };
+			background = {
+				kind: 'image',
+				object: await doc.embedPng( options.background.bytes ),
+			};
 		} else {
-			background = { kind: 'image', object: await doc.embedJpg( options.background.bytes ) };
+			background = {
+				kind: 'image',
+				object: await doc.embedJpg( options.background.bytes ),
+			};
 		}
-		step( 'Background embedded', options.background.type.toUpperCase() + ', ' + Math.round( options.background.bytes.length / 1024 ) + ' KB' );
+		step(
+			'Background embedded',
+			options.background.type.toUpperCase() +
+				', ' +
+				Math.round( options.background.bytes.length / 1024 ) +
+				' KB'
+		);
 	}
 
 	// Gravatars: one request per distinct email, a few at a time.
 	const images = new Map();
-	const gravatarStats = { requested: 0, png: 0, jpg: 0, missing: 0, failed: 0, errors: [] };
+	const gravatarStats = {
+		requested: 0,
+		png: 0,
+		jpg: 0,
+		missing: 0,
+		failed: 0,
+		errors: [],
+	};
 	if ( options.gravatars ) {
 		const px = Math.round( ( layout.gravatar.size / 25.4 ) * 300 );
 		// The server sends Gravatar hashes, never email addresses.
-		const hashes = [ ...new Set( attendees.map( ( a ) => a.gravatarHash ).filter( Boolean ) ) ];
+		const hashes = [
+			...new Set(
+				attendees.map( ( a ) => a.gravatarHash ).filter( Boolean )
+			),
+		];
 		await runPool( hashes, 8, async ( hash ) => {
-			const url = 'https://gravatar.com/avatar/' + hash + '?s=' + px + '&d=' + encodeURIComponent( options.fallback ) + '&r=g';
+			const url =
+				'https://gravatar.com/avatar/' +
+				hash +
+				'?s=' +
+				px +
+				'&d=' +
+				encodeURIComponent( options.fallback ) +
+				'&r=g';
 			gravatarStats.requested++;
 			try {
-				const response = await fetch( url, { mode: 'cors', credentials: 'omit' } );
+				const response = await fetch( url, {
+					mode: 'cors',
+					credentials: 'omit',
+				} );
 				// With d=404 ("none"), attendees without a Gravatar get a 404:
 				// nothing is drawn and the background shows through.
 				if ( response.status === 404 ) {
@@ -257,14 +313,29 @@ export async function generateBadges( options ) {
 				// No image: the background shows through. Never stop.
 				gravatarStats.failed++;
 				if ( gravatarStats.errors.length < 3 ) {
-					gravatarStats.errors.push( String( error.message || error ) );
+					gravatarStats.errors.push(
+						String( error.message || error )
+					);
 				}
 			}
 		} );
 		step(
 			'Gravatars fetched and embedded',
-			gravatarStats.requested + ' requested at ' + px + ' px: ' + gravatarStats.png + ' PNG, ' + gravatarStats.jpg + ' JPG, ' + gravatarStats.missing + ' without Gravatar, ' + gravatarStats.failed + ' failed' +
-				( gravatarStats.errors.length ? ' (' + gravatarStats.errors.join( '; ' ) + ')' : '' )
+			gravatarStats.requested +
+				' requested at ' +
+				px +
+				' px: ' +
+				gravatarStats.png +
+				' PNG, ' +
+				gravatarStats.jpg +
+				' JPG, ' +
+				gravatarStats.missing +
+				' without Gravatar, ' +
+				gravatarStats.failed +
+				' failed' +
+				( gravatarStats.errors.length
+					? ' (' + gravatarStats.errors.join( '; ' ) + ')'
+					: '' )
 		);
 	}
 
@@ -308,7 +379,12 @@ export async function generateBadges( options ) {
 			const y = fromTop( g.y + g.size );
 			const size = mm( g.size );
 			if ( options.shape === 'round' ) {
-				page.pushOperators( pushGraphicsState(), ...circleOperators( x + size / 2, y + size / 2, size / 2 ), clip(), endPath() );
+				page.pushOperators(
+					pushGraphicsState(),
+					...circleOperators( x + size / 2, y + size / 2, size / 2 ),
+					clip(),
+					endPath()
+				);
 				page.drawImage( image, { x, y, width: size, height: size } );
 				page.pushOperators( popGraphicsState() );
 			} else {
@@ -317,7 +393,10 @@ export async function generateBadges( options ) {
 		}
 
 		// Names, centered and shrunk to fit.
-		for ( const [ key, text ] of [ [ 'firstName', attendee.firstName ], [ 'lastName', attendee.lastName ] ] ) {
+		for ( const [ key, text ] of [
+			[ 'firstName', attendee.firstName ],
+			[ 'lastName', attendee.lastName ],
+		] ) {
 			const box = layout[ key ];
 			const font = fonts[ box.weight ];
 			const fit = fitText( font, text, box );
@@ -335,14 +414,23 @@ export async function generateBadges( options ) {
 
 		// QR code, only with a username: otherwise the space stays empty.
 		if ( attendee.username ) {
-			const qr = encode( 'https://profiles.wordpress.org/' + attendee.username + '/', 'M' );
+			const qr = encode(
+				'https://profiles.wordpress.org/' + attendee.username + '/',
+				'M'
+			);
 			const quiet = 2;
 			const total = qr.size + 2 * quiet;
 			const size = mm( layout.qr.size );
 			const module = size / total;
 			const x = trimLeft + mm( layout.qr.x );
 			const top = fromTop( layout.qr.y );
-			page.drawRectangle( { x, y: top - size, width: size, height: size, color: WHITE } );
+			page.drawRectangle( {
+				x,
+				y: top - size,
+				width: size,
+				height: size,
+				color: WHITE,
+			} );
 			page.drawSvgPath( qrPath( qr.modules ), {
 				x: x + quiet * module,
 				y: top - quiet * module,
@@ -355,18 +443,42 @@ export async function generateBadges( options ) {
 		}
 
 		if ( options.cropMarks ) {
-			drawCropMarks( page, trimLeft, trimBottom, trimRight, trimTop, mm( layout.bleed ) );
+			drawCropMarks(
+				page,
+				trimLeft,
+				trimBottom,
+				trimRight,
+				trimTop,
+				mm( layout.bleed )
+			);
 		}
 	}
 	step(
 		'Pages laid out',
-		attendees.length + ' pages of ' + ( layout.width + 2 * margin ) + ' × ' + ( layout.height + 2 * margin ) + ' mm; ' +
-			withoutQr + ' without QR (no username); ' + overflow + ' names still too wide at the minimum size'
+		attendees.length +
+			' pages of ' +
+			( layout.width + 2 * margin ) +
+			' × ' +
+			( layout.height + 2 * margin ) +
+			' mm; ' +
+			withoutQr +
+			' without QR (no username); ' +
+			overflow +
+			' names still too wide at the minimum size'
 	);
 
 	const bytes = await doc.save( { useObjectStreams: true } );
-	step( 'PDF saved', Math.round( ( bytes.length / 1048576 ) * 100 ) / 100 + ' MB' );
-	log( { label: 'Total', ms: Math.round( now() - started ), detail: '', heap: heapMb(), total: true } );
+	step(
+		'PDF saved',
+		Math.round( ( bytes.length / 1048576 ) * 100 ) / 100 + ' MB'
+	);
+	log( {
+		label: 'Total',
+		ms: Math.round( now() - started ),
+		detail: '',
+		heap: heapMb(),
+		total: true,
+	} );
 
 	return bytes;
 }
@@ -380,11 +492,17 @@ export async function generateBadges( options ) {
  * @return {Promise<{bytes: Uint8Array, converted: boolean}>} A font pdf-lib can subset.
  */
 export async function toEmbeddableFont( bytes ) {
-	const isWoff2 = bytes[ 0 ] === 0x77 && bytes[ 1 ] === 0x4f && bytes[ 2 ] === 0x46 && bytes[ 3 ] === 0x32;
+	const isWoff2 =
+		bytes[ 0 ] === 0x77 &&
+		bytes[ 1 ] === 0x4f &&
+		bytes[ 2 ] === 0x46 &&
+		bytes[ 3 ] === 0x32;
 	if ( ! isWoff2 ) {
 		return { bytes, converted: false };
 	}
-	const { default: decompress } = await import( /* webpackChunkName: "woff2" */ 'woff2-encoder/decompress' );
+	const { default: decompress } = await import(
+		/* webpackChunkName: "woff2" */ 'woff2-encoder/decompress'
+	);
 	return { bytes: await decompress( bytes ), converted: true };
 }
 
@@ -404,11 +522,23 @@ export async function checkWoff2( url ) {
 		doc.registerFontkit( fontkit );
 		const font = await doc.embedFont( ttf.bytes, { subset: true } );
 		const page = doc.addPage( [ mm( 100 ), mm( 30 ) ] );
-		page.drawText( 'WOFF2: Begoña Íñiguez Ølstad', { x: mm( 5 ), y: mm( 12 ), size: 14, font } );
+		page.drawText( 'WOFF2: Begoña Íñiguez Ølstad', {
+			x: mm( 5 ),
+			y: mm( 12 ),
+			size: 14,
+			font,
+		} );
 		const bytes = await doc.save();
 		return {
 			ok: true,
-			detail: 'WOFF2 of ' + Math.round( fontBytes.length / 1024 ) + ' KB converted to TTF in ' + ms + ' ms, subset and embedded (' + Math.round( bytes.length / 1024 ) + ' KB PDF).',
+			detail:
+				'WOFF2 of ' +
+				Math.round( fontBytes.length / 1024 ) +
+				' KB converted to TTF in ' +
+				ms +
+				' ms, subset and embedded (' +
+				Math.round( bytes.length / 1024 ) +
+				' KB PDF).',
 			bytes,
 		};
 	} catch ( error ) {

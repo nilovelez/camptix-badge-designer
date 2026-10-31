@@ -11,7 +11,15 @@ Build the editor with `@wordpress/element` (React) and `@wordpress/components`, 
 - WordPress loads React itself, so the plugin does not ship it.
 - Drag and resize are done with pointer events on an absolutely positioned layer over the background, in millimeters scaled to the screen. That logic is small and fully under our control.
 
-The milestone 1 spike already uses this stack for its admin page (`src/spike/`), and it works.
+The milestone 1 spike already uses this stack for its admin page (`src/spike/`), and it works. The editor (`src/editor/`, milestone 3) is built on it.
+
+## Editor behavior (decided by Nilo, milestone 3)
+
+- The editor lives inside the normal admin, with the admin bar and the admin menu (see the layout in `docs/milestones.md`).
+- The design is saved automatically, one second after the last change, in the `ctbg_design` option through the REST route `ctbg/v1/design`. The toolbar shows "Saved", "Unsaved changes", "Saving…" or "Not saved". Leaving the page with unsaved changes asks for confirmation.
+- The safe area is configurable, 5 mm inside the trim by default.
+- The milestone 1 spike stays under Badges › Technical test until real generation replaces it in milestone 6.
+- One Media Library frame is created and reused: a new frame each time adds another modal to the page.
 
 ## PDF: generated in the browser with pdf-lib (proposal, confirmed by the spike)
 

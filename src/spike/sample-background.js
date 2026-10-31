@@ -14,9 +14,27 @@ export async function makeSampleBackground() {
 	const font = await doc.embedFont( StandardFonts.HelveticaBold );
 
 	// Light paper with a blue band at the top and a pale one at the bottom.
-	page.drawRectangle( { x: 0, y: 0, width, height, color: rgb( 0.98, 0.97, 0.94 ) } );
-	page.drawRectangle( { x: 0, y: height - 16 * PT_PER_MM, width, height: 16 * PT_PER_MM, color: rgb( 0.22, 0.35, 0.91 ) } );
-	page.drawRectangle( { x: 0, y: 0, width, height: 46 * PT_PER_MM, color: rgb( 0.9, 0.93, 1 ) } );
+	page.drawRectangle( {
+		x: 0,
+		y: 0,
+		width,
+		height,
+		color: rgb( 0.98, 0.97, 0.94 ),
+	} );
+	page.drawRectangle( {
+		x: 0,
+		y: height - 16 * PT_PER_MM,
+		width,
+		height: 16 * PT_PER_MM,
+		color: rgb( 0.22, 0.35, 0.91 ),
+	} );
+	page.drawRectangle( {
+		x: 0,
+		y: 0,
+		width,
+		height: 46 * PT_PER_MM,
+		color: rgb( 0.9, 0.93, 1 ),
+	} );
 
 	// Decorative vector circles: they must stay sharp at any zoom.
 	const circles = [
@@ -26,7 +44,13 @@ export async function makeSampleBackground() {
 		[ 100, 52, 8, rgb( 1, 0.76, 0.03 ) ],
 	];
 	for ( const [ x, y, r, color ] of circles ) {
-		page.drawCircle( { x: x * PT_PER_MM, y: y * PT_PER_MM, size: r * PT_PER_MM, color, opacity: 0.8 } );
+		page.drawCircle( {
+			x: x * PT_PER_MM,
+			y: y * PT_PER_MM,
+			size: r * PT_PER_MM,
+			color,
+			opacity: 0.8,
+		} );
 	}
 
 	const title = 'WORDCAMP EXAMPLE 2027';

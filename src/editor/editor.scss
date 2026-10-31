@@ -1,0 +1,297 @@
+// Badge editor. It fills the admin content area below the admin bar,
+// keeping the admin bar and the admin menu.
+
+$border: #e0e0e0;
+$canvas: #e0e0e0;
+$accent: var(--wp-admin-theme-color, #3858e9);
+
+.ctbg-editor-page {
+	#wpcontent {
+		padding-left: 0;
+	}
+
+	#wpbody-content {
+		padding-bottom: 0;
+	}
+
+	#wpfooter {
+		display: none;
+	}
+
+	// Notices from WordPress and other plugins would push the editor down.
+	#wpbody-content > .notice,
+	#wpbody-content > .update-nag,
+	#wpbody-content > .error,
+	#wpbody-content > .updated {
+		display: none;
+	}
+}
+
+.ctbg-editor {
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
+	background: #fff;
+	color: #1e1e1e;
+
+	&__loading {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-grow: 1;
+		padding: 32px;
+	}
+
+	&__body {
+		display: flex;
+		flex-grow: 1;
+		min-height: 0;
+	}
+}
+
+// Toolbar.
+.ctbg-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: 56px;
+	flex-shrink: 0;
+	padding: 0 16px;
+	border-bottom: 1px solid $border;
+
+	&__spacer {
+		flex-grow: 1;
+	}
+
+	&__status {
+		padding: 0 12px;
+		color: #757575;
+
+		&.is-error {
+			color: #cc1818;
+		}
+	}
+
+	.components-button.is-primary,
+	.components-button.is-secondary {
+		margin-left: 4px;
+	}
+}
+
+.ctbg-pager {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: 36px;
+	padding: 0 4px;
+	background: #f0f0f0;
+	border-radius: 2px;
+	min-width: 0;
+
+	&__number {
+		width: 52px;
+		height: 28px;
+		min-height: 28px;
+	}
+
+	&__total {
+		color: #757575;
+		white-space: nowrap;
+	}
+
+	&__name {
+		max-width: 260px;
+		padding: 0 8px 0 4px;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+}
+
+// Canvas.
+.ctbg-canvas {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	background: $canvas;
+
+	&__page {
+		position: relative;
+		flex-shrink: 0;
+		overflow: hidden;
+		background: #fff;
+		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	&__background {
+		position: absolute;
+		inset: 0;
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	img.ctbg-canvas__background {
+		object-fit: fill;
+	}
+
+	&__overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 16px;
+		text-align: center;
+		color: #757575;
+	}
+
+	// Guides: they never take clicks.
+	&__trim,
+	&__safe {
+		position: absolute;
+		box-sizing: border-box;
+		pointer-events: none;
+	}
+
+	// The trim line, with the bleed outside it dimmed.
+	&__trim {
+		border: 1px dashed #cc1818;
+		box-shadow: 0 0 0 9999px rgba(255, 255, 255, 0.45);
+	}
+
+	&__safe {
+		border: 1px dashed #3858e9;
+	}
+}
+
+// Sidebar.
+.ctbg-sidebar {
+	flex: 0 0 280px;
+	width: 280px;
+	overflow-y: auto;
+	border-left: 1px solid $border;
+	background: #fff;
+
+	&__tabs .components-tab-panel__tabs {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		display: flex;
+		background: #fff;
+		border-bottom: 1px solid $border;
+
+		.components-tab-panel__tabs-item {
+			flex: 1 1 0;
+			justify-content: center;
+			height: 48px;
+		}
+	}
+
+	&__empty {
+		padding: 16px;
+		color: #757575;
+	}
+
+	.components-panel__body {
+		border-bottom: 1px solid $border;
+	}
+
+	p {
+		margin-top: 0;
+	}
+}
+
+.ctbg-help {
+	color: #757575;
+}
+
+.ctbg-button-row {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.ctbg-size-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.ctbg-toggles {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.ctbg-background-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 8px;
+
+	&__thumb {
+		flex-shrink: 0;
+		width: 44px;
+		height: 64px;
+		object-fit: cover;
+		border: 1px solid $border;
+
+		&.is-pdf {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 11px;
+			font-weight: 600;
+			color: #757575;
+			background: #f0f0f0;
+		}
+	}
+
+	&__text {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+		overflow-wrap: anywhere;
+
+		span {
+			color: #757575;
+		}
+	}
+}
+
+.ctbg-sidebar .components-notice {
+	margin: 8px 0;
+}
+
+// Background size dialog.
+.ctbg-size-dialog {
+	max-width: 480px;
+
+	&__fields {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 12px;
+		margin: 16px 0;
+	}
+
+	&__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 16px;
+	}
+
+	.components-notice {
+		margin: 8px 0 0;
+	}
+}

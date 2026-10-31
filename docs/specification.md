@@ -69,12 +69,13 @@ The server (`includes/attendees.php`, REST route `ctbg/v1/attendees`, administra
 ## Badge size
 
 - Default: 100 × 150 mm (width × height, portrait) trim size, with 3 mm bleed on each side, so the background and each PDF page are 106 × 156 mm.
-- Print size and bleed are configurable, so other badge sizes can be used.
-- When a background image is uploaded, the editor reads its pixel dimensions:
-  - If its aspect ratio matches the current print size plus bleed (106 × 156 mm by default), it is used as is.
-  - Otherwise, the editor asks for the print size and the bleed.
-- The editor shows the effective resolution of the background at the chosen size and warns when it is too low for print (300 dpi recommended: 1252 × 1843 px for the default size).
-- The editor shows the trim line and the safe area as guides; they are not printed.
+- Print size, bleed and safe area are configurable, so other badge sizes can be used. Limits: 20 to 500 mm per side, bleed up to 10 mm, safe area up to 30 mm (5 mm by default).
+- When a background is chosen, the editor checks it against the current page with bleed:
+  - A PDF has a physical page size. If it matches the page with bleed (within 0.5 mm), it is used as is. Otherwise the editor shows the PDF's page size and asks how much of it is bleed; the print size follows.
+  - An image has pixels only. If its proportions match the page with bleed (within 1%), it is used as is. Otherwise the editor asks for the width and the bleed; the height follows the image's proportions.
+  - If the print size is changed later and the background no longer matches, the editor warns that it is stretched and offers to adjust the print size.
+- The editor shows the effective resolution of an image background at the chosen size and warns when it is too low for print (300 dpi recommended: 1252 × 1843 px for the default size).
+- The editor shows the trim line and the safe area as guides, with the bleed dimmed; they are not printed and can be hidden.
 
 - Crop marks: optional, drawn in the PDF the way print shops expect them, as short corner marks outside the bleed area, not as guide lines over the design. With crop marks on, each page grows to make room for them.
 

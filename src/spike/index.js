@@ -21,9 +21,8 @@ import * as pdfjs from 'pdfjs-dist';
 import { generateBadges, checkWoff2 } from './generate';
 import { makeAttendees } from './attendees';
 import { makeSampleBackground } from './sample-background';
-import { AttendeesPanel } from './attendees-panel';
 
-const settings = window.ctbgSpike;
+const settings = window.ctbgSettings;
 pdfjs.GlobalWorkerOptions.workerSrc = settings.pdfWorkerUrl;
 
 function fileType( file ) {
@@ -55,7 +54,9 @@ async function renderFirstPage( bytes, canvas, width ) {
 	const page = await pdf.getPage( 1 );
 	const base = page.getViewport( { scale: 1 } );
 	const ratio = window.devicePixelRatio || 1;
-	const viewport = page.getViewport( { scale: ( width / base.width ) * ratio } );
+	const viewport = page.getViewport( {
+		scale: ( width / base.width ) * ratio,
+	} );
 	canvas.width = viewport.width;
 	canvas.height = viewport.height;
 	canvas.style.width = width + 'px';
@@ -67,19 +68,18 @@ async function renderFirstPage( bytes, canvas, width ) {
 
 function App() {
 	const [ attendeeData, setAttendeeData ] = useState( null );
-	const [ attendeeError, setAttendeeError ] = useState( null );
 
 	useEffect( () => {
+		// Without the test CSV the spike still works with invented attendees.
 		apiFetch( { path: '/ctbg/v1/attendees' } )
 			.then( setAttendeeData )
-			.catch( ( e ) => setAttendeeError( e.message || String( e ) ) );
+			.catch( () => setAttendeeData( null ) );
 	}, [] );
 
 	return (
-		<>
-			<AttendeesPanel data={ attendeeData } error={ attendeeError } />
-			<SpikePanel csvAttendees={ attendeeData ? attendeeData.attendees : null } />
-		</>
+		<SpikePanel
+			csvAttendees={ attendeeData ? attendeeData.attendees : null }
+		/>
 	);
 }
 
@@ -122,7 +122,10 @@ function SpikePanel( { csvAttendees } ) {
 		if ( ! type ) {
 			throw new Error( 'The background must be a PDF, PNG or JPG file.' );
 		}
-		return { type, bytes: new Uint8Array( await backgroundFile.arrayBuffer() ) };
+		return {
+			type,
+			bytes: new Uint8Array( await backgroundFile.arrayBuffer() ),
+		};
 	}
 
 	async function run() {
@@ -141,7 +144,9 @@ function SpikePanel( { csvAttendees } ) {
 			if ( attendeeSource === 'csv' && csvAttendees ) {
 				attendees = csvAttendees;
 			} else {
-				attendees = makeAttendees( Math.max( 1, parseInt( count, 10 ) || 1 ) );
+				attendees = makeAttendees(
+					Math.max( 1, parseInt( count, 10 ) || 1 )
+				);
 			}
 			const bytes = await generateBadges( {
 				attendees,
@@ -155,9 +160,18 @@ function SpikePanel( { csvAttendees } ) {
 				log: addEntry,
 			} );
 			const blob = new Blob( [ bytes ], { type: 'application/pdf' } );
-			setResult( { url: URL.createObjectURL( blob ), size: bytes.length, pages: attendees.length } );
+			setResult( {
+				url: URL.createObjectURL( blob ),
+				size: bytes.length,
+				pages: attendees.length,
+			} );
 			const ms = await renderFirstPage( bytes, canvasRef.current, 320 );
-			addEntry( { label: 'Page 1 rendered with PDF.js', ms, detail: 'Canvas preview below', heap: null } );
+			addEntry( {
+				label: 'Page 1 rendered with PDF.js',
+				ms,
+				detail: 'Canvas preview below',
+				heap: null,
+			} );
 		} catch ( e ) {
 			setError( String( e.message || e ) );
 		}
@@ -174,9 +188,19 @@ function SpikePanel( { csvAttendees } ) {
 	}
 
 	return (
-		<div style={ { display: 'grid', gridTemplateColumns: 'minmax(280px, 380px) 1fr', gap: 16, alignItems: 'start', marginTop: 16 } }>
+		<div
+			style={ {
+				display: 'grid',
+				gridTemplateColumns: 'minmax(280px, 380px) 1fr',
+				gap: 16,
+				alignItems: 'start',
+				marginTop: 16,
+			} }
+		>
 			<Card>
-				<CardHeader><strong>Test PDF (technical spike)</strong></CardHeader>
+				<CardHeader>
+					<strong>Test PDF (technical spike)</strong>
+				</CardHeader>
 				<CardBody>
 					<RadioControl
 						label="Attendees"
@@ -184,7 +208,9 @@ function SpikePanel( { csvAttendees } ) {
 						options={ [
 							{ label: 'Invented', value: 'invented' },
 							{
-								label: csvAttendees ? 'Test CSV (' + csvAttendees.length + ')' : 'Test CSV (not available)',
+								label: csvAttendees
+									? 'Test CSV (' + csvAttendees.length + ')'
+									: 'Test CSV (not available)',
 								value: 'csv',
 							},
 						] }
@@ -208,8 +234,14 @@ function SpikePanel( { csvAttendees } ) {
 						label="Background"
 						selected={ backgroundSource }
 						options={ [
-							{ label: 'Sample vector PDF (generated)', value: 'sample' },
-							{ label: 'My own file (PDF, PNG or JPG)', value: 'file' },
+							{
+								label: 'Sample vector PDF (generated)',
+								value: 'sample',
+							},
+							{
+								label: 'My own file (PDF, PNG or JPG)',
+								value: 'file',
+							},
 							{ label: 'None', value: 'none' },
 						] }
 						onChange={ setBackgroundSource }
@@ -219,16 +251,29 @@ function SpikePanel( { csvAttendees } ) {
 							<FormFileUpload
 								__next40pxDefaultSize
 								accept="application/pdf,image/png,image/jpeg"
-								onChange={ ( event ) => setBackgroundFile( event.currentTarget.files[ 0 ] || null ) }
+								onChange={ ( event ) =>
+									setBackgroundFile(
+										event.currentTarget.files[ 0 ] || null
+									)
+								}
 								variant="secondary"
 							>
-								{ backgroundFile ? backgroundFile.name : 'Choose file…' }
+								{ backgroundFile
+									? backgroundFile.name
+									: 'Choose file…' }
 							</FormFileUpload>
-							<p className="description">Read in the browser only, not uploaded.</p>
+							<p className="description">
+								Read in the browser only, not uploaded.
+							</p>
 						</div>
 					) }
 					<div style={ { height: 16 } } />
-					<CheckboxControl __nextHasNoMarginBottom label="Fetch Gravatars" checked={ gravatars } onChange={ setGravatars } />
+					<CheckboxControl
+						__nextHasNoMarginBottom
+						label="Fetch Gravatars"
+						checked={ gravatars }
+						onChange={ setGravatars }
+					/>
 					<div style={ { height: 8 } } />
 					<SelectControl
 						__next40pxDefaultSize
@@ -260,18 +305,41 @@ function SpikePanel( { csvAttendees } ) {
 						onChange={ setShape }
 					/>
 					<div style={ { height: 16 } } />
-					<CheckboxControl __nextHasNoMarginBottom label="Crop marks" checked={ cropMarks } onChange={ setCropMarks } />
-					<CheckboxControl __nextHasNoMarginBottom label="Subset fonts" checked={ subset } onChange={ setSubset } />
+					<CheckboxControl
+						__nextHasNoMarginBottom
+						label="Crop marks"
+						checked={ cropMarks }
+						onChange={ setCropMarks }
+					/>
+					<CheckboxControl
+						__nextHasNoMarginBottom
+						label="Subset fonts"
+						checked={ subset }
+						onChange={ setSubset }
+					/>
 					<div style={ { height: 16 } } />
-					<Button __next40pxDefaultSize variant="primary" onClick={ run } isBusy={ running } disabled={ running }>
+					<Button
+						__next40pxDefaultSize
+						variant="primary"
+						onClick={ run }
+						isBusy={ running }
+						disabled={ running }
+					>
 						{ running ? 'Generating…' : 'Generate test PDF' }
 					</Button>
 					<hr />
-					<Button __next40pxDefaultSize variant="secondary" onClick={ runWoff2 }>
+					<Button
+						__next40pxDefaultSize
+						variant="secondary"
+						onClick={ runWoff2 }
+					>
 						Check WOFF2 font
 					</Button>
 					{ woff2 && woff2.ok !== null && (
-						<Notice status={ woff2.ok ? 'success' : 'error' } isDismissible={ false }>
+						<Notice
+							status={ woff2.ok ? 'success' : 'error' }
+							isDismissible={ false }
+						>
 							{ woff2.detail }
 						</Notice>
 					) }
@@ -285,25 +353,59 @@ function SpikePanel( { csvAttendees } ) {
 					</Notice>
 				) }
 				<Card>
-					<CardHeader><strong>Results</strong></CardHeader>
+					<CardHeader>
+						<strong>Results</strong>
+					</CardHeader>
 					<CardBody>
-						{ log.length === 0 && <p>Run the test to see the timings.</p> }
+						{ log.length === 0 && (
+							<p>Run the test to see the timings.</p>
+						) }
 						{ log.length > 0 && (
 							<table className="widefat striped">
 								<thead>
 									<tr>
 										<th>Step</th>
-										<th style={ { textAlign: 'right' } }>Time</th>
-										<th style={ { textAlign: 'right' } }>JS heap</th>
+										<th style={ { textAlign: 'right' } }>
+											Time
+										</th>
+										<th style={ { textAlign: 'right' } }>
+											JS heap
+										</th>
 										<th>Detail</th>
 									</tr>
 								</thead>
 								<tbody>
 									{ log.map( ( entry, index ) => (
-										<tr key={ index } style={ entry.total ? { fontWeight: 600 } : undefined }>
+										<tr
+											key={ index }
+											style={
+												entry.total
+													? { fontWeight: 600 }
+													: undefined
+											}
+										>
 											<td>{ entry.label }</td>
-											<td style={ { textAlign: 'right', whiteSpace: 'nowrap' } }>{ ( entry.ms / 1000 ).toFixed( 2 ) } s</td>
-											<td style={ { textAlign: 'right', whiteSpace: 'nowrap' } }>{ entry.heap === null ? '—' : entry.heap + ' MB' }</td>
+											<td
+												style={ {
+													textAlign: 'right',
+													whiteSpace: 'nowrap',
+												} }
+											>
+												{ ( entry.ms / 1000 ).toFixed(
+													2
+												) }{ ' ' }
+												s
+											</td>
+											<td
+												style={ {
+													textAlign: 'right',
+													whiteSpace: 'nowrap',
+												} }
+											>
+												{ entry.heap === null
+													? '—'
+													: entry.heap + ' MB' }
+											</td>
 											<td>{ entry.detail }</td>
 										</tr>
 									) ) }
@@ -312,15 +414,33 @@ function SpikePanel( { csvAttendees } ) {
 						) }
 						{ result && (
 							<p style={ { marginTop: 16 } }>
-								<a className="button button-primary" href={ result.url } download="badges-test.pdf">
-									Download PDF ({ ( result.size / 1048576 ).toFixed( 2 ) } MB, { result.pages } pages)
+								<a
+									className="button button-primary"
+									href={ result.url }
+									download="badges-test.pdf"
+								>
+									Download PDF (
+									{ ( result.size / 1048576 ).toFixed( 2 ) }{ ' ' }
+									MB, { result.pages } pages)
 								</a>{ ' ' }
-								<a className="button" href={ result.url } target="_blank" rel="noreferrer">
+								<a
+									className="button"
+									href={ result.url }
+									target="_blank"
+									rel="noreferrer"
+								>
 									Open in a new tab
 								</a>
 							</p>
 						) }
-						<canvas ref={ canvasRef } style={ { display: result ? 'block' : 'none', marginTop: 16, boxShadow: '0 1px 4px rgba(0,0,0,.25)' } } />
+						<canvas
+							ref={ canvasRef }
+							style={ {
+								display: result ? 'block' : 'none',
+								marginTop: 16,
+								boxShadow: '0 1px 4px rgba(0,0,0,.25)',
+							} }
+						/>
 					</CardBody>
 				</Card>
 			</div>

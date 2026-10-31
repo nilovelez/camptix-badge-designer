@@ -6,8 +6,8 @@
 	"license": "GPL-2.0-or-later",
 	"private": true,
 	"scripts": {
-		"build": "wp-scripts build spike=./src/spike/index.js && node tools/copy-pdf-worker.mjs",
-		"start": "wp-scripts start spike=./src/spike/index.js",
+		"build": "wp-scripts build editor=./src/editor/index.js spike=./src/spike/index.js && node tools/copy-pdf-worker.mjs",
+		"start": "wp-scripts start editor=./src/editor/index.js spike=./src/spike/index.js",
 		"lint:js": "wp-scripts lint-js src"
 	},
 	"devDependencies": {
@@ -15,6 +15,10 @@
 	},
 	"dependencies": {
 		"@pdf-lib/fontkit": "^1.1.1",
+		"@wordpress/api-fetch": "^8.0.0",
+		"@wordpress/components": "^43.0.0",
+		"@wordpress/element": "^10.0.0",
+		"@wordpress/icons": "^19.0.0",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^6.4.299",
 		"woff2-encoder": "^2.0.0"

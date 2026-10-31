@@ -7,21 +7,57 @@
 import { sha256Sync } from './sha256';
 
 const FIRST_NAMES = [
-	'María José', 'Álvaro', 'Begoña', 'Íñigo', 'Lucía', 'Jesús', 'Zoë', 'Óscar', 'Ana',
-	'Juan Carlos', 'Noemí', 'Raúl', 'Inés', 'José Ángel', 'Ainhoa', 'Martín', 'Sofía', 'Joan',
-	'Maximiliano', 'Pilar', 'Ömer', 'Chloé', 'Nuño', 'Eva',
+	'María José',
+	'Álvaro',
+	'Begoña',
+	'Íñigo',
+	'Lucía',
+	'Jesús',
+	'Zoë',
+	'Óscar',
+	'Ana',
+	'Juan Carlos',
+	'Noemí',
+	'Raúl',
+	'Inés',
+	'José Ángel',
+	'Ainhoa',
+	'Martín',
+	'Sofía',
+	'Joan',
+	'Maximiliano',
+	'Pilar',
+	'Ömer',
+	'Chloé',
+	'Nuño',
+	'Eva',
 ];
 
 const LAST_NAMES = [
-	'Fernández-Villaverde', 'Muñoz', 'de la Fuente Ortiz', 'García Pérez', 'Iñiguez', 'Sánchez',
-	'Castañeda Villalobos', 'Ruiz', 'Peña', 'del Río Bañuelos', 'Domínguez', 'Ølstad',
-	'Rodríguez de Castro y Montes', 'López', 'Núñez', 'Aguirre', 'Echeverría Zubizarreta', 'Vidal',
+	'Fernández-Villaverde',
+	'Muñoz',
+	'de la Fuente Ortiz',
+	'García Pérez',
+	'Iñiguez',
+	'Sánchez',
+	'Castañeda Villalobos',
+	'Ruiz',
+	'Peña',
+	'del Río Bañuelos',
+	'Domínguez',
+	'Ølstad',
+	'Rodríguez de Castro y Montes',
+	'López',
+	'Núñez',
+	'Aguirre',
+	'Echeverría Zubizarreta',
+	'Vidal',
 ];
 
 function toUsername( first, last ) {
 	return ( first.split( ' ' )[ 0 ] + last.split( ' ' )[ 0 ] )
 		.normalize( 'NFD' )
-		.replace( /[̀-ͯ]/g, '' )
+		.replace( /[\u0300-\u036f]/g, '' )
 		.replace( /[^A-Za-z0-9]/g, '' )
 		.toLowerCase();
 }

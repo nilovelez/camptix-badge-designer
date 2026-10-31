@@ -342,9 +342,7 @@ function ctbg_register_attendees_route() {
 		array(
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => 'ctbg_rest_get_attendees',
-			'permission_callback' => function () {
-				return current_user_can( 'manage_options' );
-			},
+			'permission_callback' => 'ctbg_can_edit_badges',
 		)
 	);
 }
