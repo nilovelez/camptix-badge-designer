@@ -43,13 +43,33 @@ Long-term goal: read the attendees from CampTix directly and run on every WordCa
 - The editor shows the effective resolution of the background at the chosen size and warns when it is too low for print (300 dpi recommended: 1252 × 1843 px for the default size).
 - The editor shows the trim line and the safe area as guides; they are not printed.
 
-## Fields
+- Crop marks: optional, drawn in the PDF the way print shops expect them, as short corner marks outside the bleed area, not as guide lines over the design. With crop marks on, each page grows to make room for them.
 
-- Text fields: any attendee field (a CSV column on test sites), placed and styled (font, size, color, alignment, weight).
-- Image fields generated from an attendee field:
-  - QR code from a URL (for example the attendee's WordPress.org profile).
-  - Gravatar avatar from the email address.
-- WordPress.org username: a required field on every ticket. From it the plugin derives the profile URL, `https://profiles.wordpress.org/<username>/`, and one of the elements that can be placed on the badge is a QR code pointing to that profile.
+## Elements
+
+The design is made of elements placed over the background. A new design starts with the most common ones already in place: the Gravatar, the QR code, the first name and the last name.
+
+Every element:
+
+- Is dragged into place and resized with handles on its corners.
+- When selected, opens a contextual properties panel.
+
+### Text box
+
+- Holds text with variables, which are replaced with each attendee's data (for example the first name or the last name).
+- Properties: font family (from Google Fonts), size and weight, as a minimum. More properties will be defined later.
+
+### QR code
+
+- Points to the attendee's WordPress.org profile. The WordPress.org username is a required field on every ticket, and the profile URL is `https://profiles.wordpress.org/<username>/`.
+- Black and white, no options.
+- Generated in the browser with the LadyQR encoder (see Architecture).
+
+### Gravatar
+
+- Loaded by URL from Gravatar, never generated or stored by the plugin.
+- The URL comes from the attendee's email address, or from their WordPress.org username if Gravatar offers a way (to be checked).
+- Requested as PNG: some Gravatars have transparency, and other formats such as JPG render it badly.
 
 ## Preview and PDF generation
 
@@ -77,8 +97,9 @@ CampTix exports contain real names and email addresses.
 
 - CampTix CSV format: columns, encoding, delimiter (waiting for a sample export).
 - PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
-- Editor technology (React with `@wordpress/components`, or plain JavaScript).
-- Crop marks in the PDF (one badge per page is decided).
+- Editor technology: to be decided as we test (proposal in `docs/decisions.md`).
+- Gravatar from the WordPress.org username instead of the email.
+- Full list of text box properties.
 
 ## Out of the first phase
 
