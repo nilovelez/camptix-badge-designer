@@ -22,6 +22,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 const CTBG_DESIGN_VERSION = 2;
 
 /**
+ * Smallest QR code side, in millimeters.
+ */
+const CTBG_QR_MIN_SIZE = 20;
+
+/**
  * Design used before the organizer saves anything. Its elements are null:
  * the editor fills in the default ones, sized for the print size.
  *
@@ -170,6 +175,20 @@ function ctbg_sanitize_element( $input ) {
 
 		$element['shape']    = 'square' === $shape ? 'square' : 'round';
 		$element['fallback'] = in_array( $fallback, array( '404', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'image' ), true ) ? $fallback : '404';
+
+		// Fixed fallback image: a PNG or JPG from the Media Library.
+		$image                    = absint( $input['fallbackImage'] ?? 0 );
+		$element['fallbackImage'] = $image && in_array( get_post_mime_type( $image ), array( 'image/png', 'image/jpeg' ), true ) ? $image : 0;
+		if ( 'image' === $element['fallback'] && ! $element['fallbackImage'] ) {
+			$element['fallback'] = '404';
+		}
+	}
+
+	if ( 'qr' === $input['type'] ) {
+		// Smaller codes do not scan reliably once printed (decided by Nilo).
+		$side              = max( CTBG_QR_MIN_SIZE, $element['width'], $element['height'] );
+		$element['width']  = $side;
+		$element['height'] = $side;
 	}
 
 	return $element;
@@ -242,9 +261,22 @@ function ctbg_design_response( $design ) {
 		}
 	}
 
+	// URLs of the Gravatar fallback images, by attachment id.
+	$images = array();
+	foreach ( (array) ( $design['elements'] ?? array() ) as $element ) {
+		$id = $element['fallbackImage'] ?? 0;
+		if ( $id && ! isset( $images[ $id ] ) ) {
+			$url = wp_get_attachment_url( $id );
+			if ( $url ) {
+				$images[ $id ] = $url;
+			}
+		}
+	}
+
 	return array(
 		'design'     => $design,
 		'background' => $background,
+		'images'     => (object) $images,
 	);
 }
 

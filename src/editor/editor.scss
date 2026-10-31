@@ -557,3 +557,21 @@ $accent: var(--wp-admin-theme-color, #3858e9);
 .ctbg-element-notice {
 	padding: 0 16px;
 }
+
+.ctbg-fallback-image {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 12px 0;
+
+	img {
+		width: 56px;
+		height: 56px;
+		object-fit: cover;
+		border: 1px solid #e0e0e0;
+
+		&.is-round {
+			border-radius: 50%;
+		}
+	}
+}

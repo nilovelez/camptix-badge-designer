@@ -109,6 +109,7 @@ New elements are added with the + button. Every change can be undone and redone 
 - Points to the attendee's WordPress.org profile: `https://profiles.wordpress.org/<username>/`, built from the `Username` column (not from the export's `wordpress.org/@<username>` URL).
 - When the attendee has no valid username, the QR code is not drawn: its space stays empty, showing the background, and generation goes on.
 - Black and white, no options.
+- At least 20 × 20 mm (decided by Nilo): smaller codes may not scan once printed. The editor does not let it get smaller, and the server enforces it too.
 - Generated in the browser with the LadyQR encoder (see Architecture).
 
 ### Gravatar
@@ -120,7 +121,9 @@ New elements are added with the + button. Every change can be undone and redone 
   - Shape: round or square.
   - Fallback when the attendee has no Gravatar, using Gravatar's own default images (the `d` parameter): none (`d=404`: nothing is drawn), a fixed image, or a generated one (identicon, monster, wavatar, retro, robot).
   - Fixed image: the organizer's own image (for example the WordCamp logo), picked from the Media Library (decided by Nilo). The plugin asks Gravatar with `d=404` and draws this image itself when there is no Gravatar, instead of passing it to Gravatar as `d=<URL>`: that works on any site, local test sites included, and the PDF embeds the image once for every attendee who needs it.
-- With "none", or when the image cannot be loaded at all (network error), the element is a transparent PNG: the background shows through and generation never stops.
+- With "none", or when the image cannot be loaded at all (network error), nothing is drawn: the background shows through and generation never stops.
+- An attendee without a valid email address has no Gravatar: they get the fixed image if there is one, and nothing otherwise (Gravatar's generated images need an address).
+- In the editor, a dashed silhouette marks where a missing Gravatar would go; it is not printed.
 
 ## Preview and PDF generation
 

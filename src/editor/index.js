@@ -21,35 +21,50 @@ const BACKGROUND_TYPES = {
 	'image/jpeg': 'jpg',
 };
 
-// One Media Library frame, created on first use and reused, as WordPress
-// recommends: each new frame would add another modal to the page.
-let mediaFrame = null;
-let mediaCallback = null;
+// Media Library frames, one per purpose, created on first use and reused,
+// as WordPress recommends: each new frame would add another modal.
+const MEDIA_FRAMES = {
+	background: {
+		title: 'Select the badge background',
+		button: 'Use as background',
+		types: Object.keys( BACKGROUND_TYPES ),
+	},
+	gravatarFallback: {
+		title: 'Select the image for attendees without a Gravatar',
+		button: 'Use this image',
+		types: [ 'image/png', 'image/jpeg' ],
+	},
+};
+const mediaFrames = {};
+const mediaCallbacks = {};
 
 /**
- * Opens the Media Library to pick a background.
+ * Opens the Media Library to pick a file.
  *
- * @param {(attachment: Object) => void} onPick Called with the attachment.
+ * @param {string}                       purpose Key of MEDIA_FRAMES.
+ * @param {(attachment: Object) => void} onPick  Called with the attachment.
  */
-function openMediaLibrary( onPick ) {
-	mediaCallback = onPick;
-	if ( ! mediaFrame ) {
-		mediaFrame = window.wp.media( {
-			title: 'Select the badge background',
-			button: { text: 'Use as background' },
-			library: { type: Object.keys( BACKGROUND_TYPES ) },
+function openMediaLibrary( purpose, onPick ) {
+	mediaCallbacks[ purpose ] = onPick;
+	if ( ! mediaFrames[ purpose ] ) {
+		const config = MEDIA_FRAMES[ purpose ];
+		const frame = window.wp.media( {
+			title: config.title,
+			button: { text: config.button },
+			library: { type: config.types },
 			multiple: false,
 		} );
-		mediaFrame.on( 'select', () => {
-			const attachment = mediaFrame
+		frame.on( 'select', () => {
+			const attachment = frame
 				.state()
 				.get( 'selection' )
 				.first()
 				.toJSON();
-			mediaCallback( attachment );
+			mediaCallbacks[ purpose ]( attachment );
 		} );
+		mediaFrames[ purpose ] = frame;
 	}
-	mediaFrame.open();
+	mediaFrames[ purpose ].open();
 }
 
 /**
@@ -100,6 +115,8 @@ function App() {
 		history,
 		backgroundFile,
 		setBackgroundFile,
+		images,
+		addImage,
 		saveStatus,
 		saveError,
 	} = useDesign();
@@ -318,7 +335,22 @@ function App() {
 		}
 	}
 
-	const selectBackground = () => openMediaLibrary( pickBackground );
+	const selectBackground = () =>
+		openMediaLibrary( 'background', pickBackground );
+
+	// Picks the Gravatar fallback image; onPicked receives its attachment id.
+	const pickFallbackImage = ( onPicked ) =>
+		openMediaLibrary( 'gravatarFallback', ( attachment ) => {
+			if (
+				attachment.mime !== 'image/png' &&
+				attachment.mime !== 'image/jpeg'
+			) {
+				setError( 'The image must be a PNG or JPG file.' );
+				return;
+			}
+			addImage( attachment.id, attachment.url );
+			onPicked( attachment.id );
+		} );
 
 	return (
 		<>
@@ -349,6 +381,7 @@ function App() {
 					selectedId={ selectedId }
 					onSelect={ selectElement }
 					onChangeElement={ changeElement }
+					images={ images }
 				/>
 				<Sidebar
 					tab={ tab }
@@ -365,6 +398,8 @@ function App() {
 					onSelectElement={ selectElement }
 					onChangeElement={ changeElement }
 					onReorder={ reorderElement }
+					images={ images }
+					onPickImage={ pickFallbackImage }
 					onDelete={ deleteElement }
 					onSelectBackground={ selectBackground }
 					onRemove={ () => applyBackground( null, null ) }

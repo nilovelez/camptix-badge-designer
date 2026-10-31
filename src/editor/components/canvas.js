@@ -229,6 +229,7 @@ export function Canvas( {
 	selectedId,
 	onSelect,
 	onChangeElement,
+	images,
 } ) {
 	const areaRef = useRef( null );
 	const [ area, setArea ] = useState( { width: 0, height: 0 } );
@@ -375,6 +376,7 @@ export function Canvas( {
 									scale={ scale }
 									fonts={ fonts }
 									layout={ layouts[ element.id ] }
+									images={ images }
 								/>
 							</ElementBox>
 						) ) }

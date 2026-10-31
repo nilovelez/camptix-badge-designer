@@ -15,7 +15,7 @@ import { alignCenter, alignLeft, alignRight } from '@wordpress/icons';
 import { MmField } from './mm-field';
 import { textVariables } from '../../shared/text-layout';
 import { familyWeights, fontFamilies } from '../fonts';
-import { isSquare } from '../elements';
+import { isSquare, QR_MIN_SIZE } from '../elements';
 
 const WEIGHT_NAMES = {
 	100: 'Thin',
@@ -41,11 +41,15 @@ const DESCRIPTIONS = {
 	text: [ 'Text box', 'Text with attendee variables, on one line.' ],
 	gravatar: [
 		'Gravatar',
-		"The attendee's Gravatar. Nothing is printed when there is none.",
+		"The attendee's Gravatar, from their email address.",
 	],
 	qr: [
 		'QR code',
-		"Links to the attendee's WordPress.org profile. Black on white.",
+		"Links to the attendee's WordPress.org profile. Black on white, at least " +
+			QR_MIN_SIZE +
+			' × ' +
+			QR_MIN_SIZE +
+			' mm. Nothing is printed for attendees without a username.',
 	],
 };
 
@@ -195,8 +199,86 @@ function OverflowNotice( { layout } ) {
 	);
 }
 
+const SHAPES = [
+	{ value: 'round', label: 'Round' },
+	{ value: 'square', label: 'Square' },
+];
+
+const FALLBACKS = [
+	{ value: '404', label: 'None: print nothing' },
+	{ value: 'identicon', label: 'Identicon (generated)' },
+	{ value: 'monsterid', label: 'Monster (generated)' },
+	{ value: 'wavatar', label: 'Wavatar (generated)' },
+	{ value: 'retro', label: 'Retro (generated)' },
+	{ value: 'robohash', label: 'Robot (generated)' },
+	{ value: 'image', label: 'An image from the Media Library' },
+];
+
+function GravatarPanel( { element, change, images, onPickImage } ) {
+	const imageUrl = element.fallbackImage && images[ element.fallbackImage ];
+	const pickImage = () =>
+		onPickImage( ( id ) =>
+			change( { fallback: 'image', fallbackImage: id } )
+		);
+
+	return (
+		<PanelBody title="Gravatar">
+			<p className="ctbg-label">Shape</p>
+			<div className="ctbg-segmented" role="group" aria-label="Shape">
+				{ SHAPES.map( ( shape ) => (
+					<Button
+						key={ shape.value }
+						isPressed={ element.shape === shape.value }
+						onClick={ () => change( { shape: shape.value } ) }
+					>
+						{ shape.label }
+					</Button>
+				) ) }
+			</div>
+			<SelectControl
+				__next40pxDefaultSize
+				__nextHasNoMarginBottom
+				label="When there is no Gravatar"
+				value={ element.fallback }
+				options={ FALLBACKS }
+				onChange={ ( fallback ) => {
+					// The image option needs an image first.
+					if ( fallback === 'image' && ! element.fallbackImage ) {
+						pickImage();
+						return;
+					}
+					change( { fallback } );
+				} }
+			/>
+			{ element.fallback === 'image' && (
+				<div className="ctbg-fallback-image">
+					{ imageUrl ? (
+						<img
+							className={
+								element.shape === 'round' ? 'is-round' : ''
+							}
+							src={ imageUrl }
+							alt=""
+						/>
+					) : (
+						<span className="ctbg-help">Image not found.</span>
+					) }
+					<Button variant="secondary" onClick={ pickImage }>
+						Replace image
+					</Button>
+				</div>
+			) }
+			<p className="ctbg-help">
+				Generated images are made by Gravatar from each email address,
+				so every attendee gets a different one.
+			</p>
+		</PanelBody>
+	);
+}
+
 function PositionPanel( { element, change } ) {
 	const square = isSquare( element );
+	const minSize = element.type === 'qr' ? QR_MIN_SIZE : 3;
 	return (
 		<PanelBody title="Position and size" initialOpen={ false }>
 			<div className="ctbg-two-columns">
@@ -217,7 +299,7 @@ function PositionPanel( { element, change } ) {
 				<MmField
 					label="Width (mm)"
 					value={ element.width }
-					min={ 3 }
+					min={ minSize }
 					max={ 1000 }
 					onChange={ ( width ) =>
 						change(
@@ -229,7 +311,7 @@ function PositionPanel( { element, change } ) {
 				<MmField
 					label="Height (mm)"
 					value={ element.height }
-					min={ 3 }
+					min={ minSize }
 					max={ 1000 }
 					onChange={ ( height ) =>
 						change(
@@ -251,6 +333,8 @@ export function ElementPanel( {
 	element,
 	layout,
 	questions,
+	images,
+	onPickImage,
 	onChange,
 	onDelete,
 } ) {
@@ -284,6 +368,14 @@ export function ElementPanel( {
 					/>
 					<TypographyPanel element={ element } change={ change } />
 				</>
+			) }
+			{ element.type === 'gravatar' && (
+				<GravatarPanel
+					element={ element }
+					change={ change }
+					images={ images }
+					onPickImage={ onPickImage }
+				/>
 			) }
 			<PositionPanel element={ element } change={ change } />
 			<div className="ctbg-sidebar__footer">

@@ -414,6 +414,8 @@ export function Sidebar( props ) {
 								: null
 						}
 						questions={ props.attendees.questions }
+						images={ props.images }
+						onPickImage={ props.onPickImage }
 						onChange={ props.onChangeElement }
 						onDelete={ () =>
 							props.onDelete( props.selectedElement.id )

@@ -4,6 +4,7 @@
 import { useState } from '@wordpress/element';
 import { profileQr } from '../../shared/qr';
 import { faceKey, resolveFace } from '../fonts';
+import { gravatarUrl } from '../../shared/gravatar';
 
 const PT_TO_MM = 25.4 / 72;
 
@@ -56,7 +57,7 @@ function QrView( { attendee } ) {
 	);
 }
 
-function GravatarView( { element, attendee, scale } ) {
+function GravatarView( { element, attendee, scale, images } ) {
 	const [ failed, setFailed ] = useState( '' );
 	// Ask for about the size on screen, in steps, so zooming reuses images.
 	const px = Math.min(
@@ -65,20 +66,25 @@ function GravatarView( { element, attendee, scale } ) {
 			( element.width * scale * ( window.devicePixelRatio || 1 ) ) / 64
 		) * 64
 	);
-	const url = attendee.gravatarHash
-		? 'https://gravatar.com/avatar/' +
-			attendee.gravatarHash +
-			'?s=' +
-			px +
-			'&d=' +
-			element.fallback +
-			'&r=g'
-		: '';
+	const url = gravatarUrl( attendee.gravatarHash, px, element.fallback );
 	const className =
 		'ctbg-element__gravatar' +
 		( element.shape === 'round' ? ' is-round' : '' );
 
 	if ( ! url || failed === url ) {
+		// No Gravatar: the fixed fallback image, if there is one.
+		const fallbackUrl =
+			element.fallback === 'image' && images[ element.fallbackImage ];
+		if ( fallbackUrl ) {
+			return (
+				<img
+					className={ className }
+					src={ fallbackUrl }
+					alt=""
+					draggable="false"
+				/>
+			);
+		}
 		// No Gravatar: nothing is printed; the editor shows a silhouette.
 		return (
 			<span
@@ -103,7 +109,14 @@ function GravatarView( { element, attendee, scale } ) {
 	);
 }
 
-export function ElementView( { element, attendee, scale, fonts, layout } ) {
+export function ElementView( {
+	element,
+	attendee,
+	scale,
+	fonts,
+	layout,
+	images,
+} ) {
 	if ( element.type === 'text' ) {
 		return (
 			<TextView
@@ -122,6 +135,7 @@ export function ElementView( { element, attendee, scale, fonts, layout } ) {
 			element={ element }
 			attendee={ attendee }
 			scale={ scale }
+			images={ images }
 		/>
 	);
 }

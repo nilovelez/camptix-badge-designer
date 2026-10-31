@@ -7,6 +7,8 @@ import { round1 } from './geometry';
 
 export const DESIGN_VERSION = 2;
 const MIN_SIZE = 3;
+// Smaller QR codes do not scan reliably once printed (decided by Nilo).
+export const QR_MIN_SIZE = 20;
 const DEFAULT_COLOR = '#1e1e1e';
 
 let counter = 0;
@@ -50,6 +52,7 @@ export function makeGravatar( props ) {
 		height: 30,
 		shape: 'round',
 		fallback: '404',
+		fallbackImage: 0,
 		...props,
 	};
 }
@@ -78,7 +81,10 @@ export function defaultElements( size ) {
 	const inner = width - 2 * safe;
 	const scale = width / 100;
 	const gravatar = round1( Math.min( 0.4 * width, 0.27 * height ) );
-	const qr = round1( Math.min( 0.26 * width, 0.18 * height ) );
+	const qr = Math.max(
+		QR_MIN_SIZE,
+		round1( Math.min( 0.26 * width, 0.18 * height ) )
+	);
 
 	return [
 		makeGravatar( {
@@ -147,17 +153,24 @@ export function newElement( type, size ) {
  * @return {Object|null} Updated design, or null if it is current.
  */
 export function upgradeDesign( design ) {
-	if (
-		design.version >= DESIGN_VERSION &&
-		Array.isArray( design.elements )
-	) {
-		return null;
+	let elements = design.elements;
+	let changed = false;
+	if ( design.version < DESIGN_VERSION || ! Array.isArray( elements ) ) {
+		elements =
+			Array.isArray( elements ) && elements.length
+				? elements
+				: defaultElements( design.size );
+		changed = true;
 	}
-	const elements =
-		Array.isArray( design.elements ) && design.elements.length
-			? design.elements
-			: defaultElements( design.size );
-	return { ...design, version: DESIGN_VERSION, elements };
+	// QR codes saved before the minimum size existed grow to it.
+	elements = elements.map( ( element ) => {
+		if ( element.type === 'qr' && element.width < QR_MIN_SIZE ) {
+			changed = true;
+			return { ...element, width: QR_MIN_SIZE, height: QR_MIN_SIZE };
+		}
+		return element;
+	} );
+	return changed ? { ...design, version: DESIGN_VERSION, elements } : null;
 }
 
 export function isSquare( element ) {
@@ -225,8 +238,9 @@ export function resizeElement( start, corner, dx, dy ) {
 		width = side;
 		height = side;
 	}
-	width = Math.max( MIN_SIZE, width );
-	height = Math.max( MIN_SIZE, height );
+	const min = start.type === 'qr' ? QR_MIN_SIZE : MIN_SIZE;
+	width = Math.max( min, width );
+	height = Math.max( min, height );
 
 	return {
 		...start,

@@ -17,6 +17,8 @@ export function useDesign() {
 	const [ design, setDesign ] = useState( null );
 	// Data about the background that is not stored in the design: its URL and file name.
 	const [ backgroundFile, setBackgroundFile ] = useState( null );
+	// URLs of the Gravatar fallback images, by attachment id.
+	const [ images, setImages ] = useState( {} );
 	const [ saveStatus, setSaveStatus ] = useState( 'saved' );
 	const [ saveError, setSaveError ] = useState( null );
 	const [ history, setHistory ] = useState( {
@@ -74,6 +76,7 @@ export function useDesign() {
 		apiFetch( { path: '/ctbg/v1/design' } )
 			.then( ( response ) => {
 				setBackgroundFile( response.background );
+				setImages( response.images || {} );
 				const upgraded = upgradeDesign( response.design );
 				if ( upgraded ) {
 					// Saved right away, but not an undo step.
@@ -161,6 +164,9 @@ export function useDesign() {
 		history,
 		backgroundFile,
 		setBackgroundFile,
+		images,
+		addImage: ( id, url ) =>
+			setImages( ( current ) => ( { ...current, [ id ]: url } ) ),
 		saveStatus,
 		saveError,
 	};
