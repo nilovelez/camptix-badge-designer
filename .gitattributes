@@ -6,6 +6,8 @@
 *.jpg binary
 *.gif binary
 *.pdf binary
+*.ttf binary
+*.woff2 binary
 
 # Development files, excluded from `git archive` (the release zip).
 # Add here any other file or folder that is not part of the plugin.
@@ -25,3 +27,8 @@
 /phpcs.xml.dist  export-ignore
 /assets          export-ignore
 /assets-src      export-ignore
+/src             export-ignore
+/tools           export-ignore
+/tests           export-ignore
+/package.json    export-ignore
+/package-lock.json export-ignore

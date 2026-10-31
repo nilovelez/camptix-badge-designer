@@ -11,18 +11,52 @@ Build the editor with `@wordpress/element` (React) and `@wordpress/components`, 
 - WordPress loads React itself, so the plugin does not ship it.
 - Drag and resize are done with pointer events on an absolutely positioned layer over the background, in millimeters scaled to the screen. That logic is small and fully under our control.
 
-## PDF: generated in the browser with pdf-lib (proposal)
+The milestone 1 spike already uses this stack for its admin page (`src/spike/`), and it works.
+
+## PDF: generated in the browser with pdf-lib (proposal, confirmed by the spike)
 
 - pdf-lib embeds a page of a PDF background as a vector object, so vector backgrounds stay vector, and the background is embedded once and reused on every page, which keeps large PDFs small.
-- Text is real text with embedded fonts (pdf-lib with fontkit, subset to the glyphs in use), not images.
-- QR codes are drawn as vector squares from the LadyQR module matrix: sharp at any size, no images.
-- Gravatars are fetched as PNG at print resolution and embedded; Gravatar must allow cross-origin requests for this (to be checked).
-- PDF.js only renders a PDF background in the editor.
-- To be checked in a spike: memory and time for a few hundred pages.
+- Text is real text with embedded fonts (pdf-lib with `@pdf-lib/fontkit`, subset to the glyphs in use), not images.
+- QR codes are drawn from the LadyQR module matrix as one vector path per code (runs of dark modules), filled in a single operation so no hairlines appear between modules.
+- Gravatars are fetched in the browser and embedded once per distinct email address.
+- PDF.js renders PDF pages in the editor (a PDF background, or the first page of a generated PDF).
 
-## Fonts (decided by Nilo; details to be checked)
+### Spike results (milestone 1)
+
+Measured on the Playground test site with headless Chrome, 300 invented attendees, the sample vector background, Inter 700 and 600 subset, round Gravatars (identicons at 472 px) and crop marks:
+
+| Step | Time |
+|---|---|
+| Fonts loaded and embedded | 0.01 s |
+| Background (vector PDF) embedded | < 0.01 s |
+| 300 Gravatars fetched and embedded, 8 at a time | 7.4 s |
+| 300 pages laid out | 0.5 s |
+| PDF saved | 3.2 s |
+| **Total** | **11 s**, 6.9 MB, JS heap peak about 280 MB |
+
+- Gravatar sends `Access-Control-Allow-Origin: *`: fetching from the browser works.
+- PDF.js renders the first page in 0.1 s.
+- QR codes decode correctly (checked with jsQR on pages rendered at 300 dpi); attendees without a username get no QR.
+- Network time dominates. Generation is fast enough to run entirely in the browser; no server-side work is needed.
+
+Gravatar sizes with the real test export (aggregate only): 78 of 174 addresses have a Gravatar, about 160 KB each at 472 px, 12 MB in total. Each image is embedded once, so a PDF for that event would be roughly 12 to 15 MB.
+
+### Findings that change the plan
+
+- **Gravatar ignores the requested format.** The `.png` or `.jpg` extension makes no difference: Gravatar returns the image as it was uploaded (in the sample, 49 PNG with transparency and 29 JPEG). The generator detects the format from the first bytes and embeds PNG or JPEG accordingly. PNG transparency is kept when the uploaded image has it.
+- **"None" fallback uses `d=404`, not `d=blank`.** With `d=404`, attendees without a Gravatar get a 404 and nothing is downloaded or drawn, so the background shows through. `d=blank` returns tiny PNG files, some of which pdf-lib cannot decode. Browsers log every 404 in the console; that is expected.
+- **Gravatar hashes need a JavaScript SHA-256.** `crypto.subtle` only exists in secure contexts (HTTPS or localhost). Test sites reached by IP over HTTP do not have it, so the plugin ships a small SHA-256 (`src/spike/sha256.js`, checked against Node's crypto) and uses `crypto.subtle` when available.
+- **WOFF2 fonts are converted to TTF first.** `@pdf-lib/fontkit` reads WOFF2 but crashes when it subsets it (`RangeError: Index out of range`). The current `fontkit` 2.x does not work with pdf-lib. Converting with `woff2-encoder` (MIT, WebAssembly, 288 KB, loaded only when a WOFF2 font is used) takes about 15 ms per font, and the result subsets fine.
+- **Gravatar resolution.** The pixel size is computed from the element size at 300 dpi (40 mm → 472 px). Gravatar serves up to 2048 px.
+
+## Fonts (decided by Nilo)
 
 The PDF needs the font files, not only CSS.
 
-- The plugin ships one font, Inter, in weights 400, 600 and 700, so a new design works with no setup. It is under the SIL Open Font License. Ship static TTF files, not the variable font: embedding and subsetting variable fonts in a PDF is less reliable. Montserrat was considered and left out: it is wide (long names overflow) and has a strong personality; anyone who wants it can install it from the Font Library.
-- The editor also offers every font installed through the WordPress Font Library (WordPress 6.5+), which stores the files on the site itself: no requests to Google from the admin, and the files are available to embed. To check: that fontkit can read the formats it installs (usually WOFF2), and how to list those fonts and their files (the `wp_font_family` and `wp_font_face` post types, also in the REST API).
+- The plugin ships one font, Inter 4.1, in weights 400, 600 and 700, as static TTF files in `fonts/inter/` with its SIL Open Font License (`OFL.txt`). Static TTF, not the variable font: embedding and subsetting variable fonts in a PDF is less reliable. Montserrat was considered and left out: it is wide (long names overflow) and has a strong personality; anyone who wants it can install it from the Font Library.
+- The editor also offers every font installed through the WordPress Font Library (WordPress 6.5+), which stores the files on the site itself: no requests to Google from the admin, and the files are available to embed. Font Library files are usually WOFF2, converted to TTF before embedding (see above). Still to check: how to list those fonts and their files (the `wp_font_family` and `wp_font_face` post types, also in the REST API).
+
+## Build (proposal)
+
+- JavaScript is built with `@wordpress/scripts` into `build/`, which is ignored by Git: after cloning, run `npm install` and `npm run build`. The PDF.js worker is copied to `build/pdf.worker.min.js` by `tools/copy-pdf-worker.mjs`.
+- To decide before the first release: whether to commit `build/` so `git archive` includes it, or build the release zip from the working tree.

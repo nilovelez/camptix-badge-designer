@@ -18,6 +18,13 @@ This file is the single source of working rules for any agent or person picking 
 | `guppy/` | Project status published to Guppy (see below). |
 | `blueprint.json` | WordPress Playground blueprint for the test site. |
 | `composer.json`, `phpcs.xml.dist` | WordPress Coding Standards (PHPCS). |
+| `includes/` | PHP code loaded by the main file. |
+| `src/` | JavaScript sources, built with `@wordpress/scripts` (`npm run build`) into `build/`, which is not in Git. |
+| `src/vendor/ladyqr/qr.js` | QR encoder copied from LadyQR (GPLv2). |
+| `fonts/inter/` | Inter 4.1 static TTF files and their license. |
+| `tools/` | Build helpers. |
+| `tests/` | Test fixtures (no personal data). |
+| `test-data/` | Real CampTix exports for testing. Ignored by Git: never commit them. |
 
 Everything an agent needs to resume the work lives in this repository. Do not rely on local memory, chat history or files outside the repo: if something matters, write it here.
 

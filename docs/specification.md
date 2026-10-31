@@ -98,10 +98,10 @@ Every element:
 
 - Loaded by URL from Gravatar, never generated or stored by the plugin.
 - The URL comes from the attendee's email address, or from their WordPress.org username if Gravatar offers a way (to be checked).
-- Requested as PNG: some Gravatars have transparency, and other formats such as JPG render it badly.
+- Gravatar returns each image in the format it was uploaded in (PNG or JPEG), whatever extension is requested. PNG images keep their transparency. The size requested is the element size at 300 dpi.
 - Options, all simple:
   - Shape: round or square.
-  - Fallback when the attendee has no Gravatar, using Gravatar's own default images (the `d` parameter): none, a fixed image, or a generated one (identicon, monster, wavatar, retro, robot).
+  - Fallback when the attendee has no Gravatar, using Gravatar's own default images (the `d` parameter): none (`d=404`: nothing is drawn), a fixed image, or a generated one (identicon, monster, wavatar, retro, robot).
   - Fixed image: the organizer's own image (for example the WordCamp logo), passed to Gravatar as `d=<URL>`. Gravatar fetches it, so it must be at a public URL. During testing, any public URL typed in; on real sites, picked from the Media Library.
 - With "none", or when the image cannot be loaded at all (network error), the element is a transparent PNG: the background shows through and generation never stops.
 

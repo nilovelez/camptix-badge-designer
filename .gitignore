@@ -2,6 +2,9 @@
 /vendor/
 node_modules/
 
+# JavaScript build output: run `npm install` and `npm run build`.
+/build/
+
 # Test data: CampTix exports contain real attendee emails and names.
 # Never commit them. Keep them in /test-data/.
 /test-data/
