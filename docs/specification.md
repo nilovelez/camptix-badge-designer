@@ -4,17 +4,16 @@ Draft. It grows as Nilo defines the project; open points are listed at the end.
 
 ## Goal
 
-A WordPress plugin for WordCamp sites that generates printed badges. Organizers upload the attendee list exported from CampTix, place its fields over a background image in a visual editor, and get a print-ready PDF to send to a print shop.
+A WordPress plugin for WordCamp sites that generates printed badges. Organizers place the attendees' CampTix fields over a background image in a visual editor, and get a print-ready PDF to send to a print shop.
 
-Long-term goal: integrate with CampTix directly (no CSV) and run on every WordCamp site. Until then, development happens on test sites.
+Long-term goal: read the attendees from CampTix directly and run on every WordCamp site. Until then, development happens on test sites, with a CampTix CSV export as the attendee source (see Attendee data).
 
 ## Workflow
 
 1. The organizer designs the badge background in any drawing program, leaving room for the fields. Templates with the trim, bleed and safe margins will be provided.
-2. They upload the CampTix CSV export.
-3. They upload the background image. The editor detects its size and sets the print size and bleed (see below).
-4. In the editor, they place CSV fields over the background and style them. Some fields generate images (see below).
-5. They generate the PDF for the print shop.
+2. They upload the background in the editor. The editor detects its size and sets the print size and bleed (see below).
+3. They place attendee fields over the background and style them. Some fields generate images (see below). The design is saved on the site.
+4. They generate the PDF for the print shop.
 
 ## Background
 
@@ -45,8 +44,8 @@ Long-term goal: integrate with CampTix directly (no CSV) and run on every WordCa
 
 ## Fields
 
-- Text fields: any CSV column, placed and styled (font, size, color, alignment, weight).
-- Image fields generated from a CSV column:
+- Text fields: any attendee field (a CSV column on test sites), placed and styled (font, size, color, alignment, weight).
+- Image fields generated from an attendee field:
   - QR code from a URL (for example the attendee's WordPress.org profile).
   - Gravatar avatar from the email address.
 - WordPress.org username: a required field on every ticket. From it the plugin derives the profile URL, `https://profiles.wordpress.org/<username>/`, and one of the elements that can be placed on the badge is a QR code pointing to that profile.
