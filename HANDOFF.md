@@ -15,12 +15,11 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 - Playground mounts the whole repo, so the CSV in `test-data/` can be downloaded from the test site by URL. Nilo accepted this: test sites are only reachable locally.
 - A real CampTix export for testing is in `test-data/` (ignored by Git: it holds real names and emails).
 - `composer lint` is clean; `npm run lint:js` has no errors (a few JSDoc warnings). Plugin Check passes with no errors or warnings on a release-like copy (`git archive` plus `build/`), run in a second Playground with the plugin-check plugin.
-- A Studio site exists under its old name, `~/Studio/camptix-badge-generator`, with the repo linked as `camptix-badge-generator`. It has not been started, and the rename broke it (the main file is now `camptix-badge-designer.php`): recreate it after renaming the local folder.
+- A Studio site exists at `~/Studio/camptix-badge-designer` (http://camptix-badge-designer.local/, PHP 8.3, file access to all files), with the repo linked as the plugin through a junction and the plugin active. It was recreated after the rename.
 
 ## Next steps
 
-1. Rename the local folder `D:\repos\camptix-badge-generator` to `camptix-badge-designer` (with no Claude Code session open in it), and recreate the Studio site.
-2. Milestone 8, when Nilo gives the OK.
+1. Milestone 8, when Nilo gives the OK.
 
 ## Open questions
 
