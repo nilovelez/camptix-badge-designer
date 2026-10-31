@@ -57,7 +57,10 @@ Every element:
 ### Text box
 
 - Holds text with variables, which are replaced with each attendee's data (for example the first name or the last name).
-- Properties: font family (from Google Fonts), size and weight, as a minimum. More properties will be defined later.
+- Properties: font family, size and weight, as a minimum. More properties will be defined later.
+- Font families offered:
+  - A couple of generic fonts shipped with the plugin, so it works out of the box: Inter and Montserrat (both SIL Open Font License, accepted on WordPress.org).
+  - Every font installed on the site through the WordPress Font Library (Appearance > Fonts), including Google Fonts installed there.
 
 ### QR code
 

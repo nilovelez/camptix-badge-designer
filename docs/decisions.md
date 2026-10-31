@@ -20,9 +20,9 @@ Build the editor with `@wordpress/element` (React) and `@wordpress/components`, 
 - PDF.js only renders a PDF background in the editor.
 - To be checked in a spike: memory and time for a few hundred pages.
 
-## Fonts (proposal, to be checked)
+## Fonts (decided by Nilo; details to be checked)
 
-The PDF needs the font files, not only CSS. Options:
+The PDF needs the font files, not only CSS.
 
-- The WordPress Font Library (WordPress 6.5+), which installs Google Fonts on the site itself: no requests to Google from the admin, and the files are available to embed. Check that fontkit can read the formats it installs (WOFF2).
-- Fetching the TTF files from Google Fonts on demand.
+- The plugin ships Inter and Montserrat, so a new design works with no setup. Both are under the SIL Open Font License. Ship static TTF files for the weights offered, not variable fonts: embedding and subsetting variable fonts in a PDF is less reliable.
+- The editor also offers every font installed through the WordPress Font Library (WordPress 6.5+), which stores the files on the site itself: no requests to Google from the admin, and the files are available to embed. To check: that fontkit can read the formats it installs (usually WOFF2), and how to list those fonts and their files (the `wp_font_family` and `wp_font_face` post types, also in the REST API).
