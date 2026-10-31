@@ -78,5 +78,9 @@ CampTix exports contain real names and email addresses.
 - CampTix CSV format: columns, encoding, delimiter (waiting for a sample export).
 - PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
 - Editor technology (React with `@wordpress/components`, or plain JavaScript).
-- Styles that depend on the ticket type (organizer, speaker, volunteer...).
-- Crop marks in the PDF, and one badge per page or several per sheet.
+- Crop marks in the PDF (one badge per page is decided).
+
+## Out of the first phase
+
+- Several designs per site, or styles that depend on the ticket type (organizer, speaker, volunteer...).
+- Reading attendees live from CampTix.
