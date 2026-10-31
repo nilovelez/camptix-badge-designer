@@ -3,9 +3,9 @@
  * and the paper match: the same variables, the same font metrics (from
  * fontkit, as pdf-lib uses them) and the same rules.
  *
- * Text boxes hold one line. The text shrinks down to the minimum size if
- * it does not fit; if it still does not fit, it is cut at the edge of the
- * box, starting from the left so its beginning stays readable.
+ * Text boxes hold one line at the size chosen; text is never resized. When
+ * it does not fit, it is cut at the edge of the box, starting from the left
+ * so its beginning stays readable, and the editor warns.
  *
  * Box positions are in millimeters; font sizes in points.
  */
@@ -81,7 +81,7 @@ export function textWidth( font, text, size ) {
  * @param {Object} font     Fontkit font of the box's family and weight.
  * @param {Object} element  Text element.
  * @param {Object} attendee Attendee.
- * @return {Object} {text, size, originalSize, width, overflow, x, baseline, ascent, descent}:
+ * @return {Object} {text, size, width, overflow, x, baseline, ascent, descent}:
  *   size in points; width, x (from the box's left edge), baseline (from the
  *   box's top edge), ascent and descent (negative) in mm.
  */
@@ -94,15 +94,8 @@ export function layoutText( font, element, attendee ) {
 		text = text.toLocaleUpperCase();
 	}
 
-	let size = element.size;
-	let width = textWidth( font, text, size );
-	if ( element.shrink ) {
-		const minSize = Math.min( element.minSize, element.size );
-		while ( width > element.width && size > minSize ) {
-			size = Math.max( minSize, Math.round( ( size - 0.5 ) * 10 ) / 10 );
-			width = textWidth( font, text, size );
-		}
-	}
+	const size = element.size;
+	const width = textWidth( font, text, size );
 	const overflow = width > element.width + 0.01;
 
 	let x = 0;
@@ -120,7 +113,6 @@ export function layoutText( font, element, attendee ) {
 	return {
 		text,
 		size,
-		originalSize: element.size,
 		width,
 		overflow,
 		x,

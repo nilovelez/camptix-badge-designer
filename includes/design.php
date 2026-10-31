@@ -159,11 +159,9 @@ function ctbg_sanitize_element( $input ) {
 		$element['font']      = mb_substr( sanitize_text_field( $input['font'] ?? 'Inter' ), 0, 100 );
 		$element['weight']    = (string) min( 900, max( 100, absint( $input['weight'] ?? 400 ) ) );
 		$element['size']      = ctbg_clamp_mm( $input['size'] ?? null, 4, 200, 16 );
-		$element['minSize']   = ctbg_clamp_mm( $input['minSize'] ?? null, 4, 200, 10 );
 		$element['color']     = $color ? $color : '#1e1e1e';
 		$element['align']     = in_array( $align, array( 'left', 'center', 'right' ), true ) ? $align : 'center';
 		$element['uppercase'] = ! empty( $input['uppercase'] );
-		$element['shrink']    = ! empty( $input['shrink'] );
 	}
 
 	if ( 'gravatar' === $input['type'] ) {

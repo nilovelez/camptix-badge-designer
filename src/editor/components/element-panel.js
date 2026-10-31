@@ -179,49 +179,19 @@ function TypographyPanel( { element, change } ) {
 	);
 }
 
-function FitPanel( { element, change, layout } ) {
-	let status = null;
-	if ( layout && layout.overflow ) {
-		status = (
-			<Notice status="warning" isDismissible={ false }>
-				For this attendee the text does not fit
-				{ element.shrink ? ' even at ' + layout.size + ' pt' : '' }: it
-				is cut.
-			</Notice>
-		);
-	} else if ( layout && layout.size < layout.originalSize ) {
-		status = (
-			<p className="ctbg-help">
-				For this attendee, reduced from { layout.originalSize } to{ ' ' }
-				{ layout.size } pt.
-			</p>
-		);
+// Text is never resized: when it does not fit the box, it is cut and the
+// editor warns.
+function OverflowNotice( { layout } ) {
+	if ( ! layout || ! layout.overflow ) {
+		return null;
 	}
 	return (
-		<PanelBody title="Fit">
-			<ToggleControl
-				__nextHasNoMarginBottom
-				label="Shrink text to fit the box"
-				checked={ element.shrink }
-				onChange={ ( shrink ) => change( { shrink } ) }
-			/>
-			{ element.shrink && (
-				<>
-					<div className="ctbg-gap" />
-					<MmField
-						label="Minimum size (pt)"
-						value={ element.minSize }
-						min={ 4 }
-						max={ 200 }
-						step={ 1 }
-						onChange={ ( minSize ) =>
-							change( { minSize }, 'minSize' )
-						}
-					/>
-				</>
-			) }
-			{ status }
-		</PanelBody>
+		<div className="ctbg-element-notice">
+			<Notice status="warning" isDismissible={ false }>
+				For this attendee the text does not fit the box: it is cut. Make
+				the box wider or the text smaller.
+			</Notice>
+		</div>
 	);
 }
 
@@ -306,17 +276,13 @@ export function ElementPanel( {
 			</div>
 			{ element.type === 'text' && (
 				<>
+					<OverflowNotice layout={ layout } />
 					<ContentPanel
 						element={ element }
 						change={ change }
 						questions={ questions }
 					/>
 					<TypographyPanel element={ element } change={ change } />
-					<FitPanel
-						element={ element }
-						change={ change }
-						layout={ layout }
-					/>
 				</>
 			) }
 			<PositionPanel element={ element } change={ change } />

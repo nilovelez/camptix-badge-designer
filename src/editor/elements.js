@@ -33,11 +33,9 @@ export function makeText( props ) {
 		font: 'Inter',
 		weight: '600',
 		size: 16,
-		minSize: 10,
 		color: DEFAULT_COLOR,
 		align: 'center',
 		uppercase: false,
-		shrink: true,
 		...props,
 	};
 }
@@ -97,7 +95,6 @@ export function defaultElements( size ) {
 			height: round1( 0.08 * height ),
 			weight: '700',
 			size: Math.round( 26 * scale ),
-			minSize: Math.round( 14 * scale ),
 		} ),
 		makeText( {
 			content: '{last_name}',
@@ -107,7 +104,6 @@ export function defaultElements( size ) {
 			height: round1( 0.06 * height ),
 			weight: '600',
 			size: Math.round( 16 * scale ),
-			minSize: Math.round( 10 * scale ),
 		} ),
 		makeQr( {
 			x: round1( ( width - qr ) / 2 ),
