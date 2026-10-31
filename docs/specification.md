@@ -25,7 +25,13 @@ Long-term goal: integrate with CampTix directly (no CSV) and run on every WordCa
 ## Saved work
 
 - The badge design (background, print size, bleed, fields and their styles) is saved on the site. When the organizer opens the editor again, it shows the work exactly as they left it. Example: the organizers of WordCamp Valencia upload their background, prepare their badges, and find everything as it was the next time they open the editor.
-- The settings can be exported to a file, and imported from it to rebuild the same design.
+- The design can be exported to a JSON file and imported from it, for example to reuse last year's design on next year's WordCamp site. The JSON does not include the background: after importing it, the organizer uploads the background again, and every field keeps its position, fonts, colors and styles.
+
+## Attendee data
+
+- On test sites, the attendee list is read from a CampTix CSV export at a fixed path in `test-data/`.
+- On real WordCamp sites, the attendee list will be read live from the site's CampTix attendees. No CSV upload is planned for production.
+- Attendee data is not part of the saved design.
 
 ## Badge size
 
@@ -61,9 +67,7 @@ CampTix exports contain real names and email addresses.
 ## Open points
 
 - CampTix CSV format: columns, encoding, delimiter (waiting for a sample export).
-- Whether the uploaded CSV is stored on the server or only processed in the browser.
 - PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
-- Whether the exported settings file includes the background itself, or only a reference to it in the Media Library.
 - One saved design per site, or several (for example one per ticket type).
 - Editor technology (React with `@wordpress/components`, or plain JavaScript).
 - Styles that depend on the ticket type (organizer, speaker, volunteer...).
