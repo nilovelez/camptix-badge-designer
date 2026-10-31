@@ -32,10 +32,13 @@ Long-term goal: integrate with CampTix directly (no CSV) and run on every WordCa
 - Image fields generated from a CSV column:
   - QR code from a URL (for example the attendee's WordPress.org profile).
   - Gravatar avatar from the email address.
+- WordPress.org username: a required field on every ticket. From it the plugin derives the profile URL, `https://profiles.wordpress.org/<username>/`, and one of the elements that can be placed on the badge is a QR code pointing to that profile.
 
 ## Architecture
 
 - The editor and almost all the work run in the browser, in JavaScript, fed with the attendee data.
+- Everything that can be generated in the browser is generated there, with browser resources (QR codes, Gravatar hashes, layout, ideally the PDF). Earlier attempts at this tool generated and stored images on the server, and with large events the files and the memory and CPU needed became too big. Generated images are not stored.
+- QR codes: the encoder from LadyQR (https://github.com/nilovelez/ladyqr, `assets/qr.js`): no dependencies, GPLv2, compatible with this plugin's GPL-2.0-or-later license.
 - The final PDF may be generated in JavaScript (pdf-lib or jsPDF) or in PHP; to be decided.
 
 ## Personal data
