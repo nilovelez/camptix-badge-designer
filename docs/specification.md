@@ -73,6 +73,7 @@ Every element:
 - Options, all simple:
   - Shape: round or square.
   - Fallback when the attendee has no Gravatar, using Gravatar's own default images (the `d` parameter): none, a fixed image, or a generated one (identicon, monster, wavatar, retro, robot).
+  - Fixed image: the organizer's own image (for example the WordCamp logo), passed to Gravatar as `d=<URL>`. Gravatar fetches it, so it must be at a public URL. During testing, any public URL typed in; on real sites, picked from the Media Library.
 - With "none", or when the image cannot be loaded at all (network error), the element is a transparent PNG: the background shows through and generation never stops.
 
 ## Preview and PDF generation
