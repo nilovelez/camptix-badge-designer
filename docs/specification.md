@@ -70,6 +70,10 @@ Every element:
 - Loaded by URL from Gravatar, never generated or stored by the plugin.
 - The URL comes from the attendee's email address, or from their WordPress.org username if Gravatar offers a way (to be checked).
 - Requested as PNG: some Gravatars have transparency, and other formats such as JPG render it badly.
+- Options, all simple:
+  - Shape: round or square.
+  - Fallback when the attendee has no Gravatar, using Gravatar's own default images (the `d` parameter): none, a fixed image, or a generated one (identicon, monster, wavatar, retro, robot).
+- With "none", or when the image cannot be loaded at all (network error), the element is a transparent PNG: the background shows through and generation never stops.
 
 ## Preview and PDF generation
 
