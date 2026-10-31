@@ -6,7 +6,7 @@
  * Only the fields a badge may show leave this file: email addresses are
  * turned into Gravatar hashes here and never reach the browser.
  *
- * @package Camptix_Badge_Generator
+ * @package CampTix_Badge_Designer
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return string[] Column headers.
  */
-function ctbg_camptix_standard_columns() {
+function ctbd_camptix_standard_columns() {
 	return array(
 		'Attendee ID',
 		'Ticket Type',
@@ -48,19 +48,19 @@ function ctbg_camptix_standard_columns() {
  *
  * @return string[] Column headers.
  */
-function ctbg_allowed_standard_questions() {
+function ctbd_allowed_standard_questions() {
 	return array( 'First Time Attending' );
 }
 
 /**
  * Event questions that must never be offered as variables, because their
  * answers are sensitive. Event questions have free names, so sites can add
- * theirs with the `ctbg_excluded_questions` filter.
+ * theirs with the `ctbd_excluded_questions` filter.
  *
  * @return string[] Column headers.
  */
-function ctbg_excluded_questions() {
-	return apply_filters( 'ctbg_excluded_questions', array() );
+function ctbd_excluded_questions() {
+	return apply_filters( 'ctbd_excluded_questions', array() );
 }
 
 /**
@@ -68,9 +68,9 @@ function ctbg_excluded_questions() {
  *
  * @return string Path, or an empty string if there is none.
  */
-function ctbg_get_test_csv_path() {
+function ctbd_get_test_csv_path() {
 	$path  = '';
-	$files = glob( CTBG_PLUGIN_DIR . 'test-data/*.csv' );
+	$files = glob( CTBD_PLUGIN_DIR . 'test-data/*.csv' );
 
 	if ( ! empty( $files ) ) {
 		usort(
@@ -82,7 +82,7 @@ function ctbg_get_test_csv_path() {
 		$path = $files[0];
 	}
 
-	return apply_filters( 'ctbg_test_csv_path', $path );
+	return apply_filters( 'ctbd_test_csv_path', $path );
 }
 
 /**
@@ -91,9 +91,9 @@ function ctbg_get_test_csv_path() {
  * @param string $path File path.
  * @return array|WP_Error {header: string[], rows: string[][], malformed: int}.
  */
-function ctbg_read_csv( $path ) {
+function ctbd_read_csv( $path ) {
 	if ( '' === $path || ! is_readable( $path ) ) {
-		return new WP_Error( 'ctbg_no_csv', __( 'No CSV file found in test-data/.', 'camptix-badge-generator' ) );
+		return new WP_Error( 'ctbd_no_csv', __( 'No CSV file found in test-data/.', 'camptix-badge-designer' ) );
 	}
 
 	$file = new SplFileObject( $path, 'r' );
@@ -125,7 +125,7 @@ function ctbg_read_csv( $path ) {
 	}
 
 	if ( null === $header ) {
-		return new WP_Error( 'ctbg_empty_csv', __( 'The CSV file is empty.', 'camptix-badge-generator' ) );
+		return new WP_Error( 'ctbd_empty_csv', __( 'The CSV file is empty.', 'camptix-badge-designer' ) );
 	}
 
 	return array(
@@ -140,7 +140,7 @@ function ctbg_read_csv( $path ) {
  *
  * @return string[] Particles.
  */
-function ctbg_name_particles() {
+function ctbd_name_particles() {
 	return array( 'de', 'del', 'la', 'las', 'los', 'y', 'i', 'e', 'da', 'das', 'do', 'dos', 'di', 'du', 'van', 'von', 'der', 'den', 'le' );
 }
 
@@ -155,14 +155,14 @@ function ctbg_name_particles() {
  * @param string $name Name as typed.
  * @return string Normalized name.
  */
-function ctbg_normalize_name( $name ) {
+function ctbd_normalize_name( $name ) {
 	$name = trim( preg_replace( '/\s+/u', ' ', (string) $name ) );
 	if ( '' === $name ) {
 		return '';
 	}
 
 	$words     = explode( ' ', $name );
-	$particles = ctbg_name_particles();
+	$particles = ctbd_name_particles();
 
 	foreach ( $words as $index => $word ) {
 		$lower = mb_strtolower( $word, 'UTF-8' );
@@ -191,7 +191,7 @@ function ctbg_normalize_name( $name ) {
  * @param string $username Username as exported.
  * @return string Username, or '' when it is missing or not valid.
  */
-function ctbg_sanitize_wporg_username( $username ) {
+function ctbd_sanitize_wporg_username( $username ) {
 	$username = trim( (string) $username );
 	if ( ! preg_match( '/^[A-Za-z0-9._@-]+$/', $username ) ) {
 		return '';
@@ -202,26 +202,26 @@ function ctbg_sanitize_wporg_username( $username ) {
 /**
  * Turns a CampTix export into the attendee list for badges.
  *
- * @param array $csv Result of ctbg_read_csv().
+ * @param array $csv Result of ctbd_read_csv().
  * @return array|WP_Error {attendees, questions, stats}.
  */
-function ctbg_parse_attendees( $csv ) {
+function ctbd_parse_attendees( $csv ) {
 	$header = $csv['header'];
 
 	foreach ( array( 'Attendee ID', 'First Name', 'Last Name' ) as $required ) {
 		if ( ! in_array( $required, $header, true ) ) {
 			return new WP_Error(
-				'ctbg_missing_column',
+				'ctbd_missing_column',
 				/* translators: %s: column name. */
-				sprintf( __( 'The CSV file has no "%s" column. Is it a CampTix attendees export?', 'camptix-badge-generator' ), $required )
+				sprintf( __( 'The CSV file has no "%s" column. Is it a CampTix attendees export?', 'camptix-badge-designer' ), $required )
 			);
 		}
 	}
 
 	// Question columns that may become variables.
-	$standard  = ctbg_camptix_standard_columns();
-	$allowed   = ctbg_allowed_standard_questions();
-	$excluded  = ctbg_excluded_questions();
+	$standard  = ctbd_camptix_standard_columns();
+	$allowed   = ctbd_allowed_standard_questions();
+	$excluded  = ctbd_excluded_questions();
 	$questions = array();
 	foreach ( $header as $column ) {
 		$is_event_question = ! in_array( $column, $standard, true );
@@ -256,13 +256,13 @@ function ctbg_parse_attendees( $csv ) {
 			continue;
 		}
 
-		$first_name = ctbg_normalize_name( $data['First Name'] );
-		$last_name  = ctbg_normalize_name( $data['Last Name'] );
+		$first_name = ctbd_normalize_name( $data['First Name'] );
+		$last_name  = ctbd_normalize_name( $data['Last Name'] );
 		if ( trim( preg_replace( '/\s+/u', ' ', $data['First Name'] ) ) !== $first_name || trim( preg_replace( '/\s+/u', ' ', $data['Last Name'] ) ) !== $last_name ) {
 			++$stats['namesNormalized'];
 		}
 
-		$username = ctbg_sanitize_wporg_username( isset( $data['Username'] ) ? $data['Username'] : '' );
+		$username = ctbd_sanitize_wporg_username( isset( $data['Username'] ) ? $data['Username'] : '' );
 		if ( '' === $username ) {
 			++$stats['withoutUsername'];
 		}
@@ -316,14 +316,14 @@ function ctbg_parse_attendees( $csv ) {
  *
  * @return array|WP_Error {source, attendees, questions, stats}.
  */
-function ctbg_get_attendees() {
-	$path = ctbg_get_test_csv_path();
-	$csv  = ctbg_read_csv( $path );
+function ctbd_get_attendees() {
+	$path = ctbd_get_test_csv_path();
+	$csv  = ctbd_read_csv( $path );
 	if ( is_wp_error( $csv ) ) {
 		return $csv;
 	}
 
-	$result = ctbg_parse_attendees( $csv );
+	$result = ctbd_parse_attendees( $csv );
 	if ( is_wp_error( $result ) ) {
 		return $result;
 	}
@@ -333,28 +333,28 @@ function ctbg_get_attendees() {
 }
 
 /**
- * Registers GET /wp-json/ctbg/v1/attendees.
+ * Registers GET /wp-json/ctbd/v1/attendees.
  */
-function ctbg_register_attendees_route() {
+function ctbd_register_attendees_route() {
 	register_rest_route(
-		'ctbg/v1',
+		'ctbd/v1',
 		'/attendees',
 		array(
 			'methods'             => WP_REST_Server::READABLE,
-			'callback'            => 'ctbg_rest_get_attendees',
-			'permission_callback' => 'ctbg_can_edit_badges',
+			'callback'            => 'ctbd_rest_get_attendees',
+			'permission_callback' => 'ctbd_can_edit_badges',
 		)
 	);
 }
-add_action( 'rest_api_init', 'ctbg_register_attendees_route' );
+add_action( 'rest_api_init', 'ctbd_register_attendees_route' );
 
 /**
  * REST callback for the attendee list.
  *
  * @return WP_REST_Response|WP_Error The attendees.
  */
-function ctbg_rest_get_attendees() {
-	$result = ctbg_get_attendees();
+function ctbd_rest_get_attendees() {
+	$result = ctbd_get_attendees();
 	if ( is_wp_error( $result ) ) {
 		$result->add_data( array( 'status' => 404 ) );
 		return $result;

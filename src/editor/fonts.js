@@ -6,7 +6,7 @@
 import { useEffect, useState } from '@wordpress/element';
 import fontkit from '@pdf-lib/fontkit';
 
-const families = window.ctbgSettings.fontFamilies || [];
+const families = window.ctbdSettings.fontFamilies || [];
 const faces = new Map();
 
 export function fontFamilies() {
@@ -91,7 +91,7 @@ export function loadFace( face ) {
 			);
 			const font = fontkit.create( bytes );
 			// One CSS family per face, so the browser never synthesizes a weight.
-			const css = 'ctbg-' + key.replace( /[^A-Za-z0-9]+/g, '-' );
+			const css = 'ctbd-' + key.replace( /[^A-Za-z0-9]+/g, '-' );
 			// A copy, so the bytes kept for the PDF are never detached.
 			const fontFace = new window.FontFace( css, bytes.slice() );
 			await fontFace.load();

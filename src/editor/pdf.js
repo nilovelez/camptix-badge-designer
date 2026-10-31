@@ -5,7 +5,7 @@
 import * as pdfjs from 'pdfjs-dist';
 import { round1 } from './geometry';
 
-pdfjs.GlobalWorkerOptions.workerSrc = window.ctbgSettings.pdfWorkerUrl;
+pdfjs.GlobalWorkerOptions.workerSrc = window.ctbdSettings.pdfWorkerUrl;
 
 const documents = new Map();
 

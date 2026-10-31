@@ -1,9 +1,9 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
-		"title": "Camptix Badge Generator - development site",
+		"title": "CampTix Badge Designer - development site",
 		"author": "nilovelez",
-		"description": "Development site for Camptix Badge Generator. The plugin itself is mounted (Playground) or linked (Studio) from the repository, not installed by this blueprint."
+		"description": "Development site for CampTix Badge Designer. The plugin itself is mounted (Playground) or linked (Studio) from the repository, not installed by this blueprint."
 	},
 	"landingPage": "/wp-admin/plugins.php",
 	"preferredVersions": {
@@ -25,7 +25,7 @@
 		},
 		{
 			"step": "activatePlugin",
-			"pluginPath": "camptix-badge-generator/camptix-badge-generator.php"
+			"pluginPath": "camptix-badge-designer/camptix-badge-designer.php"
 		}
 	]
 }

@@ -55,12 +55,12 @@ function Progress( { progress } ) {
 		? Math.round( ( progress.done / progress.total ) * 100 )
 		: null;
 	return (
-		<div className="ctbg-progress">
+		<div className="ctbd-progress">
 			<p>
 				{ label }
 				{ counted }
 			</p>
-			<div className="ctbg-progress__bar">
+			<div className="ctbd-progress__bar">
 				<span
 					style={ {
 						width: ( percent === null ? 100 : percent ) + '%',
@@ -201,7 +201,7 @@ export function PreviewDialog( {
 		<Modal
 			title={ 'Preview: badge ' + attendee.number }
 			onRequestClose={ onClose }
-			className="ctbg-pdf-dialog"
+			className="ctbd-pdf-dialog"
 		>
 			{ state.status === 'running' && (
 				<Progress progress={ state.progress } />
@@ -213,19 +213,19 @@ export function PreviewDialog( {
 			) }
 			{ state.status === 'done' && (
 				<>
-					<p className="ctbg-help">
+					<p className="ctbd-help">
 						The PDF as the print shop will get it:{ ' ' }
 						{ pageGeometry( design ).width } ×{ ' ' }
 						{ pageGeometry( design ).height } mm,{ ' ' }
 						{ formatSize( state.bytes.length ) }.
 					</p>
-					<div className="ctbg-pdf-dialog__preview">
+					<div className="ctbd-pdf-dialog__preview">
 						<canvas ref={ canvasRef } />
 					</div>
 					<GravatarNote stats={ state.stats } />
 				</>
 			) }
-			<div className="ctbg-pdf-dialog__actions">
+			<div className="ctbd-pdf-dialog__actions">
 				<Button variant="tertiary" onClick={ onClose }>
 					Close
 				</Button>
@@ -300,11 +300,11 @@ export function GenerateDialog( {
 		<Modal
 			title="Generate PDF"
 			onRequestClose={ running ? cancel : onClose }
-			className="ctbg-pdf-dialog ctbg-generate-dialog"
+			className="ctbd-pdf-dialog ctbd-generate-dialog"
 		>
 			{ state.status !== 'done' && (
 				<>
-					<p className="ctbg-help">
+					<p className="ctbd-help">
 						One page per attendee, numbered in purchase order.
 					</p>
 					<RadioControl
@@ -318,10 +318,10 @@ export function GenerateDialog( {
 						onChange={ setRange }
 					/>
 					{ range === 'range' && (
-						<div className="ctbg-range">
-							<label htmlFor="ctbg-range-from">From</label>
+						<div className="ctbd-range">
+							<label htmlFor="ctbd-range-from">From</label>
 							<input
-								id="ctbg-range-from"
+								id="ctbd-range-from"
 								type="number"
 								min="1"
 								max={ total }
@@ -329,9 +329,9 @@ export function GenerateDialog( {
 								disabled={ running }
 								onChange={ ( e ) => setFrom( e.target.value ) }
 							/>
-							<label htmlFor="ctbg-range-to">to</label>
+							<label htmlFor="ctbd-range-to">to</label>
 							<input
-								id="ctbg-range-to"
+								id="ctbd-range-to"
 								type="number"
 								min="1"
 								max={ total }
@@ -341,7 +341,7 @@ export function GenerateDialog( {
 							/>
 						</div>
 					) }
-					<div className="ctbg-summary">
+					<div className="ctbd-summary">
 						{ valid ? (
 							<>
 								<strong>
@@ -396,7 +396,7 @@ export function GenerateDialog( {
 					<GravatarNote stats={ state.stats } />
 				</>
 			) }
-			<div className="ctbg-pdf-dialog__actions">
+			<div className="ctbd-pdf-dialog__actions">
 				{ running && (
 					<Button variant="tertiary" onClick={ cancel }>
 						Cancel

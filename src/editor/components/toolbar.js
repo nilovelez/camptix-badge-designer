@@ -35,7 +35,7 @@ function Pager( { attendees, index, onChange } ) {
 	}
 
 	return (
-		<nav className="ctbg-pager" aria-label="Attendees">
+		<nav className="ctbd-pager" aria-label="Attendees">
 			<Button
 				size="small"
 				icon={ chevronLeft }
@@ -44,7 +44,7 @@ function Pager( { attendees, index, onChange } ) {
 				onClick={ () => go( index ) }
 			/>
 			<input
-				className="ctbg-pager__number"
+				className="ctbd-pager__number"
 				type="number"
 				min="1"
 				max={ total }
@@ -59,7 +59,7 @@ function Pager( { attendees, index, onChange } ) {
 				} }
 				onBlur={ () => setText( String( index + 1 ) ) }
 			/>
-			<span className="ctbg-pager__total">of { total }</span>
+			<span className="ctbd-pager__total">of { total }</span>
 			<Button
 				size="small"
 				icon={ chevronRight }
@@ -68,7 +68,7 @@ function Pager( { attendees, index, onChange } ) {
 				onClick={ () => go( index + 2 ) }
 			/>
 			<span
-				className="ctbg-pager__name"
+				className="ctbd-pager__name"
 				title={ attendee.firstName + ' ' + attendee.lastName }
 			>
 				{ attendee.firstName } { attendee.lastName }
@@ -91,9 +91,9 @@ export function Toolbar( {
 	onGenerate,
 } ) {
 	return (
-		<div className="ctbg-toolbar">
+		<div className="ctbd-toolbar">
 			<DropdownMenu
-				className="ctbg-toolbar__add"
+				className="ctbd-toolbar__add"
 				icon={ plus }
 				label="Add element"
 				toggleProps={ { variant: 'primary', size: 'compact' } }
@@ -132,15 +132,15 @@ export function Toolbar( {
 				onClick={ onRedo }
 			/>
 			{ /* Left-aligned, so it does not move with the length of the name. */ }
-			<span className="ctbg-toolbar__gap" />
+			<span className="ctbd-toolbar__gap" />
 			<Pager
 				attendees={ attendees }
 				index={ attendeeIndex }
 				onChange={ onAttendee }
 			/>
-			<span className="ctbg-toolbar__spacer" />
+			<span className="ctbd-toolbar__spacer" />
 			<span
-				className={ 'ctbg-toolbar__status is-' + saveStatus }
+				className={ 'ctbd-toolbar__status is-' + saveStatus }
 				title={ saveError || undefined }
 				role="status"
 			>

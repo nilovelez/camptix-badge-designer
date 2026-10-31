@@ -21,6 +21,6 @@ Build the release zip with `git archive` (see the `wp-agentic-workflow` skill). 
 
 The PHP strings are translatable, but the editor's JavaScript strings are plain English. Wrap them with `@wordpress/i18n` (`__`, `_n`, `sprintf`) and load the translations with `wp_set_script_translations()`, so organizers can use the editor in their language. Found in the milestone 7 review (October 2026).
 
-## Attendees live from CampTix
+## Integration into the official WordCamp.org badge plugin
 
-Read the attendees from the site's CampTix tickets instead of a CSV in `test-data/`, so the plugin works on real WordCamp sites. `ctbg_get_attendees()` in `includes/attendees.php` is the single place to change. Planned since the start, out of the first phase.
+Once the WordCamp.org team agrees (see "Name, and the road to WordCamp.org" in `docs/decisions.md`): fork `WordPress/wordcamp.org`, move the code into its `camptix-badge-generator` plugin following that repo's conventions, and send the pull request.

@@ -1,4 +1,4 @@
-# Camptix Badge Generator: instructions for agents
+# CampTix Badge Designer: instructions for agents
 
 WordPress plugin that processes CampTix CSV export files and generates PDF badges ready to print.
 
@@ -8,7 +8,7 @@ This file is the single source of working rules for any agent or person picking 
 
 | Path | What it is |
 |---|---|
-| `camptix-badge-generator.php` | Main plugin file. |
+| `camptix-badge-designer.php` | Main plugin file. |
 | `readme.txt` | WordPress.org readme. |
 | `AGENTS.md` | Working rules (this file). |
 | `CLAUDE.md` | Imports `AGENTS.md` for Claude Code. |
@@ -50,7 +50,7 @@ Everything an agent needs to resume the work lives in this repository. Do not re
 
 The project follows the `wp-agentic-workflow` skill (https://github.com/nilovelez/wp-agentic-workflow), on top of the official WordPress agent skills (https://github.com/WordPress/agent-skills). Without the skill, the essentials are:
 
-- Slug and text domain: `camptix-badge-generator`. Prefix for functions, constants, options and hooks: `ctbg` (`CTBG_` for constants, `Ctbg_` or a `Ctbg` namespace for classes).
+- Slug and text domain: `camptix-badge-designer`. Prefix for functions, constants, options and hooks: `ctbd` (`CTBD_` for constants, `Ctbd_` or a `Ctbd` namespace for classes).
 - Requires WordPress 6.8 and PHP 8.3.
 - WordPress Coding Standards: `composer install` once, then `composer lint` before every commit that touches PHP (`composer fix` for automatic fixes). Plugin Check must be clean before any release.
 - Readable, simple code: a plain loop or `if` over clever one-liners.
@@ -65,10 +65,10 @@ Nilo often works from another computer, reaching this one through Tailscale. Eve
 - **Playground** (disposable), from the repo root:
 
   ```bash
-  npx @wp-playground/cli@latest server --blueprint ./blueprint.json --mount-dir . /wordpress/wp-content/plugins/camptix-badge-generator --site-url http://<Tailscale or LAN IP>:9400
+  npx @wp-playground/cli@latest server --blueprint ./blueprint.json --mount-dir . /wordpress/wp-content/plugins/camptix-badge-designer --site-url http://<Tailscale or LAN IP>:9400
   ```
 
-- **Studio** (persistent): created at `~/Studio/camptix-badge-generator`, with the repo linked as the plugin. Start it with `studio start --path <site> --skip-browser`; it is then at `http://camptix-badge-generator.local/` and the other computer needs `<IP> camptix-badge-generator.local` in its hosts file. WP-CLI: `studio wp --path <site> <command>`.
+- **Studio** (persistent): created at `~/Studio/camptix-badge-designer`, with the repo linked as the plugin. Start it with `studio start --path <site> --skip-browser`; it is then at `http://camptix-badge-designer.local/` and the other computer needs `<IP> camptix-badge-designer.local` in its hosts file. WP-CLI: `studio wp --path <site> <command>`.
 
 On Windows, use PowerShell rather than Git Bash for these commands.
 

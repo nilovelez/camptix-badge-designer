@@ -1,5 +1,5 @@
 {
-	"name": "camptix-badge-generator",
+	"name": "camptix-badge-designer",
 	"version": "0.1.0",
 	"description": "Processes CampTix CSV export files and generates PDF badges ready to print.",
 	"author": "Nilo Vélez",

@@ -50,7 +50,7 @@ export function BackgroundSizeDialog( {
 		<Modal
 			title="Background size"
 			onRequestClose={ onCancel }
-			className="ctbg-size-dialog"
+			className="ctbd-size-dialog"
 		>
 			{ isPdf ? (
 				<p>
@@ -70,7 +70,7 @@ export function BackgroundSizeDialog( {
 				</p>
 			) }
 
-			<div className="ctbg-size-dialog__fields">
+			<div className="ctbd-size-dialog__fields">
 				{ ! isPdf && (
 					<MmField
 						label="Width (mm)"
@@ -116,7 +116,7 @@ export function BackgroundSizeDialog( {
 				</Notice>
 			) }
 
-			<div className="ctbg-size-dialog__actions">
+			<div className="ctbd-size-dialog__actions">
 				<Button variant="tertiary" onClick={ onCancel }>
 					Cancel
 				</Button>

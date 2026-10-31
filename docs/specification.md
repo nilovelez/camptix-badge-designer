@@ -28,7 +28,7 @@ Long-term goal: read the attendees from CampTix directly and run on every WordCa
 - The design can be exported to a JSON file and imported from it, for example to reuse last year's design on next year's WordCamp site. The JSON does not include the background: after importing it, the organizer uploads the background again, and every field keeps its position, fonts, colors and styles.
   - The file (`badge-design.json`) holds the print size, the options and the elements. Not exported: the background and the fixed Gravatar image, which are files of the site's Media Library; after importing, the Gravatar falls back to none until an image is chosen again.
   - Importing asks for confirmation, keeps the current background, and is one undo step. Fonts the site does not have are listed (the text uses Inter until they are installed). Files that are not a badge design, or come from a newer plugin version, are refused.
-- Uninstalling the plugin deletes the design (the `ctbg_design` option). The background and the images stay in the Media Library.
+- Uninstalling the plugin deletes the design (the `ctbd_design` option). The background and the images stay in the Media Library.
 
 ## Attendee data
 
@@ -59,11 +59,11 @@ The variables a text box can insert:
 
 Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("McDonald") stay as typed. Particles such as "de" or "del" stay in lowercase. The organizer can still turn a text box to uppercase as a style.
 
-Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). Every question the event adds stays available, whatever it asks (decided by Nilo); a site can still exclude one with the `ctbg_excluded_questions` filter.
+Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). Every question the event adds stays available, whatever it asks (decided by Nilo); a site can still exclude one with the `ctbd_excluded_questions` filter.
 
 ### What reaches the browser
 
-The server (`includes/attendees.php`, REST route `ctbg/v1/attendees`, administrators only) sends, per attendee: page number, Attendee ID, normalized first and last name, the validated username (empty when missing), the Gravatar hash, and the answers to the allowed questions.
+The server (`includes/attendees.php`, REST route `ctbd/v1/attendees`, administrators only) sends, per attendee: page number, Attendee ID, normalized first and last name, the validated username (empty when missing), the Gravatar hash, and the answers to the allowed questions.
 
 - Email addresses never reach the browser: the server sends the SHA-256 Gravatar hash of the trimmed, lowercase address.
 - Only tickets with status `Publish` get a badge; the others are counted and left out.

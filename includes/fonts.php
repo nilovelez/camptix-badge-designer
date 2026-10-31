@@ -2,7 +2,7 @@
 /**
  * Fonts and colors offered by the editor.
  *
- * @package Camptix_Badge_Generator
+ * @package CampTix_Badge_Designer
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return array[] Families: {family, source, faces: [{weight, url}]}.
  */
-function ctbg_get_fonts() {
+function ctbd_get_fonts() {
 	$fonts = array(
 		array(
 			'family' => 'Inter',
@@ -25,15 +25,15 @@ function ctbg_get_fonts() {
 			'faces'  => array(
 				array(
 					'weight' => '400',
-					'url'    => CTBG_PLUGIN_URL . 'fonts/inter/Inter-Regular.ttf',
+					'url'    => CTBD_PLUGIN_URL . 'fonts/inter/Inter-Regular.ttf',
 				),
 				array(
 					'weight' => '600',
-					'url'    => CTBG_PLUGIN_URL . 'fonts/inter/Inter-SemiBold.ttf',
+					'url'    => CTBD_PLUGIN_URL . 'fonts/inter/Inter-SemiBold.ttf',
 				),
 				array(
 					'weight' => '700',
-					'url'    => CTBG_PLUGIN_URL . 'fonts/inter/Inter-Bold.ttf',
+					'url'    => CTBD_PLUGIN_URL . 'fonts/inter/Inter-Bold.ttf',
 				),
 			),
 		),
@@ -115,7 +115,7 @@ function ctbg_get_fonts() {
  *
  * @return array[] Colors: {name, color}.
  */
-function ctbg_get_palette() {
+function ctbd_get_palette() {
 	$palette = wp_get_global_settings( array( 'color', 'palette' ) );
 	$colors  = array();
 

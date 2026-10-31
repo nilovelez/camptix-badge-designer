@@ -40,7 +40,7 @@ export function useDesign() {
 			setSaveStatus( 'saving' );
 			try {
 				await apiFetch( {
-					path: '/ctbg/v1/design',
+					path: '/ctbd/v1/design',
 					method: 'POST',
 					data: { design: latest.current },
 				} );
@@ -73,7 +73,7 @@ export function useDesign() {
 	);
 
 	useEffect( () => {
-		apiFetch( { path: '/ctbg/v1/design' } )
+		apiFetch( { path: '/ctbd/v1/design' } )
 			.then( ( response ) => {
 				setBackgroundFile( response.background );
 				setImages( response.images || {} );
@@ -192,7 +192,7 @@ export function useAttendees() {
 	const [ data, setData ] = useState( null );
 	const [ error, setError ] = useState( null );
 	useEffect( () => {
-		apiFetch( { path: '/ctbg/v1/attendees' } )
+		apiFetch( { path: '/ctbd/v1/attendees' } )
 			.then( setData )
 			.catch( ( e ) => setError( e.message || String( e ) ) );
 	}, [] );

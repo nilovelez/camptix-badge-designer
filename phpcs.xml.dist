@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Camptix Badge Generator">
-	<description>WordPress Coding Standards for Camptix Badge Generator.</description>
+<ruleset name="CampTix Badge Designer">
+	<description>WordPress Coding Standards for CampTix Badge Designer.</description>
 
 	<file>.</file>
 	<exclude-pattern>/vendor/*</exclude-pattern>
@@ -21,7 +21,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="camptix-badge-generator"/>
+				<element value="camptix-badge-designer"/>
 			</property>
 		</properties>
 	</rule>
@@ -29,7 +29,7 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="ctbg"/>
+				<element value="ctbd"/>
 			</property>
 		</properties>
 	</rule>

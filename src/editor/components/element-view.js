@@ -16,9 +16,9 @@ function TextView( { element, layout, fonts, scale } ) {
 	}
 	const lineHeight = ( layout.ascent - layout.descent ) * scale;
 	return (
-		<div className="ctbg-element__clip">
+		<div className="ctbd-element__clip">
 			<span
-				className="ctbg-element__text"
+				className="ctbd-element__text"
 				style={ {
 					left: layout.x * scale,
 					top: ( layout.baseline - layout.ascent ) * scale,
@@ -38,7 +38,7 @@ function QrView( { attendee } ) {
 	if ( ! attendee.username ) {
 		// Nothing is printed; the editor shows where the code would go.
 		return (
-			<span className="ctbg-element__placeholder">
+			<span className="ctbd-element__placeholder">
 				No username: no QR code
 			</span>
 		);
@@ -46,7 +46,7 @@ function QrView( { attendee } ) {
 	const qr = profileQr( attendee.username );
 	return (
 		<svg
-			className="ctbg-element__qr"
+			className="ctbd-element__qr"
 			viewBox={ '0 0 ' + qr.size + ' ' + qr.size }
 			shapeRendering="crispEdges"
 			aria-label="QR code"
@@ -68,7 +68,7 @@ function GravatarView( { element, attendee, scale, images } ) {
 	);
 	const url = gravatarUrl( attendee.gravatarHash, px, element.fallback );
 	const className =
-		'ctbg-element__gravatar' +
+		'ctbd-element__gravatar' +
 		( element.shape === 'round' ? ' is-round' : '' );
 
 	if ( ! url || failed === url ) {

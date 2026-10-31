@@ -1,4 +1,4 @@
-# Camptix Badge Generator
+# CampTix Badge Designer
 
 All working rules for this project are in `AGENTS.md`, shared by every agent. Read `HANDOFF.md` next.
 

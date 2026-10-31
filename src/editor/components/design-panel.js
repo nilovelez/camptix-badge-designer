@@ -18,7 +18,7 @@ import {
 import { DESIGN_VERSION, upgradeDesign } from '../elements';
 import { fontFamilies } from '../fonts';
 
-const FORMAT = 'camptix-badge-generator/design';
+const FORMAT = 'camptix-badge-designer/design';
 const ELEMENT_TYPES = [ 'text', 'gravatar', 'qr' ];
 
 function exportDesign( design ) {
@@ -167,11 +167,11 @@ export function DesignPanel( { design, updateDesign } ) {
 
 	return (
 		<PanelBody title="Design" initialOpen={ false }>
-			<p className="ctbg-help">
+			<p className="ctbd-help">
 				Reuse this design on another site. The file has the print size
 				and the elements with their styles; not the background.
 			</p>
-			<div className="ctbg-button-row">
+			<div className="ctbd-button-row">
 				<Button
 					variant="secondary"
 					onClick={ () => exportDesign( design ) }
@@ -197,7 +197,7 @@ export function DesignPanel( { design, updateDesign } ) {
 				<Notice status="success" onRemove={ () => setDone( null ) }>
 					Design imported. You can undo it.
 					{ done.length > 0 && (
-						<ul className="ctbg-notes">
+						<ul className="ctbd-notes">
 							{ [ ...new Set( done ) ].map( ( note ) => (
 								<li key={ note }>{ note }</li>
 							) ) }
@@ -209,13 +209,13 @@ export function DesignPanel( { design, updateDesign } ) {
 				<Modal
 					title="Import design"
 					onRequestClose={ () => setPending( null ) }
-					className="ctbg-pdf-dialog"
+					className="ctbd-pdf-dialog"
 				>
 					<p>
 						Replace the current design with{ ' ' }
 						<strong>{ pending.name }</strong>?
 					</p>
-					<div className="ctbg-summary">
+					<div className="ctbd-summary">
 						<span>
 							Print size { pending.imported.size.width } ×{ ' ' }
 							{ pending.imported.size.height } mm,{ ' ' }
@@ -239,7 +239,7 @@ export function DesignPanel( { design, updateDesign } ) {
 					</div>
 					{ pending.notes.length > 0 && (
 						<Notice status="warning" isDismissible={ false }>
-							<ul className="ctbg-notes">
+							<ul className="ctbd-notes">
 								{ [ ...new Set( pending.notes ) ].map(
 									( note ) => (
 										<li key={ note }>{ note }</li>
@@ -248,7 +248,7 @@ export function DesignPanel( { design, updateDesign } ) {
 							</ul>
 						</Notice>
 					) }
-					<div className="ctbg-pdf-dialog__actions">
+					<div className="ctbd-pdf-dialog__actions">
 						<Button
 							variant="tertiary"
 							onClick={ () => setPending( null ) }

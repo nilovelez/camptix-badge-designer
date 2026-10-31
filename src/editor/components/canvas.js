@@ -84,16 +84,16 @@ function PdfBackground( { url, width, height } ) {
 		<>
 			<canvas
 				ref={ canvasRef }
-				className="ctbg-canvas__background"
+				className="ctbd-canvas__background"
 				style={ { width, height } }
 			/>
 			{ state === 'loading' && (
-				<div className="ctbg-canvas__overlay">
+				<div className="ctbd-canvas__overlay">
 					<Spinner />
 				</div>
 			) }
 			{ state === 'error' && (
-				<div className="ctbg-canvas__overlay">
+				<div className="ctbd-canvas__overlay">
 					The PDF background could not be loaded.
 				</div>
 			) }
@@ -177,7 +177,7 @@ function ElementBox( {
 	}
 
 	const overflow = layout && layout.overflow;
-	let className = 'ctbg-element is-' + element.type;
+	let className = 'ctbd-element is-' + element.type;
 	if ( selected ) {
 		className += ' is-selected';
 	}
@@ -199,7 +199,7 @@ function ElementBox( {
 			{ children }
 			{ overflow && (
 				<span
-					className="ctbg-element__warning"
+					className="ctbd-element__warning"
 					title="This text does not fit for this attendee: it is cut."
 				>
 					!
@@ -209,7 +209,7 @@ function ElementBox( {
 				CORNERS.map( ( corner ) => (
 					<span
 						key={ corner }
-						className={ 'ctbg-element__handle is-' + corner }
+						className={ 'ctbd-element__handle is-' + corner }
 						onPointerDown={ ( event ) =>
 							startDrag( event, corner )
 						}
@@ -272,7 +272,7 @@ export function Canvas( {
 		} else {
 			backgroundLayer = (
 				<img
-					className="ctbg-canvas__background"
+					className="ctbd-canvas__background"
 					src={ backgroundFile.url }
 					alt=""
 				/>
@@ -280,13 +280,13 @@ export function Canvas( {
 		}
 	} else if ( background && ! backgroundFile ) {
 		backgroundLayer = (
-			<div className="ctbg-canvas__overlay">
+			<div className="ctbd-canvas__overlay">
 				The background file is no longer in the Media Library.
 			</div>
 		);
 	} else {
 		backgroundLayer = (
-			<div className="ctbg-canvas__overlay is-empty">
+			<div className="ctbd-canvas__overlay is-empty">
 				<p>No background yet.</p>
 				<Button variant="secondary" onClick={ onSelectBackground }>
 					Select background
@@ -297,18 +297,18 @@ export function Canvas( {
 
 	return (
 		<main
-			className="ctbg-canvas"
+			className="ctbd-canvas"
 			ref={ areaRef }
 			aria-label="Badge canvas"
 			onPointerDown={ () => onSelect( null ) }
 		>
 			{ scale > 0 && (
-				<div className="ctbg-canvas__page" style={ { width, height } }>
+				<div className="ctbd-canvas__page" style={ { width, height } }>
 					{ backgroundLayer }
 					{ guides && (
 						<>
 							<div
-								className="ctbg-canvas__trim"
+								className="ctbd-canvas__trim"
 								title={
 									'Trim: ' +
 									size.width +
@@ -324,7 +324,7 @@ export function Canvas( {
 								} }
 							/>
 							<div
-								className="ctbg-canvas__safe"
+								className="ctbd-canvas__safe"
 								title={
 									'Safe area: ' +
 									size.safe +
@@ -350,7 +350,7 @@ export function Canvas( {
 						</>
 					) }
 					<div
-						className="ctbg-canvas__elements"
+						className="ctbd-canvas__elements"
 						style={ {
 							left: mm( size.bleed ),
 							top: mm( size.bleed ),
@@ -381,10 +381,10 @@ export function Canvas( {
 							</ElementBox>
 						) ) }
 						{ snap && snap.x && (
-							<div className="ctbg-canvas__snap is-vertical" />
+							<div className="ctbd-canvas__snap is-vertical" />
 						) }
 						{ snap && snap.y && (
-							<div className="ctbg-canvas__snap is-horizontal" />
+							<div className="ctbd-canvas__snap is-horizontal" />
 						) }
 					</div>
 				</div>

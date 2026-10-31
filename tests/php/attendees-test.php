@@ -5,13 +5,13 @@
  *
  * All names and data are invented.
  *
- * @package Camptix_Badge_Generator
+ * @package CampTix_Badge_Designer
  */
 
 // phpcs:disable WordPress.WP.AlternativeFunctions, WordPress.Security.EscapeOutput, WordPress.NamingConventions.PrefixAllGlobals
 
 define( 'ABSPATH', __DIR__ . '/' );
-define( 'CTBG_PLUGIN_DIR', dirname( __DIR__, 2 ) . '/' );
+define( 'CTBD_PLUGIN_DIR', dirname( __DIR__, 2 ) . '/' );
 
 // Minimal stand-ins for the WordPress functions the file uses.
 function apply_filters( $hook, $value ) {
@@ -42,7 +42,7 @@ function is_wp_error( $thing ) {
 	return $thing instanceof WP_Error;
 }
 
-require CTBG_PLUGIN_DIR . 'includes/attendees.php';
+require CTBD_PLUGIN_DIR . 'includes/attendees.php';
 
 $failures = 0;
 function check( $label, $actual, $expected ) {
@@ -56,24 +56,24 @@ function check( $label, $actual, $expected ) {
 }
 
 // Names.
-check( 'lowercase first name', ctbg_normalize_name( 'maría josé' ), 'María José' );
-check( 'uppercase last name', ctbg_normalize_name( 'GARCÍA PÉREZ' ), 'García Pérez' );
-check( 'mixed case is kept', ctbg_normalize_name( 'McDonald' ), 'McDonald' );
-check( 'only the all-caps word changes', ctbg_normalize_name( 'maría José' ), 'María José' );
-check( 'particles in lowercase', ctbg_normalize_name( 'DE LA FUENTE ORTIZ' ), 'de la Fuente Ortiz' );
-check( 'particles typed with capitals are kept', ctbg_normalize_name( 'De la Fuente' ), 'De la Fuente' );
-check( 'a lone particle-like name', ctbg_normalize_name( 'del' ), 'Del' );
-check( 'hyphenated', ctbg_normalize_name( 'fernández-villaverde' ), 'Fernández-Villaverde' );
-check( 'ñ and accents', ctbg_normalize_name( 'ÍÑIGO NÚÑEZ' ), 'Íñigo Núñez' );
-check( 'extra spaces', ctbg_normalize_name( '  ana   ruiz ' ), 'Ana Ruiz' );
-check( 'empty', ctbg_normalize_name( '' ), '' );
+check( 'lowercase first name', ctbd_normalize_name( 'maría josé' ), 'María José' );
+check( 'uppercase last name', ctbd_normalize_name( 'GARCÍA PÉREZ' ), 'García Pérez' );
+check( 'mixed case is kept', ctbd_normalize_name( 'McDonald' ), 'McDonald' );
+check( 'only the all-caps word changes', ctbd_normalize_name( 'maría José' ), 'María José' );
+check( 'particles in lowercase', ctbd_normalize_name( 'DE LA FUENTE ORTIZ' ), 'de la Fuente Ortiz' );
+check( 'particles typed with capitals are kept', ctbd_normalize_name( 'De la Fuente' ), 'De la Fuente' );
+check( 'a lone particle-like name', ctbd_normalize_name( 'del' ), 'Del' );
+check( 'hyphenated', ctbd_normalize_name( 'fernández-villaverde' ), 'Fernández-Villaverde' );
+check( 'ñ and accents', ctbd_normalize_name( 'ÍÑIGO NÚÑEZ' ), 'Íñigo Núñez' );
+check( 'extra spaces', ctbd_normalize_name( '  ana   ruiz ' ), 'Ana Ruiz' );
+check( 'empty', ctbd_normalize_name( '' ), '' );
 
 // Usernames.
-check( 'valid username', ctbg_sanitize_wporg_username( 'janedoe42' ), 'janedoe42' );
-check( 'username with dot and dash', ctbg_sanitize_wporg_username( ' jane.doe-x ' ), 'jane.doe-x' );
-check( 'placeholder', ctbg_sanitize_wporg_username( 'Awaiting attendee ([[ unconfirmed ]])' ), '' );
-check( 'empty username', ctbg_sanitize_wporg_username( '' ), '' );
-check( 'URL is not a username', ctbg_sanitize_wporg_username( 'https://wordpress.org/@jane' ), '' );
+check( 'valid username', ctbd_sanitize_wporg_username( 'janedoe42' ), 'janedoe42' );
+check( 'username with dot and dash', ctbd_sanitize_wporg_username( ' jane.doe-x ' ), 'jane.doe-x' );
+check( 'placeholder', ctbd_sanitize_wporg_username( 'Awaiting attendee ([[ unconfirmed ]])' ), '' );
+check( 'empty username', ctbd_sanitize_wporg_username( '' ), '' );
+check( 'URL is not a username', ctbd_sanitize_wporg_username( 'https://wordpress.org/@jane' ), '' );
 
 // A whole export.
 $csv    = array(
@@ -85,7 +85,7 @@ $csv    = array(
 	),
 	'malformed' => 1,
 );
-$result = ctbg_parse_attendees( $csv );
+$result = ctbd_parse_attendees( $csv );
 check( 'sorted by Attendee ID', array_column( $result['attendees'], 'attendeeId' ), array( 3, 12 ) );
 check( 'numbered from 1', array_column( $result['attendees'], 'number' ), array( 1, 2 ) );
 check( 'only Publish tickets', $result['stats']['skippedByStatus'], array( 'Refund' => 1 ) );

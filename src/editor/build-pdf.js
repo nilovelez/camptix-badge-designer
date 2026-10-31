@@ -230,8 +230,8 @@ export async function buildBadgesPdf( {
 
 	const doc = await PDFDocument.create();
 	doc.setTitle( 'Badges' );
-	doc.setCreator( 'Camptix Badge Generator' );
-	doc.setProducer( 'Camptix Badge Generator with pdf-lib' );
+	doc.setCreator( 'CampTix Badge Designer' );
+	doc.setProducer( 'CampTix Badge Designer with pdf-lib' );
 	doc.registerFontkit( fontkit );
 
 	// Fonts: the same files the editor measured, subset to the glyphs in use.

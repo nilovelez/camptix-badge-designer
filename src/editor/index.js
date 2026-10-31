@@ -275,14 +275,14 @@ function App() {
 
 	if ( loading ) {
 		return (
-			<div className="ctbg-editor__loading">
+			<div className="ctbd-editor__loading">
 				<Spinner />
 			</div>
 		);
 	}
 	if ( loadError ) {
 		return (
-			<div className="ctbg-editor__loading">
+			<div className="ctbd-editor__loading">
 				<Notice status="error" isDismissible={ false }>
 					The design could not be loaded: { loadError }
 				</Notice>
@@ -375,7 +375,7 @@ function App() {
 					{ error }
 				</Notice>
 			) }
-			<div className="ctbg-editor__body">
+			<div className="ctbd-editor__body">
 				<Canvas
 					design={ design }
 					backgroundFile={ backgroundFile }
@@ -454,7 +454,7 @@ function App() {
 	);
 }
 
-const container = document.getElementById( 'ctbg-editor' );
+const container = document.getElementById( 'ctbd-editor' );
 if ( container ) {
 	createRoot( container ).render( <App /> );
 }

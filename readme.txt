@@ -1,4 +1,4 @@
-=== Camptix Badge Generator ===
+=== CampTix Badge Designer ===
 Contributors: nilovelez
 Tags: camptix, wordcamp, badges, pdf, events
 Requires at least: 6.8
@@ -12,7 +12,7 @@ Design printed badges for your event's attendees and get a PDF ready for the pri
 
 == Description ==
 
-Camptix Badge Generator turns your CampTix attendee list into printed badges, the way data merge works in a desktop publishing program.
+CampTix Badge Designer turns your CampTix attendee list into printed badges, the way data merge works in a desktop publishing program.
 
 1. Design the badge background in any drawing program (PDF, PNG or JPG) and upload it to the Media Library.
 2. In Badges, place the attendee fields over it: text boxes with the first name, the last name or the event's own questions, the attendee's Gravatar, and a QR code that links to their WordPress.org profile.
@@ -34,7 +34,7 @@ Features:
 
 * Attendee email addresses never leave the server: the editor receives a SHA-256 hash of each address, as Gravatar requires.
 * To show and print Gravatars, your browser requests the images from gravatar.com with those hashes. See the Gravatar privacy policy: https://automattic.com/privacy/
-* The plugin stores only the badge design, in the `ctbg_design` option, which is deleted when the plugin is uninstalled.
+* The plugin stores only the badge design, in the `ctbd_design` option, which is deleted when the plugin is uninstalled.
 
 == Frequently Asked Questions ==
 

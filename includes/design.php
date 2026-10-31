@@ -1,11 +1,11 @@
 <?php
 /**
  * The badge design: one per site, stored in an option and edited through
- * the REST route ctbg/v1/design.
+ * the REST route ctbd/v1/design.
  *
  * All sizes are in millimeters.
  *
- * @package Camptix_Badge_Generator
+ * @package CampTix_Badge_Designer
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,12 +19,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * elements (Gravatar, first name, last name, QR code) when it opens a
  * design older than version 2, or one whose elements are null.
  */
-const CTBG_DESIGN_VERSION = 2;
+const CTBD_DESIGN_VERSION = 2;
 
 /**
  * Smallest QR code side, in millimeters.
  */
-const CTBG_QR_MIN_SIZE = 20;
+const CTBD_QR_MIN_SIZE = 20;
 
 /**
  * Design used before the organizer saves anything. Its elements are null:
@@ -32,9 +32,9 @@ const CTBG_QR_MIN_SIZE = 20;
  *
  * @return array Design.
  */
-function ctbg_default_design() {
+function ctbd_default_design() {
 	return array(
-		'version'    => CTBG_DESIGN_VERSION,
+		'version'    => CTBD_DESIGN_VERSION,
 		'size'       => array(
 			'width'  => 100,
 			'height' => 150,
@@ -53,7 +53,7 @@ function ctbg_default_design() {
  *
  * @return array MIME type => short type.
  */
-function ctbg_background_types() {
+function ctbd_background_types() {
 	return array(
 		'application/pdf' => 'pdf',
 		'image/png'       => 'png',
@@ -70,7 +70,7 @@ function ctbg_background_types() {
  * @param float $fallback Used when the value is not a number.
  * @return float Number.
  */
-function ctbg_clamp_mm( $value, $min, $max, $fallback ) {
+function ctbd_clamp_mm( $value, $min, $max, $fallback ) {
 	if ( ! is_numeric( $value ) ) {
 		return $fallback;
 	}
@@ -83,21 +83,21 @@ function ctbg_clamp_mm( $value, $min, $max, $fallback ) {
  * @param mixed $input Design as decoded from JSON.
  * @return array|WP_Error Clean design.
  */
-function ctbg_sanitize_design( $input ) {
+function ctbd_sanitize_design( $input ) {
 	if ( ! is_array( $input ) ) {
-		return new WP_Error( 'ctbg_invalid_design', __( 'The design is not valid.', 'camptix-badge-generator' ), array( 'status' => 400 ) );
+		return new WP_Error( 'ctbd_invalid_design', __( 'The design is not valid.', 'camptix-badge-designer' ), array( 'status' => 400 ) );
 	}
 
-	$default = ctbg_default_design();
+	$default = ctbd_default_design();
 	$size    = isset( $input['size'] ) && is_array( $input['size'] ) ? $input['size'] : array();
 
 	$design = array(
-		'version'    => CTBG_DESIGN_VERSION,
+		'version'    => CTBD_DESIGN_VERSION,
 		'size'       => array(
-			'width'  => ctbg_clamp_mm( $size['width'] ?? null, 20, 500, $default['size']['width'] ),
-			'height' => ctbg_clamp_mm( $size['height'] ?? null, 20, 500, $default['size']['height'] ),
-			'bleed'  => ctbg_clamp_mm( $size['bleed'] ?? null, 0, 10, $default['size']['bleed'] ),
-			'safe'   => ctbg_clamp_mm( $size['safe'] ?? null, 0, 30, $default['size']['safe'] ),
+			'width'  => ctbd_clamp_mm( $size['width'] ?? null, 20, 500, $default['size']['width'] ),
+			'height' => ctbd_clamp_mm( $size['height'] ?? null, 20, 500, $default['size']['height'] ),
+			'bleed'  => ctbd_clamp_mm( $size['bleed'] ?? null, 0, 10, $default['size']['bleed'] ),
+			'safe'   => ctbd_clamp_mm( $size['safe'] ?? null, 0, 30, $default['size']['safe'] ),
 		),
 		'cropMarks'  => ! empty( $input['cropMarks'] ),
 		'guides'     => ! empty( $input['guides'] ),
@@ -106,7 +106,7 @@ function ctbg_sanitize_design( $input ) {
 	);
 
 	if ( ! empty( $input['background'] ) && is_array( $input['background'] ) ) {
-		$background = ctbg_sanitize_background( $input['background'] );
+		$background = ctbd_sanitize_background( $input['background'] );
 		if ( is_wp_error( $background ) ) {
 			return $background;
 		}
@@ -119,7 +119,7 @@ function ctbg_sanitize_design( $input ) {
 	} elseif ( isset( $input['elements'] ) && is_array( $input['elements'] ) ) {
 		// A badge never needs many elements; the limit keeps the option small.
 		foreach ( array_slice( $input['elements'], 0, 50 ) as $element ) {
-			$clean = ctbg_sanitize_element( $element );
+			$clean = ctbd_sanitize_element( $element );
 			if ( null !== $clean ) {
 				$design['elements'][] = $clean;
 			}
@@ -137,7 +137,7 @@ function ctbg_sanitize_design( $input ) {
  * @param mixed $input Element sent by the editor.
  * @return array|null Clean element, or null if it is not valid.
  */
-function ctbg_sanitize_element( $input ) {
+function ctbd_sanitize_element( $input ) {
 	if ( ! is_array( $input ) || empty( $input['type'] ) || ! in_array( $input['type'], array( 'text', 'qr', 'gravatar' ), true ) ) {
 		return null;
 	}
@@ -150,10 +150,10 @@ function ctbg_sanitize_element( $input ) {
 	$element = array(
 		'id'     => $id,
 		'type'   => $input['type'],
-		'x'      => ctbg_clamp_mm( $input['x'] ?? null, -500, 1000, 0 ),
-		'y'      => ctbg_clamp_mm( $input['y'] ?? null, -500, 1000, 0 ),
-		'width'  => ctbg_clamp_mm( $input['width'] ?? null, 1, 1000, 20 ),
-		'height' => ctbg_clamp_mm( $input['height'] ?? null, 1, 1000, 10 ),
+		'x'      => ctbd_clamp_mm( $input['x'] ?? null, -500, 1000, 0 ),
+		'y'      => ctbd_clamp_mm( $input['y'] ?? null, -500, 1000, 0 ),
+		'width'  => ctbd_clamp_mm( $input['width'] ?? null, 1, 1000, 20 ),
+		'height' => ctbd_clamp_mm( $input['height'] ?? null, 1, 1000, 10 ),
 	);
 
 	if ( 'text' === $input['type'] ) {
@@ -163,7 +163,7 @@ function ctbg_sanitize_element( $input ) {
 		$element['content']   = mb_substr( sanitize_text_field( $input['content'] ?? '' ), 0, 500 );
 		$element['font']      = mb_substr( sanitize_text_field( $input['font'] ?? 'Inter' ), 0, 100 );
 		$element['weight']    = (string) min( 900, max( 100, absint( $input['weight'] ?? 400 ) ) );
-		$element['size']      = ctbg_clamp_mm( $input['size'] ?? null, 4, 200, 16 );
+		$element['size']      = ctbd_clamp_mm( $input['size'] ?? null, 4, 200, 16 );
 		$element['color']     = $color ? $color : '#1e1e1e';
 		$element['align']     = in_array( $align, array( 'left', 'center', 'right' ), true ) ? $align : 'center';
 		$element['uppercase'] = ! empty( $input['uppercase'] );
@@ -186,7 +186,7 @@ function ctbg_sanitize_element( $input ) {
 
 	if ( 'qr' === $input['type'] ) {
 		// Smaller codes do not scan reliably once printed (decided by Nilo).
-		$side              = max( CTBG_QR_MIN_SIZE, $element['width'], $element['height'] );
+		$side              = max( CTBD_QR_MIN_SIZE, $element['width'], $element['height'] );
 		$element['width']  = $side;
 		$element['height'] = $side;
 	}
@@ -202,13 +202,13 @@ function ctbg_sanitize_element( $input ) {
  * @param array $input Background sent by the editor.
  * @return array|WP_Error Clean background.
  */
-function ctbg_sanitize_background( $input ) {
+function ctbd_sanitize_background( $input ) {
 	$id    = absint( $input['id'] ?? 0 );
 	$mime  = $id ? get_post_mime_type( $id ) : '';
-	$types = ctbg_background_types();
+	$types = ctbd_background_types();
 
 	if ( ! $mime || ! isset( $types[ $mime ] ) ) {
-		return new WP_Error( 'ctbg_invalid_background', __( 'The background must be a PDF, PNG or JPG file from the Media Library.', 'camptix-badge-generator' ), array( 'status' => 400 ) );
+		return new WP_Error( 'ctbd_invalid_background', __( 'The background must be a PDF, PNG or JPG file from the Media Library.', 'camptix-badge-designer' ), array( 'status' => 400 ) );
 	}
 
 	$background = array(
@@ -217,8 +217,8 @@ function ctbg_sanitize_background( $input ) {
 	);
 
 	if ( 'pdf' === $background['type'] ) {
-		$background['pageWidth']  = ctbg_clamp_mm( $input['pageWidth'] ?? null, 1, 2000, 0 );
-		$background['pageHeight'] = ctbg_clamp_mm( $input['pageHeight'] ?? null, 1, 2000, 0 );
+		$background['pageWidth']  = ctbd_clamp_mm( $input['pageWidth'] ?? null, 1, 2000, 0 );
+		$background['pageHeight'] = ctbd_clamp_mm( $input['pageHeight'] ?? null, 1, 2000, 0 );
 	} else {
 		$meta                      = wp_get_attachment_metadata( $id );
 		$background['pixelWidth']  = absint( $meta['width'] ?? ( $input['pixelWidth'] ?? 0 ) );
@@ -233,10 +233,10 @@ function ctbg_sanitize_background( $input ) {
  *
  * @return array Design.
  */
-function ctbg_get_design() {
-	$design = get_option( 'ctbg_design' );
+function ctbd_get_design() {
+	$design = get_option( 'ctbd_design' );
 	if ( ! is_array( $design ) ) {
-		return ctbg_default_design();
+		return ctbd_default_design();
 	}
 	return $design;
 }
@@ -248,7 +248,7 @@ function ctbg_get_design() {
  * @param array $design Design.
  * @return array Response.
  */
-function ctbg_design_response( $design ) {
+function ctbd_design_response( $design ) {
 	$background = null;
 	if ( ! empty( $design['background']['id'] ) ) {
 		$id  = $design['background']['id'];
@@ -281,34 +281,34 @@ function ctbg_design_response( $design ) {
 }
 
 /**
- * Registers GET and POST /wp-json/ctbg/v1/design.
+ * Registers GET and POST /wp-json/ctbd/v1/design.
  */
-function ctbg_register_design_route() {
+function ctbd_register_design_route() {
 	register_rest_route(
-		'ctbg/v1',
+		'ctbd/v1',
 		'/design',
 		array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => 'ctbg_rest_get_design',
-				'permission_callback' => 'ctbg_can_edit_badges',
+				'callback'            => 'ctbd_rest_get_design',
+				'permission_callback' => 'ctbd_can_edit_badges',
 			),
 			array(
 				'methods'             => WP_REST_Server::EDITABLE,
-				'callback'            => 'ctbg_rest_save_design',
-				'permission_callback' => 'ctbg_can_edit_badges',
+				'callback'            => 'ctbd_rest_save_design',
+				'permission_callback' => 'ctbd_can_edit_badges',
 			),
 		)
 	);
 }
-add_action( 'rest_api_init', 'ctbg_register_design_route' );
+add_action( 'rest_api_init', 'ctbd_register_design_route' );
 
 /**
  * Who can edit badges.
  *
  * @return bool Whether the current user can.
  */
-function ctbg_can_edit_badges() {
+function ctbd_can_edit_badges() {
 	return current_user_can( 'manage_options' );
 }
 
@@ -317,8 +317,8 @@ function ctbg_can_edit_badges() {
  *
  * @return WP_REST_Response The design.
  */
-function ctbg_rest_get_design() {
-	return rest_ensure_response( ctbg_design_response( ctbg_get_design() ) );
+function ctbd_rest_get_design() {
+	return rest_ensure_response( ctbd_design_response( ctbd_get_design() ) );
 }
 
 /**
@@ -327,13 +327,13 @@ function ctbg_rest_get_design() {
  * @param WP_REST_Request $request Request whose JSON body is {design}.
  * @return WP_REST_Response|WP_Error The saved design.
  */
-function ctbg_rest_save_design( $request ) {
+function ctbd_rest_save_design( $request ) {
 	$params = $request->get_json_params();
-	$design = ctbg_sanitize_design( $params['design'] ?? null );
+	$design = ctbd_sanitize_design( $params['design'] ?? null );
 	if ( is_wp_error( $design ) ) {
 		return $design;
 	}
 
-	update_option( 'ctbg_design', $design, false );
-	return rest_ensure_response( ctbg_design_response( $design ) );
+	update_option( 'ctbd_design', $design, false );
+	return rest_ensure_response( ctbd_design_response( $design ) );
 }

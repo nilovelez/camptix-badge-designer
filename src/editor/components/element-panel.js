@@ -35,7 +35,7 @@ const ALIGNMENTS = [
 	{ value: 'right', label: 'Align right', icon: alignRight },
 ];
 
-const palette = window.ctbgSettings.palette || [];
+const palette = window.ctbdSettings.palette || [];
 
 const DESCRIPTIONS = {
 	text: [ 'Text box', 'Text with attendee variables, on one line.' ],
@@ -61,12 +61,12 @@ function ContentPanel( { element, change, questions } ) {
 			<TextControl
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
-				className="ctbg-content-field"
+				className="ctbd-content-field"
 				label="Text"
 				value={ element.content }
 				onChange={ ( content ) => change( { content }, 'content' ) }
 			/>
-			<div className="ctbg-gap" />
+			<div className="ctbd-gap" />
 			<SelectControl
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
@@ -128,7 +128,7 @@ function TypographyPanel( { element, change } ) {
 					change( { font, weight } );
 				} }
 			/>
-			<div className="ctbg-two-columns">
+			<div className="ctbd-two-columns">
 				<MmField
 					label="Size (pt)"
 					value={ element.size }
@@ -149,8 +149,8 @@ function TypographyPanel( { element, change } ) {
 					onChange={ ( weight ) => change( { weight } ) }
 				/>
 			</div>
-			<p className="ctbg-label">Alignment</p>
-			<div className="ctbg-segmented" role="group" aria-label="Alignment">
+			<p className="ctbd-label">Alignment</p>
+			<div className="ctbd-segmented" role="group" aria-label="Alignment">
 				{ ALIGNMENTS.map( ( a ) => (
 					<Button
 						key={ a.value }
@@ -167,7 +167,7 @@ function TypographyPanel( { element, change } ) {
 				checked={ element.uppercase }
 				onChange={ ( uppercase ) => change( { uppercase } ) }
 			/>
-			<p className="ctbg-label">Color</p>
+			<p className="ctbd-label">Color</p>
 			{ palette.length ? (
 				<ColorPalette
 					colors={ palette }
@@ -177,7 +177,7 @@ function TypographyPanel( { element, change } ) {
 					clearable={ false }
 				/>
 			) : (
-				<p className="ctbg-help">This site has no color palette.</p>
+				<p className="ctbd-help">This site has no color palette.</p>
 			) }
 		</PanelBody>
 	);
@@ -190,7 +190,7 @@ function OverflowNotice( { layout } ) {
 		return null;
 	}
 	return (
-		<div className="ctbg-element-notice">
+		<div className="ctbd-element-notice">
 			<Notice status="warning" isDismissible={ false }>
 				For this attendee the text does not fit the box: it is cut. Make
 				the box wider or the text smaller.
@@ -223,8 +223,8 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 
 	return (
 		<PanelBody title="Gravatar">
-			<p className="ctbg-label">Shape</p>
-			<div className="ctbg-segmented" role="group" aria-label="Shape">
+			<p className="ctbd-label">Shape</p>
+			<div className="ctbd-segmented" role="group" aria-label="Shape">
 				{ SHAPES.map( ( shape ) => (
 					<Button
 						key={ shape.value }
@@ -251,7 +251,7 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 				} }
 			/>
 			{ element.fallback === 'image' && (
-				<div className="ctbg-fallback-image">
+				<div className="ctbd-fallback-image">
 					{ imageUrl ? (
 						<img
 							className={
@@ -261,14 +261,14 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 							alt=""
 						/>
 					) : (
-						<span className="ctbg-help">Image not found.</span>
+						<span className="ctbd-help">Image not found.</span>
 					) }
 					<Button variant="secondary" onClick={ pickImage }>
 						Replace image
 					</Button>
 				</div>
 			) }
-			<p className="ctbg-help">
+			<p className="ctbd-help">
 				Generated images are made by Gravatar from each email address,
 				so every attendee gets a different one.
 			</p>
@@ -281,7 +281,7 @@ function PositionPanel( { element, change } ) {
 	const minSize = element.type === 'qr' ? QR_MIN_SIZE : 3;
 	return (
 		<PanelBody title="Position and size" initialOpen={ false }>
-			<div className="ctbg-two-columns">
+			<div className="ctbd-two-columns">
 				<MmField
 					label="X (mm)"
 					value={ element.x }
@@ -321,7 +321,7 @@ function PositionPanel( { element, change } ) {
 					}
 				/>
 			</div>
-			<p className="ctbg-help">
+			<p className="ctbd-help">
 				From the top-left corner of the trim.
 				{ square ? ' Width and height stay equal.' : '' }
 			</p>
@@ -340,7 +340,7 @@ export function ElementPanel( {
 } ) {
 	if ( ! element ) {
 		return (
-			<p className="ctbg-sidebar__empty">
+			<p className="ctbd-sidebar__empty">
 				Select an element on the badge to edit it.
 			</p>
 		);
@@ -354,7 +354,7 @@ export function ElementPanel( {
 
 	return (
 		<>
-			<div className="ctbg-element-card">
+			<div className="ctbd-element-card">
 				<strong>{ title }</strong>
 				<span>{ description }</span>
 			</div>
@@ -378,7 +378,7 @@ export function ElementPanel( {
 				/>
 			) }
 			<PositionPanel element={ element } change={ change } />
-			<div className="ctbg-sidebar__footer">
+			<div className="ctbd-sidebar__footer">
 				<Button variant="tertiary" isDestructive onClick={ onDelete }>
 					Delete element
 				</Button>

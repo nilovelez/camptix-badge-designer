@@ -82,19 +82,19 @@ function BackgroundPanel( {
 
 	return (
 		<PanelBody title="Background">
-			<div className="ctbg-background-card">
+			<div className="ctbd-background-card">
 				{ backgroundFile && background.type !== 'pdf' ? (
 					<img
-						className="ctbg-background-card__thumb"
+						className="ctbd-background-card__thumb"
 						src={ backgroundFile.url }
 						alt=""
 					/>
 				) : (
-					<span className="ctbg-background-card__thumb is-pdf">
+					<span className="ctbd-background-card__thumb is-pdf">
 						PDF
 					</span>
 				) }
-				<span className="ctbg-background-card__text">
+				<span className="ctbd-background-card__text">
 					<strong>
 						{ backgroundFile
 							? backgroundFile.filename
@@ -126,7 +126,7 @@ function BackgroundPanel( {
 					</Button>
 				</Notice>
 			) }
-			<div className="ctbg-button-row">
+			<div className="ctbd-button-row">
 				<Button variant="secondary" onClick={ onSelectBackground }>
 					Replace
 				</Button>
@@ -151,7 +151,7 @@ function PrintSizePanel( { design, updateDesign } ) {
 
 	return (
 		<PanelBody title="Print size">
-			<div className="ctbg-size-grid">
+			<div className="ctbd-size-grid">
 				<MmField
 					label="Width"
 					value={ size.width }
@@ -171,7 +171,7 @@ function PrintSizePanel( { design, updateDesign } ) {
 					onChange={ setSize( 'bleed' ) }
 				/>
 			</div>
-			<p className="ctbg-help">
+			<p className="ctbd-help">
 				Millimeters. Page with bleed: { page.width } × { page.height }{ ' ' }
 				mm.
 			</p>
@@ -182,7 +182,7 @@ function PrintSizePanel( { design, updateDesign } ) {
 				onChange={ setSize( 'safe' ) }
 				help="Margin inside the trim for text and images."
 			/>
-			<div className="ctbg-toggles">
+			<div className="ctbd-toggles">
 				<ToggleControl
 					__nextHasNoMarginBottom
 					label="Crop marks in the PDF"
@@ -211,7 +211,7 @@ function ElementsPanel( {
 	if ( ! elements.length ) {
 		return (
 			<PanelBody title="Elements">
-				<p className="ctbg-help">
+				<p className="ctbd-help">
 					No elements. Add one with the + button.
 				</p>
 			</PanelBody>
@@ -221,7 +221,7 @@ function ElementsPanel( {
 	const rows = [ ...elements ].reverse();
 	return (
 		<PanelBody title="Elements">
-			<ul className="ctbg-layers">
+			<ul className="ctbd-layers">
 				{ rows.map( ( element ) => {
 					const index = elements.indexOf( element );
 					return (
@@ -232,7 +232,7 @@ function ElementsPanel( {
 							}
 						>
 							<Button
-								className="ctbg-layers__name"
+								className="ctbd-layers__name"
 								icon={ ELEMENT_ICONS[ element.type ] }
 								onClick={ () => onSelectElement( element.id ) }
 							>
@@ -276,7 +276,7 @@ function OverflowList( { overflows, onGoTo } ) {
 				? '1 attendee has'
 				: overflows.length + ' attendees have' }{ ' ' }
 			text that does not fit and is cut:
-			<ul className="ctbg-overflow-list">
+			<ul className="ctbd-overflow-list">
 				{ overflows.slice( 0, 50 ).map( ( item ) => (
 					<li key={ item.number }>
 						<Button
@@ -312,7 +312,7 @@ function AttendeesPanel( { attendees, overflows, onGoTo } ) {
 		body = (
 			<>
 				<p>{ data.attendees.length } attendees, in purchase order.</p>
-				<p className="ctbg-help">
+				<p className="ctbd-help">
 					{ data.stats.withoutUsername } without a WordPress.org
 					username (no QR code).
 					<br />
@@ -369,18 +369,18 @@ const TABS = [
 export function Sidebar( props ) {
 	const { tab, onTab } = props;
 	return (
-		<aside className="ctbg-sidebar" aria-label="Settings">
-			<div className="ctbg-sidebar__tabs" role="tablist">
+		<aside className="ctbd-sidebar" aria-label="Settings">
+			<div className="ctbd-sidebar__tabs" role="tablist">
 				{ TABS.map( ( item ) => (
 					<button
 						key={ item.name }
 						type="button"
 						role="tab"
-						id={ 'ctbg-tab-' + item.name }
+						id={ 'ctbd-tab-' + item.name }
 						aria-selected={ tab === item.name }
-						aria-controls={ 'ctbg-tabpanel-' + item.name }
+						aria-controls={ 'ctbd-tabpanel-' + item.name }
 						className={
-							'ctbg-sidebar__tab' +
+							'ctbd-sidebar__tab' +
 							( tab === item.name ? ' is-active' : '' )
 						}
 						onClick={ () => onTab( item.name ) }
@@ -391,8 +391,8 @@ export function Sidebar( props ) {
 			</div>
 			<div
 				role="tabpanel"
-				id={ 'ctbg-tabpanel-' + tab }
-				aria-labelledby={ 'ctbg-tab-' + tab }
+				id={ 'ctbd-tabpanel-' + tab }
+				aria-labelledby={ 'ctbd-tab-' + tab }
 			>
 				{ tab === 'document' ? (
 					<DocumentTab { ...props } />

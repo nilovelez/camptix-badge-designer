@@ -2,6 +2,26 @@
 
 Proposals and decisions, with their reasons. A proposal becomes a decision when Nilo confirms it, usually after testing it.
 
+## Name, and the road to WordCamp.org (decided by Nilo, October 2026)
+
+The plugin was first called Camptix Badge Generator (`camptix-badge-generator`, prefix `ctbg`). By accident, that is also the name and folder of the badge plugin that WordCamp.org already runs, in the `WordPress/wordcamp.org` repo (`public_html/wp-content/plugins/camptix-badge-generator/`, next to CampTix, which now lives there too). The two could not be active on the same site, so this one was renamed **CampTix Badge Designer**: slug and text domain `camptix-badge-designer`, prefix `ctbd`, repo `nilovelez/camptix-badge-designer`. "WordCamp" stays out of the name: it is a trademark of the WordPress Foundation.
+
+Why this plugin exists:
+
+- WordCamp badges have been made in two ways. The official plugin renders them as HTML styled with CSS in the Customizer and prints them from the browser, which is limited. Or organizers export the CampTix CSV, process it with a script and lay the badges out with data merge in Adobe InDesign.
+- The community asked for more useful badges ("Elevating individuals", https://make.wordpress.org/core/2026/04/11/elevating-individuals/; issue WordPress/wordcamp.org#1701): the WordPress.org username, hometown, website and company. The answers to the event's ticket questions (country, job, anything an event asks) are what make this possible.
+- Nilo's earlier tool, camptix-to-canva (https://github.com/nilovelez/camptix-to-canva), turns the CSV into an `.xlsx` with the Gravatars and QR codes embedded, for Canva Bulk Create. It works, but it needs a local program and a paid Canva account.
+- PR WordPress/wordcamp.org#2278 (October 2026) added the new fields to the official plugin and ported camptix-to-canva to generate the `.xlsx` on the WordCamp.org server. Embedding every image makes that export heavy on memory, disk and CPU, enough to put the server at risk on a big event. Nilo proposed splitting it: the fields went in as #2282, and the Canva export was put back to draft while he prepares this alternative.
+
+The goal is to replace that Canva export with this plugin's approach: the PDF is generated in the organizer's browser, from a page of the WordCamp site, so the server only sends the attendee data.
+
+The plan:
+
+1. Keep developing this as a standalone plugin that can be installed like any other.
+2. A Playground sandbox with the real CampTix, from the `WordPress/wordcamp.org` repo, and invented attendees, with this plugin reading them live (milestone 8).
+3. Open the conversation upstream (#1701, #2278) with a link to that sandbox, so the WordCamp.org team can try it, ask for changes, or send pull requests to this repo.
+4. Once they agree: fork `WordPress/wordcamp.org`, integrate the code into the official plugin as a new way to generate badges (for example `includes/pdf-badges.php` plus an npm workspace, using its namespace `CampTix\Badge_Generator`, its text domain `wordcamporg` and its badge fields), and send the pull request that takes the place of the Canva export.
+
 ## Editor: React with WordPress packages (proposal)
 
 Build the editor with `@wordpress/element` (React) and `@wordpress/components`, compiled with `@wordpress/scripts`.
@@ -16,7 +36,7 @@ The milestone 1 spike used this stack for its admin page, and it worked. The edi
 ## Editor behavior (decided by Nilo, milestone 3)
 
 - The editor lives inside the normal admin, with the admin bar and the admin menu (see the layout in `docs/milestones.md`).
-- The design is saved automatically, one second after the last change, in the `ctbg_design` option through the REST route `ctbg/v1/design`. The toolbar shows "Saved", "Unsaved changes", "Saving…" or "Not saved". Leaving the page with unsaved changes asks for confirmation.
+- The design is saved automatically, one second after the last change, in the `ctbd_design` option through the REST route `ctbd/v1/design`. The toolbar shows "Saved", "Unsaved changes", "Saving…" or "Not saved". Leaving the page with unsaved changes asks for confirmation.
 - The safe area is configurable, 5 mm inside the trim by default.
 - The milestone 1 spike stayed under Badges › Technical test until real generation replaced it in milestone 6; its code was removed then (it is in the Git history).
 - One Media Library frame is created and reused: a new frame each time adds another modal to the page.
