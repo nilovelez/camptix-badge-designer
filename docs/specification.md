@@ -16,6 +16,17 @@ Long-term goal: integrate with CampTix directly (no CSV) and run on every WordCa
 4. In the editor, they place CSV fields over the background and style them. Some fields generate images (see below).
 5. They generate the PDF for the print shop.
 
+## Background
+
+- Designed in any tool (Canva, Figma, Photoshop...) from the provided templates, and exported as a reference file.
+- Accepted formats: bitmap (PNG, JPG) or PDF. A PDF background may be vector and stays vector in the final PDF.
+- The background is uploaded to the WordPress Media Library.
+
+## Saved work
+
+- The badge design (background, print size, bleed, fields and their styles) is saved on the site. When the organizer opens the editor again, it shows the work exactly as they left it. Example: the organizers of WordCamp Valencia upload their background, prepare their badges, and find everything as it was the next time they open the editor.
+- The settings can be exported to a file, and imported from it to rebuild the same design.
+
 ## Badge size
 
 - Default: 100 × 150 mm (width × height, portrait) trim size, with 3 mm bleed on each side, so the background and each PDF page are 106 × 156 mm.
@@ -51,7 +62,9 @@ CampTix exports contain real names and email addresses.
 
 - CampTix CSV format: columns, encoding, delimiter (waiting for a sample export).
 - Whether the uploaded CSV is stored on the server or only processed in the browser.
-- PDF generation in the browser or in PHP.
+- PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
+- Whether the exported settings file includes the background itself, or only a reference to it in the Media Library.
+- One saved design per site, or several (for example one per ticket type).
 - Editor technology (React with `@wordpress/components`, or plain JavaScript).
 - Styles that depend on the ticket type (organizer, speaker, volunteer...).
 - Crop marks in the PDF, and one badge per page or several per sheet.
