@@ -59,7 +59,7 @@ Every element:
 - Holds text with variables, which are replaced with each attendee's data (for example the first name or the last name).
 - Properties: font family, size and weight, as a minimum. More properties will be defined later.
 - Font families offered:
-  - A couple of generic fonts shipped with the plugin, so it works out of the box: Inter and Montserrat (both SIL Open Font License, accepted on WordPress.org).
+  - Inter, shipped with the plugin so it works out of the box, in weights 400, 600 and 700 (SIL Open Font License, accepted on WordPress.org). Chosen over Montserrat because it is narrower (long names fit), very legible at a distance, neutral over any background, and covers Latin Extended, Cyrillic, Greek and Vietnamese.
   - Every font installed on the site through the WordPress Font Library (Appearance > Fonts), including Google Fonts installed there.
 
 ### QR code

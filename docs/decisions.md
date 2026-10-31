@@ -24,5 +24,5 @@ Build the editor with `@wordpress/element` (React) and `@wordpress/components`, 
 
 The PDF needs the font files, not only CSS.
 
-- The plugin ships Inter and Montserrat, so a new design works with no setup. Both are under the SIL Open Font License. Ship static TTF files for the weights offered, not variable fonts: embedding and subsetting variable fonts in a PDF is less reliable.
+- The plugin ships one font, Inter, in weights 400, 600 and 700, so a new design works with no setup. It is under the SIL Open Font License. Ship static TTF files, not the variable font: embedding and subsetting variable fonts in a PDF is less reliable. Montserrat was considered and left out: it is wide (long names overflow) and has a strong personality; anyone who wants it can install it from the Font Library.
 - The editor also offers every font installed through the WordPress Font Library (WordPress 6.5+), which stores the files on the site itself: no requests to Google from the admin, and the files are available to embed. To check: that fontkit can read the formats it installs (usually WOFF2), and how to list those fonts and their files (the `wp_font_family` and `wp_font_face` post types, also in the REST API).
