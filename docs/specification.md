@@ -23,6 +23,7 @@ Long-term goal: read the attendees from CampTix directly and run on every WordCa
 
 ## Saved work
 
+- One design per site (one WordCamp, one design) in the first phase. The rare event that needs variants, for example for organizers, exports the JSON, adjusts the design, generates those badges and goes back.
 - The badge design (background, print size, bleed, fields and their styles) is saved on the site. When the organizer opens the editor again, it shows the work exactly as they left it. Example: the organizers of WordCamp Valencia upload their background, prepare their badges, and find everything as it was the next time they open the editor.
 - The design can be exported to a JSON file and imported from it, for example to reuse last year's design on next year's WordCamp site. The JSON does not include the background: after importing it, the organizer uploads the background again, and every field keeps its position, fonts, colors and styles.
 
@@ -50,6 +51,15 @@ Long-term goal: read the attendees from CampTix directly and run on every WordCa
   - Gravatar avatar from the email address.
 - WordPress.org username: a required field on every ticket. From it the plugin derives the profile URL, `https://profiles.wordpress.org/<username>/`, and one of the elements that can be placed on the badge is a QR code pointing to that profile.
 
+## Preview and PDF generation
+
+The model is data merge, as in Adobe InDesign: the design holds fields that act as variables, a data source (the attendees) is connected, and the design can be previewed with any record.
+
+- The editor shows the design filled with one attendee, and the organizer can step through the attendees. This is how they check difficult cases: names with accents, very long names, attendees without a Gravatar.
+- **Preview:** a button that generates a one-page PDF with the attendee currently shown in the editor, to check the result before generating everything.
+- **Generate:** one page per attendee (300 tickets sold, 300 pages). Like a print dialog, the organizer chooses the range: all pages by default (1 to the last), or a range such as 1-100 or 250-300. Typical use: send the first 100 badges to the print shop, and generate 101 onwards later, when more tickets have been sold.
+- **Stable order.** Attendees are numbered in purchase order, never alphabetically, so a new ticket never shifts existing ones: page 101 of a later batch is never someone already printed.
+
 ## Architecture
 
 - The editor and almost all the work run in the browser, in JavaScript, fed with the attendee data.
@@ -67,7 +77,6 @@ CampTix exports contain real names and email addresses.
 
 - CampTix CSV format: columns, encoding, delimiter (waiting for a sample export).
 - PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
-- One saved design per site, or several (for example one per ticket type).
 - Editor technology (React with `@wordpress/components`, or plain JavaScript).
 - Styles that depend on the ticket type (organizer, speaker, volunteer...).
 - Crop marks in the PDF, and one badge per page or several per sheet.
