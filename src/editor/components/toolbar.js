@@ -131,7 +131,8 @@ export function Toolbar( {
 				disabled={ ! history.canRedo }
 				onClick={ onRedo }
 			/>
-			<span className="ctbg-toolbar__spacer" />
+			{ /* Left-aligned, so it does not move with the length of the name. */ }
+			<span className="ctbg-toolbar__gap" />
 			<Pager
 				attendees={ attendees }
 				index={ attendeeIndex }

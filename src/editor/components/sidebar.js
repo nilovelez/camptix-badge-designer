@@ -21,6 +21,7 @@ import {
 import { MmField } from './mm-field';
 import { AttendeesList } from './attendees-list';
 import { ElementPanel } from './element-panel';
+import { DesignPanel } from './design-panel';
 import { elementLabel } from '../elements';
 import {
 	LIMITS,
@@ -352,20 +353,10 @@ function DocumentTab( props ) {
 				overflows={ props.overflows }
 				onGoTo={ props.onGoTo }
 			/>
-			<PanelBody title="Design" initialOpen={ false }>
-				<p className="ctbg-help">
-					Reuse this design on another site. The file does not include
-					the background.
-				</p>
-				<div className="ctbg-button-row">
-					<Button variant="secondary" disabled>
-						Export JSON
-					</Button>
-					<Button variant="secondary" disabled>
-						Import JSON
-					</Button>
-				</div>
-			</PanelBody>
+			<DesignPanel
+				design={ props.design }
+				updateDesign={ props.updateDesign }
+			/>
 		</>
 	);
 }
