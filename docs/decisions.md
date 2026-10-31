@@ -21,6 +21,14 @@ The milestone 1 spike already uses this stack for its admin page (`src/spike/`),
 - The milestone 1 spike stays under Badges › Technical test until real generation replaces it in milestone 6.
 - One Media Library frame is created and reused: a new frame each time adds another modal to the page.
 
+## Screen and paper match (milestone 4)
+
+- The text layout (`src/shared/text-layout.js`) and the QR code path (`src/shared/qr.js`) are shared by the editor and the future PDF generator.
+- The editor measures text with fontkit, from the same font files the PDF will embed, and draws it with the browser using those same files (one CSS family per face, so the browser never synthesizes a weight). Checked: fontkit and the drawn width agree to 0.01 mm.
+- Text is centered vertically by its ascent and descent, so the PDF can place the baseline at the same spot.
+- Font Library fonts are usually WOFF2: the editor converts them to TTF before measuring, as the PDF has to (see the WOFF2 finding above). Only upright, single-weight faces are offered; variable fonts and italics are left out.
+- Designs carry a format version (2 since elements). A design with no elements yet (version 1 from milestone 3, or `elements: null`) gets the default elements once, sized for its print size.
+
 ## PDF: generated in the browser with pdf-lib (proposal, confirmed by the spike)
 
 - pdf-lib embeds a page of a PDF background as a vector object, so vector backgrounds stay vector, and the background is embedded once and reused on every page, which keeps large PDFs small.

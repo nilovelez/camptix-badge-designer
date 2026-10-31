@@ -8,11 +8,20 @@ import {
 	Notice,
 	PanelBody,
 	Spinner,
-	TabPanel,
 	ToggleControl,
 } from '@wordpress/components';
+import {
+	chevronDown,
+	chevronUp,
+	trash,
+	typography,
+	image,
+	grid,
+} from '@wordpress/icons';
 import { MmField } from './mm-field';
 import { AttendeesList } from './attendees-list';
+import { ElementPanel } from './element-panel';
+import { elementLabel } from '../elements';
 import {
 	LIMITS,
 	RECOMMENDED_DPI,
@@ -23,11 +32,12 @@ import {
 } from '../geometry';
 
 const TYPE_NAMES = { pdf: 'PDF', png: 'PNG', jpg: 'JPG' };
+const ELEMENT_ICONS = { text: typography, gravatar: image, qr: grid };
 
 function BackgroundPanel( {
 	design,
 	backgroundFile,
-	onSelect,
+	onSelectBackground,
 	onRemove,
 	onFixSize,
 } ) {
@@ -40,7 +50,7 @@ function BackgroundPanel( {
 					A PDF, PNG or JPG file with the badge artwork, including the
 					bleed.
 				</p>
-				<Button variant="secondary" onClick={ onSelect }>
+				<Button variant="secondary" onClick={ onSelectBackground }>
 					Select background
 				</Button>
 			</PanelBody>
@@ -116,7 +126,7 @@ function BackgroundPanel( {
 				</Notice>
 			) }
 			<div className="ctbg-button-row">
-				<Button variant="secondary" onClick={ onSelect }>
+				<Button variant="secondary" onClick={ onSelectBackground }>
 					Replace
 				</Button>
 				<Button variant="tertiary" isDestructive onClick={ onRemove }>
@@ -189,7 +199,102 @@ function PrintSizePanel( { design, updateDesign } ) {
 	);
 }
 
-function AttendeesPanel( { attendees } ) {
+function ElementsPanel( {
+	design,
+	selectedId,
+	onSelectElement,
+	onReorder,
+	onDelete,
+} ) {
+	const elements = design.elements;
+	if ( ! elements.length ) {
+		return (
+			<PanelBody title="Elements">
+				<p className="ctbg-help">
+					No elements. Add one with the + button.
+				</p>
+			</PanelBody>
+		);
+	}
+	// Top layer first, as in layer lists.
+	const rows = [ ...elements ].reverse();
+	return (
+		<PanelBody title="Elements">
+			<ul className="ctbg-layers">
+				{ rows.map( ( element ) => {
+					const index = elements.indexOf( element );
+					return (
+						<li
+							key={ element.id }
+							className={
+								element.id === selectedId ? 'is-selected' : ''
+							}
+						>
+							<Button
+								className="ctbg-layers__name"
+								icon={ ELEMENT_ICONS[ element.type ] }
+								onClick={ () => onSelectElement( element.id ) }
+							>
+								{ elementLabel( element ) }
+							</Button>
+							<Button
+								size="small"
+								icon={ chevronUp }
+								label="Bring forward"
+								disabled={ index === elements.length - 1 }
+								onClick={ () => onReorder( element.id, 1 ) }
+							/>
+							<Button
+								size="small"
+								icon={ chevronDown }
+								label="Send backward"
+								disabled={ index === 0 }
+								onClick={ () => onReorder( element.id, -1 ) }
+							/>
+							<Button
+								size="small"
+								icon={ trash }
+								label="Delete"
+								onClick={ () => onDelete( element.id ) }
+							/>
+						</li>
+					);
+				} ) }
+			</ul>
+		</PanelBody>
+	);
+}
+
+function OverflowList( { overflows, onGoTo } ) {
+	if ( ! overflows.length ) {
+		return null;
+	}
+	return (
+		<Notice status="warning" isDismissible={ false }>
+			{ overflows.length === 1
+				? '1 attendee has'
+				: overflows.length + ' attendees have' }{ ' ' }
+			text that does not fit and is cut:
+			<ul className="ctbg-overflow-list">
+				{ overflows.slice( 0, 50 ).map( ( item ) => (
+					<li key={ item.number }>
+						<Button
+							variant="link"
+							onClick={ () => onGoTo( item.number ) }
+						>
+							#{ item.number } { item.name }
+						</Button>
+					</li>
+				) ) }
+			</ul>
+			{ overflows.length > 50 && (
+				<span>…and { overflows.length - 50 } more.</span>
+			) }
+		</Notice>
+	);
+}
+
+function AttendeesPanel( { attendees, overflows, onGoTo } ) {
 	const [ open, setOpen ] = useState( false );
 	const { data, error } = attendees;
 
@@ -212,6 +317,7 @@ function AttendeesPanel( { attendees } ) {
 					<br />
 					Source: { data.source }
 				</p>
+				<OverflowList overflows={ overflows } onGoTo={ onGoTo } />
 				<Button variant="secondary" onClick={ () => setOpen( true ) }>
 					View list
 				</Button>
@@ -240,10 +346,12 @@ function DocumentTab( props ) {
 		<>
 			<BackgroundPanel { ...props } />
 			<PrintSizePanel { ...props } />
-			<PanelBody title="Elements">
-				<p className="ctbg-help">No elements yet.</p>
-			</PanelBody>
-			<AttendeesPanel attendees={ props.attendees } />
+			<ElementsPanel { ...props } />
+			<AttendeesPanel
+				attendees={ props.attendees }
+				overflows={ props.overflows }
+				onGoTo={ props.onGoTo }
+			/>
 			<PanelBody title="Design" initialOpen={ false }>
 				<p className="ctbg-help">
 					Reuse this design on another site. The file does not include
@@ -262,26 +370,57 @@ function DocumentTab( props ) {
 	);
 }
 
+const TABS = [
+	{ name: 'document', title: 'Document' },
+	{ name: 'element', title: 'Element' },
+];
+
 export function Sidebar( props ) {
+	const { tab, onTab } = props;
 	return (
 		<aside className="ctbg-sidebar" aria-label="Settings">
-			<TabPanel
-				className="ctbg-sidebar__tabs"
-				tabs={ [
-					{ name: 'document', title: 'Document' },
-					{ name: 'element', title: 'Element' },
-				] }
+			<div className="ctbg-sidebar__tabs" role="tablist">
+				{ TABS.map( ( item ) => (
+					<button
+						key={ item.name }
+						type="button"
+						role="tab"
+						id={ 'ctbg-tab-' + item.name }
+						aria-selected={ tab === item.name }
+						aria-controls={ 'ctbg-tabpanel-' + item.name }
+						className={
+							'ctbg-sidebar__tab' +
+							( tab === item.name ? ' is-active' : '' )
+						}
+						onClick={ () => onTab( item.name ) }
+					>
+						{ item.title }
+					</button>
+				) ) }
+			</div>
+			<div
+				role="tabpanel"
+				id={ 'ctbg-tabpanel-' + tab }
+				aria-labelledby={ 'ctbg-tab-' + tab }
 			>
-				{ ( tab ) =>
-					tab.name === 'document' ? (
-						<DocumentTab { ...props } />
-					) : (
-						<p className="ctbg-sidebar__empty">
-							Select an element on the badge to edit it.
-						</p>
-					)
-				}
-			</TabPanel>
+				{ tab === 'document' ? (
+					<DocumentTab { ...props } />
+				) : (
+					<ElementPanel
+						element={ props.selectedElement }
+						layout={
+							props.selectedElement
+								? props.layouts[ props.selectedElement.id ]
+								: null
+						}
+						questions={ props.attendees.questions }
+						onChange={ props.onChangeElement }
+						onDelete={ () =>
+							props.onDelete( props.selectedElement.id )
+						}
+					/>
+				) }
+			</div>
 		</aside>
 	);
 }

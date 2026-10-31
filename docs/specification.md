@@ -85,15 +85,20 @@ The design is made of elements placed over the background. A new design starts w
 
 Every element:
 
-- Is dragged into place and resized with handles on its corners.
-- When selected, opens a contextual properties panel.
+- Is dragged into place and resized with handles on its corners. Gravatars and QR codes stay square. While dragging, the element snaps to the center lines of the badge.
+- Moves with the arrow keys (0.5 mm, 5 mm with Shift); Delete removes it, Escape deselects it.
+- When selected, opens its properties in the Element tab, including its exact position and size in millimeters from the top-left corner of the trim.
+- Is listed in the Elements panel of the Document tab, where it can be selected, deleted and moved up or down a layer.
+
+New elements are added with the + button. Every change can be undone and redone (Ctrl+Z, Ctrl+Shift+Z); a whole drag is one step. The pagination in the toolbar steps through the attendees, and the canvas shows each one's data.
 
 ### Text box
 
 - Holds text with variables, which are replaced with each attendee's data (for example the first name or the last name).
+- Variables are written in braces: `{first_name}`, `{last_name}`, `{full_name}` and `{question:<key>}` for each event question. A selector inserts them. Unknown variables are printed as typed, so a typo is visible. Stray spaces left by an empty variable are removed.
 - Always one line: text never wraps to a second line.
 - Properties (decided by Nilo): font family, weight, size, color, alignment, uppercase, and shrink to fit with a minimum size. No line height or letter spacing.
-- Text that does not fit: it shrinks down to the minimum size; if it still does not fit, it is cut at the edge of the box and the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing.
+- Text that does not fit: it shrinks down to the minimum size; if it still does not fit, it is cut at the edge of the box (starting from the left edge, so its beginning stays readable whatever the alignment) and the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing.
 - Color: picked from the site's color palette (the theme's `theme.json` palette and the custom colors; the WordPress default palette when the theme has none). The design stores the hex value, so the color survives an import on a site with another palette.
 - Font families offered:
   - Inter, shipped with the plugin so it works out of the box, in weights 400, 600 and 700 (SIL Open Font License, accepted on WordPress.org). Chosen over Montserrat because it is narrower (long names fit), very legible at a distance, neutral over any background, and covers Latin Extended, Cyrillic, Greek and Vietnamese.

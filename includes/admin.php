@@ -168,6 +168,8 @@ function ctbg_enqueue_admin_assets( $hook_suffix ) {
 	);
 
 	if ( 'editor' === $page ) {
+		$settings['fontFamilies'] = ctbg_get_fonts();
+		$settings['palette']      = ctbg_get_palette();
 		// The Media Library modal, to pick the background.
 		wp_enqueue_media();
 		ctbg_enqueue_build( 'editor', $settings );

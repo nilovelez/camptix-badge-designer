@@ -4,8 +4,9 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Current state
 
-- Milestone 3 (editor structure) is done and waiting for Nilo's review. Milestones, and the approved editor layout, are in `docs/milestones.md`.
-- **Badges** in the admin menu is the editor (`src/editor/`): toolbar, canvas with guides, and the Document and Element sidebar. The background comes from the Media Library (PDF, PNG or JPG) and its size is checked against the print size. The design is saved automatically in the `ctbg_design` option through the REST route `ctbg/v1/design` (`includes/design.php`). Elements, the attendee pagination, undo, preview and generation are shown disabled until their milestones.
+- Milestone 4 (elements and text boxes) is done and waiting for Nilo's review. Milestones, and the approved editor layout, are in `docs/milestones.md`.
+- **Badges** in the admin menu is the editor (`src/editor/`): toolbar with the + inserter, undo, redo and the attendee pagination; canvas with guides and the elements (text boxes, Gravatar, QR code), which can be selected, dragged, resized and nudged; the Document and Element sidebar. The background comes from the Media Library (PDF, PNG or JPG). The design is saved automatically in the `ctbg_design` option through the REST route `ctbg/v1/design` (`includes/design.php`, which also validates the elements). Fonts (Inter and the Font Library) and the site palette come from `includes/fonts.php`. Preview and generation are shown disabled until milestone 6.
+- `src/shared/` holds the text layout and the QR path, shared with the future PDF generator so screen and paper match.
 - **Badges › Technical test** holds the milestone 1 spike (`src/spike/`). Spike results and findings are in `docs/decisions.md`.
 - `includes/attendees.php` reads the newest CSV in `test-data/` and serves the attendees at the REST route `ctbg/v1/attendees` (administrators only), without email addresses. Tests: `php tests/php/attendees-test.php` (no WordPress needed).
 - Test backgrounds, all invented, are in `tests/fixtures/` (`tools/make-fixtures.mjs` rebuilds the PDFs).
@@ -16,8 +17,8 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Next steps
 
-1. Nilo reviews milestone 3 on the Playground site.
-2. With his OK, milestone 4: text boxes.
+1. Nilo reviews milestone 4 on the Playground site.
+2. With his OK, milestone 5: QR code and Gravatar options.
 
 ## Open questions
 

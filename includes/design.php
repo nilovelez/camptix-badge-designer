@@ -13,13 +13,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Design used before the organizer saves anything.
+ * Version of the design format.
+ *
+ * 1: milestone 3, no elements. 2: elements. The editor adds the default
+ * elements (Gravatar, first name, last name, QR code) when it opens a
+ * design older than version 2, or one whose elements are null.
+ */
+const CTBG_DESIGN_VERSION = 2;
+
+/**
+ * Design used before the organizer saves anything. Its elements are null:
+ * the editor fills in the default ones, sized for the print size.
  *
  * @return array Design.
  */
 function ctbg_default_design() {
 	return array(
-		'version'    => 1,
+		'version'    => CTBG_DESIGN_VERSION,
 		'size'       => array(
 			'width'  => 100,
 			'height' => 150,
@@ -29,7 +39,7 @@ function ctbg_default_design() {
 		'cropMarks'  => true,
 		'guides'     => true,
 		'background' => null,
-		'elements'   => array(),
+		'elements'   => null,
 	);
 }
 
@@ -77,7 +87,7 @@ function ctbg_sanitize_design( $input ) {
 	$size    = isset( $input['size'] ) && is_array( $input['size'] ) ? $input['size'] : array();
 
 	$design = array(
-		'version'    => 1,
+		'version'    => CTBG_DESIGN_VERSION,
 		'size'       => array(
 			'width'  => ctbg_clamp_mm( $size['width'] ?? null, 20, 500, $default['size']['width'] ),
 			'height' => ctbg_clamp_mm( $size['height'] ?? null, 20, 500, $default['size']['height'] ),
@@ -87,7 +97,6 @@ function ctbg_sanitize_design( $input ) {
 		'cropMarks'  => ! empty( $input['cropMarks'] ),
 		'guides'     => ! empty( $input['guides'] ),
 		'background' => null,
-		// Elements arrive in milestone 4.
 		'elements'   => array(),
 	);
 
@@ -99,7 +108,73 @@ function ctbg_sanitize_design( $input ) {
 		$design['background'] = $background;
 	}
 
+	if ( array_key_exists( 'elements', $input ) && null === $input['elements'] ) {
+		// No elements yet: the editor adds the default ones.
+		$design['elements'] = null;
+	} elseif ( isset( $input['elements'] ) && is_array( $input['elements'] ) ) {
+		// A badge never needs many elements; the limit keeps the option small.
+		foreach ( array_slice( $input['elements'], 0, 50 ) as $element ) {
+			$clean = ctbg_sanitize_element( $element );
+			if ( null !== $clean ) {
+				$design['elements'][] = $clean;
+			}
+		}
+	}
+
 	return $design;
+}
+
+/**
+ * Checks and cleans one element. Unknown types and fields are dropped.
+ * Positions and sizes are in millimeters from the top-left corner of the
+ * trim box; text sizes are in points.
+ *
+ * @param mixed $input Element sent by the editor.
+ * @return array|null Clean element, or null if it is not valid.
+ */
+function ctbg_sanitize_element( $input ) {
+	if ( ! is_array( $input ) || empty( $input['type'] ) || ! in_array( $input['type'], array( 'text', 'qr', 'gravatar' ), true ) ) {
+		return null;
+	}
+
+	$id = sanitize_key( $input['id'] ?? '' );
+	if ( '' === $id ) {
+		return null;
+	}
+
+	$element = array(
+		'id'     => $id,
+		'type'   => $input['type'],
+		'x'      => ctbg_clamp_mm( $input['x'] ?? null, -500, 1000, 0 ),
+		'y'      => ctbg_clamp_mm( $input['y'] ?? null, -500, 1000, 0 ),
+		'width'  => ctbg_clamp_mm( $input['width'] ?? null, 1, 1000, 20 ),
+		'height' => ctbg_clamp_mm( $input['height'] ?? null, 1, 1000, 10 ),
+	);
+
+	if ( 'text' === $input['type'] ) {
+		$align = $input['align'] ?? 'center';
+		$color = sanitize_hex_color( $input['color'] ?? '' );
+
+		$element['content']   = mb_substr( sanitize_text_field( $input['content'] ?? '' ), 0, 500 );
+		$element['font']      = mb_substr( sanitize_text_field( $input['font'] ?? 'Inter' ), 0, 100 );
+		$element['weight']    = (string) min( 900, max( 100, absint( $input['weight'] ?? 400 ) ) );
+		$element['size']      = ctbg_clamp_mm( $input['size'] ?? null, 4, 200, 16 );
+		$element['minSize']   = ctbg_clamp_mm( $input['minSize'] ?? null, 4, 200, 10 );
+		$element['color']     = $color ? $color : '#1e1e1e';
+		$element['align']     = in_array( $align, array( 'left', 'center', 'right' ), true ) ? $align : 'center';
+		$element['uppercase'] = ! empty( $input['uppercase'] );
+		$element['shrink']    = ! empty( $input['shrink'] );
+	}
+
+	if ( 'gravatar' === $input['type'] ) {
+		$shape    = $input['shape'] ?? 'round';
+		$fallback = $input['fallback'] ?? '404';
+
+		$element['shape']    = 'square' === $shape ? 'square' : 'round';
+		$element['fallback'] = in_array( $fallback, array( '404', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'image' ), true ) ? $fallback : '404';
+	}
+
+	return $element;
 }
 
 /**

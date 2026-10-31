@@ -1,14 +1,20 @@
 /**
  * The canvas: the badge page (trim size plus bleed) scaled to fit the
- * available space, with its background and the guides.
+ * available space, with its background, the guides and the elements for
+ * the attendee on screen.
  */
 import { useEffect, useRef, useState } from '@wordpress/element';
 import { Button, Spinner } from '@wordpress/components';
 import { loadPdf } from '../pdf';
 import { pageSize } from '../geometry';
+import { moveElement, resizeElement } from '../elements';
+import { ElementView } from './element-view';
 
 // Free space around the page, in screen pixels.
 const MARGIN = 32;
+// Snap distance to the center lines, in screen pixels.
+const SNAP_PX = 6;
+const CORNERS = [ 'nw', 'ne', 'sw', 'se' ];
 
 /**
  * Draws page 1 of a PDF so it fills the given box, at the screen's
@@ -95,9 +101,138 @@ function PdfBackground( { url, width, height } ) {
 	);
 }
 
-export function Canvas( { design, backgroundFile, onSelectBackground } ) {
+/**
+ * One element on the canvas, with its selection frame and handles.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.element  Element.
+ * @param {number}   props.scale    Screen pixels per mm.
+ * @param {Object}   props.size     Print size.
+ * @param {boolean}  props.selected Whether it is selected.
+ * @param {Object}   props.layout   Text layout for this attendee, or null.
+ * @param {Function} props.onSelect Called with the element id.
+ * @param {Function} props.onChange Called with the changed element and an undo group.
+ * @param {Function} props.onSnap   Called with the axes being snapped, or null.
+ * @param {Object}   props.children Content.
+ */
+function ElementBox( {
+	element,
+	scale,
+	size,
+	selected,
+	layout,
+	onSelect,
+	onChange,
+	onSnap,
+	children,
+} ) {
+	function startDrag( event, mode ) {
+		if ( event.button !== 0 ) {
+			return;
+		}
+		event.preventDefault();
+		event.stopPropagation();
+		onSelect( element.id );
+
+		const start = { x: event.clientX, y: event.clientY };
+		const group = 'drag-' + element.id + '-' + Date.now();
+		const target = event.currentTarget;
+		target.setPointerCapture( event.pointerId );
+		let moved = false;
+
+		function onMove( moveEvent ) {
+			const px = moveEvent.clientX - start.x;
+			const py = moveEvent.clientY - start.y;
+			// A click is not a move.
+			if ( ! moved && Math.abs( px ) < 3 && Math.abs( py ) < 3 ) {
+				return;
+			}
+			moved = true;
+			if ( mode === 'move' ) {
+				const result = moveElement(
+					element,
+					px / scale,
+					py / scale,
+					size,
+					SNAP_PX / scale
+				);
+				onSnap( { x: result.snapX, y: result.snapY } );
+				onChange( result.element, group );
+			} else {
+				onChange(
+					resizeElement( element, mode, px / scale, py / scale ),
+					group
+				);
+			}
+		}
+		function onUp() {
+			target.removeEventListener( 'pointermove', onMove );
+			target.removeEventListener( 'pointerup', onUp );
+			target.removeEventListener( 'pointercancel', onUp );
+			onSnap( null );
+		}
+		target.addEventListener( 'pointermove', onMove );
+		target.addEventListener( 'pointerup', onUp );
+		target.addEventListener( 'pointercancel', onUp );
+	}
+
+	const overflow = layout && layout.overflow;
+	let className = 'ctbg-element is-' + element.type;
+	if ( selected ) {
+		className += ' is-selected';
+	}
+	if ( overflow ) {
+		className += ' is-overflow';
+	}
+
+	return (
+		<div
+			className={ className }
+			style={ {
+				left: element.x * scale,
+				top: element.y * scale,
+				width: element.width * scale,
+				height: element.height * scale,
+			} }
+			onPointerDown={ ( event ) => startDrag( event, 'move' ) }
+		>
+			{ children }
+			{ overflow && (
+				<span
+					className="ctbg-element__warning"
+					title="This text does not fit for this attendee: it is cut."
+				>
+					!
+				</span>
+			) }
+			{ selected &&
+				CORNERS.map( ( corner ) => (
+					<span
+						key={ corner }
+						className={ 'ctbg-element__handle is-' + corner }
+						onPointerDown={ ( event ) =>
+							startDrag( event, corner )
+						}
+					/>
+				) ) }
+		</div>
+	);
+}
+
+export function Canvas( {
+	design,
+	backgroundFile,
+	onSelectBackground,
+	attendee,
+	fonts,
+	layouts,
+	selectedId,
+	onSelect,
+	onChangeElement,
+} ) {
 	const areaRef = useRef( null );
 	const [ area, setArea ] = useState( { width: 0, height: 0 } );
+	const [ snap, setSnap ] = useState( null );
 
 	useEffect( () => {
 		const observer = new window.ResizeObserver( ( [ entry ] ) => {
@@ -150,7 +285,7 @@ export function Canvas( { design, backgroundFile, onSelectBackground } ) {
 		);
 	} else {
 		backgroundLayer = (
-			<div className="ctbg-canvas__overlay">
+			<div className="ctbg-canvas__overlay is-empty">
 				<p>No background yet.</p>
 				<Button variant="secondary" onClick={ onSelectBackground }>
 					Select background
@@ -160,7 +295,12 @@ export function Canvas( { design, backgroundFile, onSelectBackground } ) {
 	}
 
 	return (
-		<main className="ctbg-canvas" ref={ areaRef } aria-label="Badge canvas">
+		<main
+			className="ctbg-canvas"
+			ref={ areaRef }
+			aria-label="Badge canvas"
+			onPointerDown={ () => onSelect( null ) }
+		>
 			{ scale > 0 && (
 				<div className="ctbg-canvas__page" style={ { width, height } }>
 					{ backgroundLayer }
@@ -208,6 +348,43 @@ export function Canvas( { design, backgroundFile, onSelectBackground } ) {
 							/>
 						</>
 					) }
+					<div
+						className="ctbg-canvas__elements"
+						style={ {
+							left: mm( size.bleed ),
+							top: mm( size.bleed ),
+							width: mm( size.width ),
+							height: mm( size.height ),
+						} }
+					>
+						{ design.elements.map( ( element ) => (
+							<ElementBox
+								key={ element.id }
+								element={ element }
+								scale={ scale }
+								size={ size }
+								selected={ element.id === selectedId }
+								layout={ layouts[ element.id ] }
+								onSelect={ onSelect }
+								onChange={ onChangeElement }
+								onSnap={ setSnap }
+							>
+								<ElementView
+									element={ element }
+									attendee={ attendee }
+									scale={ scale }
+									fonts={ fonts }
+									layout={ layouts[ element.id ] }
+								/>
+							</ElementBox>
+						) ) }
+						{ snap && snap.x && (
+							<div className="ctbg-canvas__snap is-vertical" />
+						) }
+						{ snap && snap.y && (
+							<div className="ctbg-canvas__snap is-horizontal" />
+						) }
+					</div>
 				</div>
 			) }
 		</main>
