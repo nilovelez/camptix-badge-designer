@@ -2,6 +2,11 @@
 /vendor/
 node_modules/
 
+# Test data: CampTix exports contain real attendee emails and names.
+# Never commit them. Keep them in /test-data/.
+/test-data/
+*.csv
+
 # Release zips built with `git archive`.
 /*.zip
 
