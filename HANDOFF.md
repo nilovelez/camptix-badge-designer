@@ -22,7 +22,6 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Open questions
 
-- Gravatar from the WordPress.org username instead of the email.
 - Whether `build/` is committed for releases (see `docs/decisions.md`).
 - Minimum WordPress version: 6.8 was chosen by default and can change.
 

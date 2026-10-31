@@ -14,7 +14,7 @@ This file is the single source of working rules for any agent or person picking 
 | `CLAUDE.md` | Imports `AGENTS.md` for Claude Code. |
 | `HANDOFF.md` | Current state, next steps and how to resume. Keep it up to date. |
 | `README.md` | Project overview for GitHub. |
-| `docs/` | Project documentation: specification, milestones, decisions. |
+| `docs/` | Project documentation: specification, milestones, decisions, backlog. |
 | `guppy/` | Project status published to Guppy (see below). |
 | `blueprint.json` | WordPress Playground blueprint for the test site. |
 | `composer.json`, `phpcs.xml.dist` | WordPress Coding Standards (PHPCS). |

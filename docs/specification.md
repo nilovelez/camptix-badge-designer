@@ -114,12 +114,12 @@ New elements are added with the + button. Every change can be undone and redone 
 ### Gravatar
 
 - Loaded by URL from Gravatar, never generated or stored by the plugin.
-- The URL comes from the attendee's email address, or from their WordPress.org username if Gravatar offers a way (to be checked).
+- The URL comes from the attendee's email address. Using the WordPress.org username instead is in `docs/backlog.md`.
 - Gravatar returns each image in the format it was uploaded in (PNG or JPEG), whatever extension is requested. PNG images keep their transparency. The size requested is the element size at 300 dpi.
 - Options, all simple:
   - Shape: round or square.
   - Fallback when the attendee has no Gravatar, using Gravatar's own default images (the `d` parameter): none (`d=404`: nothing is drawn), a fixed image, or a generated one (identicon, monster, wavatar, retro, robot).
-  - Fixed image: the organizer's own image (for example the WordCamp logo), passed to Gravatar as `d=<URL>`. Gravatar fetches it, so it must be at a public URL. During testing, any public URL typed in; on real sites, picked from the Media Library.
+  - Fixed image: the organizer's own image (for example the WordCamp logo), picked from the Media Library (decided by Nilo). The plugin asks Gravatar with `d=404` and draws this image itself when there is no Gravatar, instead of passing it to Gravatar as `d=<URL>`: that works on any site, local test sites included, and the PDF embeds the image once for every attendee who needs it.
 - With "none", or when the image cannot be loaded at all (network error), the element is a transparent PNG: the background shows through and generation never stops.
 
 ## Preview and PDF generation
@@ -148,7 +148,6 @@ CampTix exports contain real names and email addresses.
 
 - PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
 - Editor technology: to be decided as we test (proposal in `docs/decisions.md`).
-- Gravatar from the WordPress.org username instead of the email.
 - Full list of text box properties.
 
 ## Out of the first phase
