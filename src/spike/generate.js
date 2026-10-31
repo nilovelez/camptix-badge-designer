@@ -18,7 +18,6 @@ import {
 } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { encode } from '../vendor/ladyqr/qr.js';
-import { sha256 } from './sha256';
 
 const PT_PER_MM = 72 / 25.4;
 const mm = ( value ) => value * PT_PER_MM;
@@ -224,14 +223,13 @@ export async function generateBadges( options ) {
 
 	// Gravatars: one request per distinct email, a few at a time.
 	const images = new Map();
-	const gravatarStats = { requested: 0, png: 0, jpg: 0, missing: 0, failed: 0, nativeHash: null, errors: [] };
+	const gravatarStats = { requested: 0, png: 0, jpg: 0, missing: 0, failed: 0, errors: [] };
 	if ( options.gravatars ) {
 		const px = Math.round( ( layout.gravatar.size / 25.4 ) * 300 );
-		const emails = [ ...new Set( attendees.map( ( a ) => a.email.trim().toLowerCase() ) ) ];
-		await runPool( emails, 8, async ( email ) => {
-			const hash = await sha256( email );
-			gravatarStats.nativeHash = hash.native;
-			const url = 'https://gravatar.com/avatar/' + hash.hex + '.png?s=' + px + '&d=' + encodeURIComponent( options.fallback ) + '&r=g';
+		// The server sends Gravatar hashes, never email addresses.
+		const hashes = [ ...new Set( attendees.map( ( a ) => a.gravatarHash ).filter( Boolean ) ) ];
+		await runPool( hashes, 8, async ( hash ) => {
+			const url = 'https://gravatar.com/avatar/' + hash + '?s=' + px + '&d=' + encodeURIComponent( options.fallback ) + '&r=g';
 			gravatarStats.requested++;
 			try {
 				const response = await fetch( url, { mode: 'cors', credentials: 'omit' } );
@@ -247,10 +245,10 @@ export async function generateBadges( options ) {
 				const bytes = new Uint8Array( await response.arrayBuffer() );
 				const type = imageType( bytes );
 				if ( type === 'png' ) {
-					images.set( email, await doc.embedPng( bytes ) );
+					images.set( hash, await doc.embedPng( bytes ) );
 					gravatarStats.png++;
 				} else if ( type === 'jpg' ) {
-					images.set( email, await doc.embedJpg( bytes ) );
+					images.set( hash, await doc.embedJpg( bytes ) );
 					gravatarStats.jpg++;
 				} else {
 					throw new Error( 'Unknown image type' );
@@ -266,8 +264,7 @@ export async function generateBadges( options ) {
 		step(
 			'Gravatars fetched and embedded',
 			gravatarStats.requested + ' requested at ' + px + ' px: ' + gravatarStats.png + ' PNG, ' + gravatarStats.jpg + ' JPG, ' + gravatarStats.missing + ' without Gravatar, ' + gravatarStats.failed + ' failed' +
-				( gravatarStats.errors.length ? ' (' + gravatarStats.errors.join( '; ' ) + ')' : '' ) +
-				'. Hash: ' + ( gravatarStats.nativeHash ? 'crypto.subtle' : 'JavaScript fallback (not a secure context)' )
+				( gravatarStats.errors.length ? ' (' + gravatarStats.errors.join( '; ' ) + ')' : '' )
 		);
 	}
 
@@ -304,7 +301,7 @@ export async function generateBadges( options ) {
 		}
 
 		// Gravatar.
-		const image = images.get( attendee.email.trim().toLowerCase() );
+		const image = images.get( attendee.gravatarHash );
 		if ( image ) {
 			const g = layout.gravatar;
 			const x = trimLeft + mm( g.x );

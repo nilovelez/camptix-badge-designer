@@ -1,10 +1,10 @@
 /**
  * SHA-256 of a UTF-8 string, as lowercase hex.
  *
- * Gravatar addresses images by the SHA-256 hash of the email address. The
- * browser's crypto.subtle only exists in secure contexts (HTTPS or
- * localhost), and test sites are often reached over plain HTTP by IP, so
- * this small implementation is used when crypto.subtle is missing.
+ * Only used to give the invented spike attendees Gravatar hashes. Real
+ * attendees get their hash from the server, so email addresses never reach
+ * the browser. (crypto.subtle would not do: it only exists in secure
+ * contexts, and test sites are often reached over plain HTTP by IP.)
  */
 
 const K = [
@@ -83,23 +83,4 @@ export function sha256Sync( text ) {
 		hex += ( word >>> 0 ).toString( 16 ).padStart( 8, '0' );
 	}
 	return hex;
-}
-
-/**
- * Uses crypto.subtle when the page is a secure context, and the
- * JavaScript version otherwise.
- *
- * @param {string} text Text to hash.
- * @return {Promise<{hex: string, native: boolean}>} The hash and whether crypto.subtle made it.
- */
-export async function sha256( text ) {
-	if ( window.crypto && window.crypto.subtle ) {
-		const digest = await window.crypto.subtle.digest( 'SHA-256', new TextEncoder().encode( text ) );
-		let hex = '';
-		for ( const byte of new Uint8Array( digest ) ) {
-			hex += byte.toString( 16 ).padStart( 2, '0' );
-		}
-		return { hex, native: true };
-	}
-	return { hex: sha256Sync( text ), native: false };
 }

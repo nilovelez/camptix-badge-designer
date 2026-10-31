@@ -4,6 +4,8 @@
  * long last names, missing usernames).
  */
 
+import { sha256Sync } from './sha256';
+
 const FIRST_NAMES = [
 	'María José', 'Álvaro', 'Begoña', 'Íñigo', 'Lucía', 'Jesús', 'Zoë', 'Óscar', 'Ana',
 	'Juan Carlos', 'Noemí', 'Raúl', 'Inés', 'José Ángel', 'Ainhoa', 'Martín', 'Sofía', 'Joan',
@@ -25,8 +27,10 @@ function toUsername( first, last ) {
 }
 
 /**
+ * Same shape as the attendees from the REST API (ctbg/v1/attendees).
+ *
  * @param {number} count Number of attendees.
- * @return {Array<{id: number, firstName: string, lastName: string, email: string, username: string}>} Attendees in purchase order.
+ * @return {Array<{number: number, attendeeId: number, firstName: string, lastName: string, username: string, gravatarHash: string, answers: Object}>} Attendees in purchase order.
  */
 export function makeAttendees( count ) {
 	const attendees = [];
@@ -37,11 +41,13 @@ export function makeAttendees( count ) {
 		// About four in ten tickets have no username, as in real exports.
 		const hasUsername = i % 5 !== 1 && i % 5 !== 3;
 		attendees.push( {
-			id: 1000 + i,
+			number: i + 1,
+			attendeeId: 1000 + i,
 			firstName,
 			lastName,
-			email: base + '@example.com',
 			username: hasUsername ? base : '',
+			gravatarHash: sha256Sync( base + '@example.com' ),
+			answers: {},
 		} );
 	}
 	return attendees;

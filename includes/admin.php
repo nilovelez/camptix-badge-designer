@@ -40,7 +40,7 @@ function ctbg_render_admin_page() {
 	}
 
 	echo '<div class="wrap">';
-	echo '<h1>' . esc_html__( 'Badges: technical spike', 'camptix-badge-generator' ) . '</h1>';
+	echo '<h1>' . esc_html__( 'Badges', 'camptix-badge-generator' ) . '</h1>';
 
 	if ( ! file_exists( CTBG_PLUGIN_DIR . 'build/spike.asset.php' ) ) {
 		echo '<div class="notice notice-error"><p>';

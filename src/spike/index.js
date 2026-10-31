@@ -16,10 +16,12 @@ import {
 	SelectControl,
 	TextControl,
 } from '@wordpress/components';
+import apiFetch from '@wordpress/api-fetch';
 import * as pdfjs from 'pdfjs-dist';
 import { generateBadges, checkWoff2 } from './generate';
 import { makeAttendees } from './attendees';
 import { makeSampleBackground } from './sample-background';
+import { AttendeesPanel } from './attendees-panel';
 
 const settings = window.ctbgSpike;
 pdfjs.GlobalWorkerOptions.workerSrc = settings.pdfWorkerUrl;
@@ -64,6 +66,25 @@ async function renderFirstPage( bytes, canvas, width ) {
 }
 
 function App() {
+	const [ attendeeData, setAttendeeData ] = useState( null );
+	const [ attendeeError, setAttendeeError ] = useState( null );
+
+	useEffect( () => {
+		apiFetch( { path: '/ctbg/v1/attendees' } )
+			.then( setAttendeeData )
+			.catch( ( e ) => setAttendeeError( e.message || String( e ) ) );
+	}, [] );
+
+	return (
+		<>
+			<AttendeesPanel data={ attendeeData } error={ attendeeError } />
+			<SpikePanel csvAttendees={ attendeeData ? attendeeData.attendees : null } />
+		</>
+	);
+}
+
+function SpikePanel( { csvAttendees } ) {
+	const [ attendeeSource, setAttendeeSource ] = useState( 'invented' );
 	const [ count, setCount ] = useState( '300' );
 	const [ backgroundSource, setBackgroundSource ] = useState( 'sample' );
 	const [ backgroundFile, setBackgroundFile ] = useState( null );
@@ -116,7 +137,12 @@ function App() {
 		};
 		try {
 			const background = await loadBackground();
-			const attendees = makeAttendees( Math.max( 1, parseInt( count, 10 ) || 1 ) );
+			let attendees;
+			if ( attendeeSource === 'csv' && csvAttendees ) {
+				attendees = csvAttendees;
+			} else {
+				attendees = makeAttendees( Math.max( 1, parseInt( count, 10 ) || 1 ) );
+			}
 			const bytes = await generateBadges( {
 				attendees,
 				fonts: settings.fonts,
@@ -150,17 +176,33 @@ function App() {
 	return (
 		<div style={ { display: 'grid', gridTemplateColumns: 'minmax(280px, 380px) 1fr', gap: 16, alignItems: 'start', marginTop: 16 } }>
 			<Card>
-				<CardHeader><strong>Test settings</strong></CardHeader>
+				<CardHeader><strong>Test PDF (technical spike)</strong></CardHeader>
 				<CardBody>
-					<TextControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label="Attendees (invented data)"
-						type="number"
-						min="1"
-						value={ count }
-						onChange={ setCount }
+					<RadioControl
+						label="Attendees"
+						selected={ attendeeSource }
+						options={ [
+							{ label: 'Invented', value: 'invented' },
+							{
+								label: csvAttendees ? 'Test CSV (' + csvAttendees.length + ')' : 'Test CSV (not available)',
+								value: 'csv',
+							},
+						] }
+						onChange={ setAttendeeSource }
 					/>
+					{ attendeeSource === 'invented' && (
+						<div style={ { marginTop: 8 } }>
+							<TextControl
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+								label="Attendees (invented data)"
+								type="number"
+								min="1"
+								value={ count }
+								onChange={ setCount }
+							/>
+						</div>
+					) }
 					<div style={ { height: 16 } } />
 					<RadioControl
 						label="Background"

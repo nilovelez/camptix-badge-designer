@@ -52,11 +52,19 @@ Checked against a real export of 178 tickets (kept in `test-data/`, never commit
 The variables a text box can insert:
 
 - First name, last name, and full name (first name + last name).
-- The questions defined by the event (one variable per custom column).
+- The questions defined by the event (one variable per custom column), plus the common "First Time Attending" question.
 
-Names are normalized before they are shown: "maría" and "GARCÍA" become "María" and "García", keeping particles such as "de" or "del" in lowercase. The organizer can still turn a text box to uppercase as a style.
+Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("McDonald") stay as typed. Particles such as "de" or "del" stay in lowercase. The organizer can still turn a text box to uppercase as a style.
 
-Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). The email address is only used to request the Gravatar.
+Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). Event questions with sensitive answers can be excluded with the `ctbg_excluded_questions` filter.
+
+### What reaches the browser
+
+The server (`includes/attendees.php`, REST route `ctbg/v1/attendees`, administrators only) sends, per attendee: page number, Attendee ID, normalized first and last name, the validated username (empty when missing), the Gravatar hash, and the answers to the allowed questions.
+
+- Email addresses never reach the browser: the server sends the SHA-256 Gravatar hash of the trimmed, lowercase address.
+- Only tickets with status `Publish` get a badge; the others are counted and left out.
+- Badges are numbered from 1 in `Attendee ID` order.
 
 ## Badge size
 

@@ -5,8 +5,8 @@ Each milestone needs Nilo's OK before it starts and an explicit OK after review 
 | # | Milestone | Status |
 |---|---|---|
 | 0 | Plugin skeleton and development setup: main file, readme, Playground blueprint, Studio site, WPCS, Guppy. | Done |
-| 1 | Technical spike: an admin page that generates a 300-page badges PDF in the browser with pdf-lib (Inter embedded, vector QR codes from LadyQR, Gravatars, a vector PDF background, crop marks) and measures it; PDF.js preview; WOFF2 check. Confirms or changes the proposals in `docs/decisions.md`. | Done, waiting for review |
-| 2 | Attendee data: PHP reads the CSV in `test-data/`, sorts by `Attendee ID`, validates usernames, normalizes names and sends the browser only the allowed fields. | Planned |
+| 1 | Technical spike: an admin page that generates a 300-page badges PDF in the browser with pdf-lib (Inter embedded, vector QR codes from LadyQR, Gravatars, a vector PDF background, crop marks) and measures it; PDF.js preview; WOFF2 check. Confirms or changes the proposals in `docs/decisions.md`. | Done |
+| 2 | Attendee data: PHP reads the CSV in `test-data/`, sorts by `Attendee ID`, validates usernames, normalizes names and sends the browser only the allowed fields. | Done, waiting for review |
 | 3 | Editor structure: admin page with the mockup layout in React and WordPress components; background from the Media Library (PDF, PNG or JPG), print size and bleed, guides, saved design. | Planned |
 | 4 | Text boxes: elements with variables, drag and resize, Document and Element tabs, typography, attendee pagination. | Planned |
 | 5 | QR code and Gravatar elements, with their options and the cases without a username or a Gravatar. | Planned |

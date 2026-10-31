@@ -45,9 +45,13 @@ Gravatar sizes with the real test export (aggregate only): 78 of 174 addresses h
 
 - **Gravatar ignores the requested format.** The `.png` or `.jpg` extension makes no difference: Gravatar returns the image as it was uploaded (in the sample, 49 PNG with transparency and 29 JPEG). The generator detects the format from the first bytes and embeds PNG or JPEG accordingly. PNG transparency is kept when the uploaded image has it.
 - **"None" fallback uses `d=404`, not `d=blank`.** With `d=404`, attendees without a Gravatar get a 404 and nothing is downloaded or drawn, so the background shows through. `d=blank` returns tiny PNG files, some of which pdf-lib cannot decode. Browsers log every 404 in the console; that is expected.
-- **Gravatar hashes need a JavaScript SHA-256.** `crypto.subtle` only exists in secure contexts (HTTPS or localhost). Test sites reached by IP over HTTP do not have it, so the plugin ships a small SHA-256 (`src/spike/sha256.js`, checked against Node's crypto) and uses `crypto.subtle` when available.
+- **Gravatar hashes are made on the server.** `crypto.subtle` only exists in secure contexts (HTTPS or localhost), so test sites reached by IP over HTTP do not have it. Since milestone 2 the server sends the hash instead of the email address, which also keeps email addresses out of the browser. The JavaScript SHA-256 in `src/spike/sha256.js` only hashes the spike's invented addresses.
 - **WOFF2 fonts are converted to TTF first.** `@pdf-lib/fontkit` reads WOFF2 but crashes when it subsets it (`RangeError: Index out of range`). The current `fontkit` 2.x does not work with pdf-lib. Converting with `woff2-encoder` (MIT, WebAssembly, 288 KB, loaded only when a WOFF2 font is used) takes about 15 ms per font, and the result subsets fine.
 - **Gravatar resolution.** The pixel size is computed from the element size at 300 dpi (40 mm → 472 px). Gravatar serves up to 2048 px.
+
+### Milestone 2 check with the real test export
+
+178 badges from the test CSV (69 without QR code), with real Gravatars where they exist (78 people) and identicons for the rest: 11.3 s, 18.6 MB. Gravatars: 145 PNG and 29 JPEG, none failed.
 
 ## Fonts (decided by Nilo)
 
