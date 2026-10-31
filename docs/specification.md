@@ -33,6 +33,31 @@ Long-term goal: read the attendees from CampTix directly and run on every WordCa
 - On real WordCamp sites, the attendee list will be read live from the site's CampTix attendees. No CSV upload is planned for production.
 - Attendee data is not part of the saved design.
 
+### CampTix CSV export format
+
+Checked against a real export of 178 tickets (kept in `test-data/`, never committed):
+
+- UTF-8 without BOM, comma-separated, LF line endings, one header row.
+- Rows come sorted by `Attendee ID`, which grows with the purchase date. `Attendee ID` is the stable purchase order used to number the badges.
+- Standard CampTix columns: `Attendee ID`, `Ticket Type`, `First Name`, `Last Name`, `E-mail Address`, `Purchase date` (`YYYY-MM-DD hh:mmam`), `Last Modified date`, `Status`, `Transaction ID`, `Coupon`, `Ticket Buyer Name`, `Ticket Buyer E-mail Address`, `Payment Method`, `WordPress.org Profile URL`, `Username`, `Attended the event`.
+- Questions common to WordCamp sites, in English: `Severe allergy`, `Accessibility needs`, `First Time Attending`.
+- Questions defined by each event, in its own language (for example "will you come on Sunday?" or dietary requirements). They change from one event to another, so columns are always read by header name, never by position.
+- `Username` is often missing: about 39% of the tickets in the sample. It is either empty or holds the placeholder `Awaiting attendee ([[ unconfirmed ]])` (a ticket bought for someone who has not confirmed it yet). Anything with spaces is not a valid username and counts as missing.
+- `WordPress.org Profile URL`, when present, is `https://wordpress.org/@<username>` and always matches `Username`.
+- Names: many with accents and ñ, compound first names, last names of up to three words (29 characters in the sample), some written all in uppercase or all in lowercase.
+- The same email address can appear on more than one ticket.
+
+### Variables
+
+The variables a text box can insert:
+
+- First name, last name, and full name (first name + last name).
+- The questions defined by the event (one variable per custom column).
+
+Names are normalized before they are shown: "maría" and "GARCÍA" become "María" and "García", keeping particles such as "de" or "del" in lowercase. The organizer can still turn a text box to uppercase as a style.
+
+Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). The email address is only used to request the Gravatar.
+
 ## Badge size
 
 - Default: 100 × 150 mm (width × height, portrait) trim size, with 3 mm bleed on each side, so the background and each PDF page are 106 × 156 mm.
@@ -64,7 +89,8 @@ Every element:
 
 ### QR code
 
-- Points to the attendee's WordPress.org profile. The WordPress.org username is a required field on every ticket, and the profile URL is `https://profiles.wordpress.org/<username>/`.
+- Points to the attendee's WordPress.org profile: `https://profiles.wordpress.org/<username>/`, built from the `Username` column (not from the export's `wordpress.org/@<username>` URL).
+- When the attendee has no valid username, the QR code is not drawn: its space stays empty, showing the background, and generation goes on.
 - Black and white, no options.
 - Generated in the browser with the LadyQR encoder (see Architecture).
 
@@ -103,7 +129,6 @@ CampTix exports contain real names and email addresses.
 
 ## Open points
 
-- CampTix CSV format: columns, encoding, delimiter (waiting for a sample export).
 - PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
 - Editor technology: to be decided as we test (proposal in `docs/decisions.md`).
 - Gravatar from the WordPress.org username instead of the email.
