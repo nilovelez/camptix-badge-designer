@@ -2,10 +2,11 @@
 /**
  * WordCamp sandbox: makes a plain WordPress site with CampTix look like a
  * WordCamp.org site, and fills it with invented tickets, questions and
- * attendees.
+ * attendees, plus a sample badge design.
  *
- * It is loaded as a must-use plugin by sandbox/blueprint.json. It is a
- * development file, not part of the plugin.
+ * It is loaded as a must-use plugin by sandbox/blueprint.json (local) and
+ * sandbox/demo-blueprint.json (public demo). It is a development file, not
+ * part of the plugin.
  *
  * Every name, email address and username here is invented. The data is the
  * same on every run: it comes from a fixed random seed.
