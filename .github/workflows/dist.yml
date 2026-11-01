@@ -1,0 +1,70 @@
+# Builds the plugin on every push to main and publishes it, ready to install,
+# to the dist branch: the files of a release (git archive, which leaves out
+# everything marked export-ignore in .gitattributes) plus build/, which is not
+# in Git. The public Playground demo installs the plugin from that branch.
+#
+# The dist branch keeps one commit per build that changed something. Never
+# commit to it by hand: the next build replaces its files.
+
+name: Build the dist branch
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One build at a time, in push order.
+concurrency:
+  group: dist
+  cancel-in-progress: false
+
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Put the plugin together
+        run: |
+          mkdir -p "$RUNNER_TEMP/plugin"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/plugin"
+          cp -r build "$RUNNER_TEMP/plugin/build"
+
+      - name: Publish to the dist branch
+        working-directory: ${{ runner.temp }}/plugin
+        env:
+          REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        run: |
+          git init -q -b dist
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Build on top of the current dist branch, if there is one, so it
+          # keeps its history. Files that are gone from the plugin are deleted.
+          if git ls-remote --exit-code --heads "$REMOTE" dist > /dev/null; then
+            git fetch -q --depth=1 "$REMOTE" dist
+            git reset -q --soft FETCH_HEAD
+          fi
+
+          git add -A
+          if git rev-parse -q --verify HEAD > /dev/null && git diff --cached --quiet; then
+            echo "The built plugin did not change."
+            exit 0
+          fi
+
+          git commit -q -m "Build of ${GITHUB_SHA::7}" -m "Built from https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
+          git push -q "$REMOTE" HEAD:dist

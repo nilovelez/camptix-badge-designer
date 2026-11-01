@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version of the sandbox data. Raising it makes the next request delete the
  * sandbox attendees, tickets and questions and create them again.
  */
-const CTBD_SANDBOX_VERSION = 1;
+const CTBD_SANDBOX_VERSION = 2;
 
 /*
  * Stand-ins for the WordCamp.org functions CampTix calls. On WordCamp.org
@@ -154,6 +154,7 @@ function ctbd_sandbox_maybe_seed() {
 
 	ctbd_sandbox_delete();
 	ctbd_sandbox_seed();
+	ctbd_sandbox_design();
 	update_option( 'ctbd_sandbox_version', CTBD_SANDBOX_VERSION );
 	delete_option( 'ctbd_sandbox_lock' );
 }
@@ -431,6 +432,136 @@ function ctbd_sandbox_attendees( $questions, $tickets ) {
 	}
 
 	return $attendees;
+}
+
+/**
+ * Creates a sample badge design, so the editor opens with a badge ready to
+ * print: the background in demo-background.pdf, next to this file, and the
+ * Gravatar, the name, the job title and country, and the QR code. A design
+ * the organizer already saved is left alone.
+ */
+function ctbd_sandbox_design() {
+	if ( false !== get_option( 'ctbd_design' ) ) {
+		return;
+	}
+
+	$file = __DIR__ . '/demo-background.pdf';
+	if ( ! is_readable( $file ) ) {
+		return;
+	}
+
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- A local file.
+	$upload = wp_upload_bits( 'demo-background.pdf', null, file_get_contents( $file ) );
+	if ( ! empty( $upload['error'] ) ) {
+		return;
+	}
+
+	$background_id = wp_insert_attachment(
+		array(
+			'post_title'     => 'Sample badge background',
+			'post_mime_type' => 'application/pdf',
+			'post_status'    => 'inherit',
+		),
+		$upload['file']
+	);
+	if ( ! $background_id ) {
+		return;
+	}
+
+	// 100 × 150 mm with 3 mm bleed: the background page is 106 × 156 mm.
+	$design = array(
+		'version'    => 2,
+		'size'       => array(
+			'width'  => 100,
+			'height' => 150,
+			'bleed'  => 3,
+			'safe'   => 5,
+		),
+		'cropMarks'  => true,
+		'guides'     => true,
+		'background' => array(
+			'id'         => $background_id,
+			'type'       => 'pdf',
+			'pageWidth'  => 106,
+			'pageHeight' => 156,
+		),
+		'elements'   => array(
+			array(
+				'id'            => 'sample-gravatar',
+				'type'          => 'gravatar',
+				'x'             => 30,
+				'y'             => 18,
+				'width'         => 40,
+				'height'        => 40,
+				'shape'         => 'round',
+				'fallback'      => '404',
+				'fallbackImage' => 0,
+			),
+			array(
+				'id'        => 'sample-first-name',
+				'type'      => 'text',
+				'content'   => '{first_name}',
+				'x'         => 5,
+				'y'         => 64,
+				'width'     => 90,
+				'height'    => 12,
+				'weight'    => '700',
+				'size'      => 26,
+				'font'      => 'Inter',
+				'color'     => '#1e1e1e',
+				'align'     => 'center',
+				'uppercase' => false,
+			),
+			array(
+				'id'        => 'sample-last-name',
+				'type'      => 'text',
+				'content'   => '{last_name}',
+				'x'         => 5,
+				'y'         => 77,
+				'width'     => 90,
+				'height'    => 9,
+				'weight'    => '600',
+				'size'      => 16,
+				'font'      => 'Inter',
+				'color'     => '#1e1e1e',
+				'align'     => 'center',
+				'uppercase' => false,
+			),
+			array(
+				'id'        => 'sample-job-country',
+				'type'      => 'text',
+				'content'   => '{question:job-title} · {question:country}',
+				'x'         => 5,
+				'y'         => 88,
+				'width'     => 90,
+				'height'    => 7,
+				'weight'    => '400',
+				'size'      => 10,
+				'font'      => 'Inter',
+				'color'     => '#1e1e1e',
+				'align'     => 'center',
+				'uppercase' => false,
+			),
+			array(
+				'id'     => 'sample-qr',
+				'type'   => 'qr',
+				'x'      => 37,
+				'y'      => 110,
+				'width'  => 26,
+				'height' => 26,
+			),
+		),
+	);
+
+	// The plugin may not be active yet while Playground sets the site up, so
+	// the design above is already complete, as the plugin would store it.
+	if ( function_exists( 'ctbd_sanitize_design' ) ) {
+		$design = ctbd_sanitize_design( $design );
+		if ( is_wp_error( $design ) ) {
+			return;
+		}
+	}
+	update_option( 'ctbd_design', $design, false );
 }
 
 /**
