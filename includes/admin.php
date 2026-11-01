@@ -62,7 +62,14 @@ function ctbd_render_editor_page() {
 		echo '</p></div></div>';
 		return;
 	}
-	echo '<div id="ctbd-editor" class="ctbd-editor"></div>';
+	// Shown while the editor script downloads, which can take a few seconds
+	// on a slow connection. The editor replaces it with the same bar.
+	echo '<div id="ctbd-editor" class="ctbd-editor">';
+	echo '<div class="ctbd-editor__loading"><div class="ctbd-loading" role="status">';
+	echo '<p>' . esc_html__( 'Loading the badge editor…', 'camptix-badge-designer' ) . '</p>';
+	echo '<div class="ctbd-loading__bar"><div class="ctbd-loading__fill"></div></div>';
+	echo '</div></div>';
+	echo '</div>';
 }
 
 /**

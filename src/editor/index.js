@@ -2,7 +2,7 @@
  * Badge editor: toolbar, canvas and the Document and Element sidebar.
  */
 import { createRoot, useEffect, useMemo, useState } from '@wordpress/element';
-import { Notice, Spinner } from '@wordpress/components';
+import { Notice } from '@wordpress/components';
 import { Toolbar } from './components/toolbar';
 import { Canvas } from './components/canvas';
 import { Sidebar } from './components/sidebar';
@@ -102,6 +102,31 @@ function isTyping( target ) {
 		target.closest(
 			'input, textarea, select, [contenteditable="true"], .components-modal__frame, .media-modal'
 		)
+	);
+}
+
+/**
+ * The loading bar, the same one the admin page prints while this script
+ * downloads. Its progress is not real: it fills over time, and the negative
+ * delay starts it at the time since the page began loading, so it carries on
+ * where the printed one was instead of starting again.
+ *
+ * @return {Element} Loading bar.
+ */
+function LoadingBar() {
+	const delay = -Math.round( window.performance.now() ) + 'ms';
+	return (
+		<div className="ctbd-editor__loading">
+			<div className="ctbd-loading" role="status">
+				<p>Loading the badge editor…</p>
+				<div className="ctbd-loading__bar">
+					<div
+						className="ctbd-loading__fill"
+						style={ { animationDelay: delay } }
+					/>
+				</div>
+			</div>
+		</div>
 	);
 }
 
@@ -274,11 +299,7 @@ function App() {
 	} );
 
 	if ( loading ) {
-		return (
-			<div className="ctbd-editor__loading">
-				<Spinner />
-			</div>
-		);
+		return <LoadingBar />;
 	}
 	if ( loadError ) {
 		return (
