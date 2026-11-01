@@ -21,5 +21,5 @@ The editor mockup is at https://claude.ai/artifact/AzEqUCXhPU5poaHuaQMDix (priva
 - The editor lives inside the normal WordPress admin: the admin bar and the admin menu stay.
 - A toolbar on top: add element (+), undo and redo, then the attendee pagination (‹ number of total › and the attendee's name), all aligned to the left so the pagination does not move with the length of the name (changed by Nilo after milestone 6); the save state ("Saved"), Preview badge and Generate PDF on the right. No title.
 - The canvas in the center, with only the badge.
-- A fixed right sidebar with two tabs. Document: Background, Print size, Elements, Attendees and Design (export and import JSON). Element: the properties of the selected element.
+- A fixed right sidebar with two tabs. Document: Background, Print size, Elements, Attendees and Import/Export Design (JSON; renamed from Design by Nilo). Element: the properties of the selected element.
 - Generate PDF opens a dialog with the page range.

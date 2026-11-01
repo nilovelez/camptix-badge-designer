@@ -166,7 +166,7 @@ export function DesignPanel( { design, updateDesign } ) {
 	}
 
 	return (
-		<PanelBody title="Design" initialOpen={ false }>
+		<PanelBody title="Import/Export Design" initialOpen={ false }>
 			<p className="ctbd-help">
 				Reuse this design on another site. The file has the print size
 				and the elements with their styles; not the background.
