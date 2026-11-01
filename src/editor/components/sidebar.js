@@ -117,7 +117,11 @@ function BackgroundPanel( {
 				</Notice>
 			) }
 			{ ! fits && (
-				<Notice status="warning" isDismissible={ false }>
+				<Notice
+					status="warning"
+					isDismissible={ false }
+					spokenMessage="The background does not match the page with bleed, so it is stretched."
+				>
 					The background does not match the page with bleed (
 					{ pageSize( size ).width } × { pageSize( size ).height }{ ' ' }
 					mm), so it is stretched.{ ' ' }
@@ -270,12 +274,21 @@ function OverflowList( { overflows, onGoTo } ) {
 	if ( ! overflows.length ) {
 		return null;
 	}
+	const summary =
+		( overflows.length === 1
+			? '1 attendee has'
+			: overflows.length + ' attendees have' ) +
+		' text that does not fit and is cut';
+	// A plain-text spokenMessage: without it, Notice serializes its children
+	// for screen readers, which renders the Buttons outside React and breaks
+	// the editor when the list changes.
 	return (
-		<Notice status="warning" isDismissible={ false }>
-			{ overflows.length === 1
-				? '1 attendee has'
-				: overflows.length + ' attendees have' }{ ' ' }
-			text that does not fit and is cut:
+		<Notice
+			status="warning"
+			isDismissible={ false }
+			spokenMessage={ summary + '.' }
+		>
+			{ summary }:
 			<ul className="ctbd-overflow-list">
 				{ overflows.slice( 0, 50 ).map( ( item ) => (
 					<li key={ item.number }>
