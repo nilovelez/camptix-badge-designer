@@ -15,7 +15,7 @@ Design printed badges for your event's attendees and get a PDF ready for the pri
 CampTix Badge Designer turns your CampTix attendee list into printed badges, the way data merge works in a desktop publishing program.
 
 1. Design the badge background in any drawing program (PDF, PNG or JPG) and upload it to the Media Library.
-2. In Badges, place the attendee fields over it: text boxes with the first name, the last name or the event's own questions, the attendee's Gravatar, and a QR code that links to their WordPress.org profile.
+2. In Tickets > Badge Designer, place the attendee fields over it: text boxes with the first name, the last name or the event's own questions, the attendee's Gravatar, and a QR code that links to their WordPress.org profile.
 3. Step through the attendees to check long names, missing photos and missing usernames.
 4. Generate one PDF page per attendee, for all of them or a range, with bleed and crop marks, ready for the print shop.
 

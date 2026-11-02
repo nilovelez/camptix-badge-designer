@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       CampTix Badge Designer
- * Description:       Processes CampTix CSV export files and generates PDF badges ready to print.
+ * Description:       Design printed badges for CampTix attendees and get a print-ready PDF, generated in the browser.
  * Version:           0.1.0
  * Requires at least: 6.8
  * Requires PHP:      8.3
