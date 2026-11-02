@@ -1,7 +1,7 @@
 {
 	"name": "camptix-badge-designer",
 	"version": "0.1.0",
-	"description": "Processes CampTix CSV export files and generates PDF badges ready to print.",
+	"description": "Design printed badges for CampTix attendees and get a print-ready PDF, generated in the browser.",
 	"author": "Nilo Vélez",
 	"license": "GPL-2.0-or-later",
 	"private": true,

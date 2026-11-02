@@ -1,6 +1,6 @@
 # CampTix Badge Designer: instructions for agents
 
-WordPress plugin that processes CampTix CSV export files and generates PDF badges ready to print.
+WordPress plugin to design printed badges for CampTix attendees in wp-admin, with a print-ready PDF generated in the browser.
 
 This file is the single source of working rules for any agent or person picking up the project. `CLAUDE.md` only imports it. Read `HANDOFF.md` next: it says where the work stands and what comes next.
 
