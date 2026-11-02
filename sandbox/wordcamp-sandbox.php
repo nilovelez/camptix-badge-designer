@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version of the sandbox data. Raising it makes the next request delete the
  * sandbox attendees, tickets and questions and create them again.
  */
-const CTBD_SANDBOX_VERSION = 2;
+const CTBD_SANDBOX_VERSION = 3;
 
 /*
  * Stand-ins for the WordCamp.org functions CampTix calls. On WordCamp.org
@@ -469,43 +469,44 @@ function ctbd_sandbox_design() {
 		return;
 	}
 
-	// 100 × 150 mm with 3 mm bleed: the background page is 106 × 156 mm.
+	// The WordCamp Europe 2025 badge, provided by Nilo for the demo: 102.5 × 149.2 mm with
+	// 5 mm bleed, so the background page is 112.5 × 159.2 mm. Laid out by Nilo.
 	$design = array(
 		'version'    => 2,
 		'size'       => array(
-			'width'  => 100,
-			'height' => 150,
-			'bleed'  => 3,
-			'safe'   => 5,
+			'width'  => 102.5,
+			'height' => 149.2,
+			'bleed'  => 5,
+			'safe'   => 8.5,
 		),
 		'cropMarks'  => true,
 		'guides'     => true,
 		'background' => array(
 			'id'         => $background_id,
 			'type'       => 'pdf',
-			'pageWidth'  => 106,
-			'pageHeight' => 156,
+			'pageWidth'  => 112.5,
+			'pageHeight' => 159.2,
 		),
 		'elements'   => array(
 			array(
 				'id'            => 'sample-gravatar',
 				'type'          => 'gravatar',
-				'x'             => 30,
-				'y'             => 18,
-				'width'         => 40,
-				'height'        => 40,
-				'shape'         => 'round',
-				'fallback'      => '404',
+				'x'             => 51.2,
+				'y'             => 21.4,
+				'width'         => 42.7,
+				'height'        => 42.7,
+				'shape'         => 'square',
+				'fallback'      => 'robohash',
 				'fallbackImage' => 0,
 			),
 			array(
 				'id'        => 'sample-first-name',
 				'type'      => 'text',
 				'content'   => '{first_name}',
-				'x'         => 5,
-				'y'         => 64,
-				'width'     => 90,
-				'height'    => 12,
+				'x'         => 9,
+				'y'         => 68.1,
+				'width'     => 84.6,
+				'height'    => 12.5,
 				'weight'    => '700',
 				'size'      => 26,
 				'font'      => 'Inter',
@@ -517,9 +518,9 @@ function ctbd_sandbox_design() {
 				'id'        => 'sample-last-name',
 				'type'      => 'text',
 				'content'   => '{last_name}',
-				'x'         => 5,
-				'y'         => 77,
-				'width'     => 90,
+				'x'         => 9,
+				'y'         => 81.1,
+				'width'     => 84.6,
 				'height'    => 9,
 				'weight'    => '600',
 				'size'      => 16,
@@ -532,9 +533,9 @@ function ctbd_sandbox_design() {
 				'id'        => 'sample-job-country',
 				'type'      => 'text',
 				'content'   => '{question:job-title} · {question:country}',
-				'x'         => 5,
-				'y'         => 88,
-				'width'     => 90,
+				'x'         => 9.3,
+				'y'         => 99,
+				'width'     => 84.3,
 				'height'    => 7,
 				'weight'    => '400',
 				'size'      => 10,
@@ -546,8 +547,8 @@ function ctbd_sandbox_design() {
 			array(
 				'id'     => 'sample-qr',
 				'type'   => 'qr',
-				'x'      => 37,
-				'y'      => 110,
+				'x'      => 65.5,
+				'y'      => 109.7,
 				'width'  => 26,
 				'height' => 26,
 			),
