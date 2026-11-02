@@ -64,6 +64,7 @@ Checked against a real export of 178 tickets (kept in `test-data/`, never commit
 The variables a text box can insert:
 
 - First name, last name, and full name (first name + last name).
+- The WordPress.org username, printed as `@username` like the HTML badges of WordCamp.org, and nothing for attendees without one (asked for by Nilo, for WordPress/wordcamp.org#1701).
 - The questions defined by the event (one variable per custom column), plus the common "First Time Attending" question.
 
 Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("McDonald") stay as typed. Particles such as "de" or "del" stay in lowercase. The organizer can still turn a text box to uppercase as a style.
@@ -107,7 +108,7 @@ New elements are added with the + button. Every change can be undone and redone 
 ### Text box
 
 - Holds text with variables, which are replaced with each attendee's data (for example the first name or the last name).
-- Variables are written in braces: `{first_name}`, `{last_name}`, `{full_name}` and `{question:<key>}` for each event question. A selector inserts them. Unknown variables are printed as typed, so a typo is visible. Stray spaces left by an empty variable are removed.
+- Variables are written in braces: `{first_name}`, `{last_name}`, `{full_name}`, `{username}` and `{question:<key>}` for each event question. A selector inserts them. Unknown variables are printed as typed, so a typo is visible. Stray spaces left by an empty variable are removed.
 - Always one line: text never wraps to a second line.
 - Properties (decided by Nilo): font family, weight, size, color, alignment and uppercase. No shrink to fit, line height or letter spacing.
 - Text that does not fit (decided by Nilo): it is never resized; it is cut at the edge of the box (starting from the left edge, so its beginning stays readable whatever the alignment) and the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing.

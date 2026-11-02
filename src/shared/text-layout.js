@@ -34,6 +34,13 @@ export function textVariables( questions = [] ) {
 			token: '{full_name}',
 			label: __( 'Full name', 'camptix-badge-designer' ),
 		},
+		{
+			token: '{username}',
+			label: __(
+				'WordPress.org username (@username)',
+				'camptix-badge-designer'
+			),
+		},
 	];
 	for ( const question of questions ) {
 		variables.push( {
@@ -64,6 +71,10 @@ export function resolveText( content, attendee ) {
 			}
 			if ( name === 'full_name' ) {
 				return ( attendee.firstName + ' ' + attendee.lastName ).trim();
+			}
+			// As the HTML badges print it: @username, or nothing without one.
+			if ( name === 'username' ) {
+				return attendee.username ? '@' + attendee.username : '';
 			}
 			if ( name === 'question' && key ) {
 				return ( attendee.answers && attendee.answers[ key ] ) || '';

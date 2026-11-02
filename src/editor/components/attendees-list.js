@@ -15,6 +15,7 @@ function Summary( { data } ) {
 		__( 'First name', 'camptix-badge-designer' ),
 		__( 'Last name', 'camptix-badge-designer' ),
 		__( 'Full name', 'camptix-badge-designer' ),
+		__( 'WordPress.org username', 'camptix-badge-designer' ),
 		...questions.map( ( q ) => q.label ),
 	];
 	return (
