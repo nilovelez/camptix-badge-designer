@@ -371,6 +371,11 @@ $min-height: 560px;
 	margin-top: 16px;
 }
 
+// Single or folded, in the Print size panel and the background dialog.
+.ctbd-badge-type {
+	margin: 16px 0;
+}
+
 .ctbd-background-card {
 	display: flex;
 	align-items: center;

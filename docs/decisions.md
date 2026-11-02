@@ -116,6 +116,7 @@ The PDF needs the font files, not only CSS.
 
 - `src/editor/build-pdf.js` builds the PDF in the browser from the same layout code as the editor (`src/shared/`): text, QR codes and Gravatar URLs come out identical on screen and on paper.
 - Each page is the trim size plus the bleed, plus 6 mm on every side for crop marks when they are on (118 × 168 mm by default).
+- Folded badges (milestone 10): the page drawing is one function that draws a face with its trim box at a fixed spot. The bottom face is drawn as is, clipped at the fold; the top one is drawn inside a 180° turn about the middle of its trim box (a `cm` operator), clipped at the fold in page space first, so its top bleed, which ends up below the fold, is cut away too. The background and the Gravatars stay embedded once.
 - Embedded once and reused on every page: the background (a PDF stays vector), the fonts (subset to the glyphs in use), each distinct Gravatar and the fixed fallback image.
 - Text boxes are clipped to their box, so text that does not fit is cut exactly as in the editor.
 - Gravatars are requested at the element size at 300 dpi. Formats other than PNG and JPEG are converted to PNG in the browser. A failed download is counted and reported; it never stops the build.

@@ -1,37 +1,81 @@
 /**
- * Asks for the print size when a new background does not match the
- * current page: for a PDF, how much of its page is bleed; for an image,
- * the trim width and the bleed (the height follows its proportions).
+ * Shown when a background is chosen, and from "Adjust the print size":
+ * asks for the badge type, single or folded, and, when the background does
+ * not match the current page, for the print size: for a PDF, how much of
+ * its page is bleed; for an image, the trim width and the bleed (the
+ * height follows its proportions).
  */
 import { useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { Button, Modal, Notice } from '@wordpress/components';
 import { MmField } from './mm-field';
+import { BadgeTypeControl } from './badge-type';
 import {
 	LIMITS,
 	RECOMMENDED_DPI,
+	backgroundFits,
 	effectiveDpi,
 	heightFromImage,
 	pageSize,
 	sizeFromPdf,
 } from '../geometry';
 
+function SizeQuestion( { background, size } ) {
+	if ( background.type === 'pdf' ) {
+		return (
+			<p>
+				{ sprintf(
+					/* translators: 1: PDF page width, 2: PDF page height, 3: page width with bleed, 4: page height with bleed, all in millimeters. */
+					__(
+						'This PDF page is %1$s × %2$s mm, and the current page with bleed is %3$s × %4$s mm. How much of the PDF page is bleed?',
+						'camptix-badge-designer'
+					),
+					background.pageWidth,
+					background.pageHeight,
+					pageSize( size ).width,
+					pageSize( size ).height
+				) }
+			</p>
+		);
+	}
+	return (
+		<p>
+			{ sprintf(
+				/* translators: 1: image width, 2: image height, in pixels; 3: page width with bleed, 4: page height with bleed, in millimeters. */
+				__(
+					'This image is %1$s × %2$s px, a different shape from the current page with bleed (%3$s × %4$s mm). At what size will it be printed?',
+					'camptix-badge-designer'
+				),
+				background.pixelWidth,
+				background.pixelHeight,
+				pageSize( size ).width,
+				pageSize( size ).height
+			) }
+		</p>
+	);
+}
+
 export function BackgroundSizeDialog( {
 	background,
 	size,
+	folded: initialFolded,
 	onApply,
 	onCancel,
 } ) {
 	const isPdf = background.type === 'pdf';
+	// A background that already fits keeps the current size: only the badge
+	// type is asked.
+	const fits = backgroundFits( background, size );
+	const [ folded, setFolded ] = useState( !! initialFolded );
 	const [ bleed, setBleed ] = useState( size.bleed );
 	const [ width, setWidth ] = useState(
 		isPdf ? sizeFromPdf( background, size.bleed ).width : size.width
 	);
 
-	let newSize;
-	if ( isPdf ) {
+	let newSize = size;
+	if ( ! fits && isPdf ) {
 		newSize = { ...size, ...sizeFromPdf( background, bleed ), bleed };
-	} else {
+	} else if ( ! fits ) {
 		newSize = {
 			...size,
 			width,
@@ -49,58 +93,39 @@ export function BackgroundSizeDialog( {
 
 	return (
 		<Modal
-			title={ __( 'Background size', 'camptix-badge-designer' ) }
+			title={ __( 'Badge size and type', 'camptix-badge-designer' ) }
 			onRequestClose={ onCancel }
 			className="ctbd-size-dialog"
 		>
-			{ isPdf ? (
-				<p>
-					{ sprintf(
-						/* translators: 1: PDF page width, 2: PDF page height, 3: page width with bleed, 4: page height with bleed, all in millimeters. */
-						__(
-							'This PDF page is %1$s × %2$s mm, and the current page with bleed is %3$s × %4$s mm. How much of the PDF page is bleed?',
-							'camptix-badge-designer'
-						),
-						background.pageWidth,
-						background.pageHeight,
-						pageSize( size ).width,
-						pageSize( size ).height
-					) }
-				</p>
-			) : (
-				<p>
-					{ sprintf(
-						/* translators: 1: image width, 2: image height, in pixels; 3: page width with bleed, 4: page height with bleed, in millimeters. */
-						__(
-							'This image is %1$s × %2$s px, a different shape from the current page with bleed (%3$s × %4$s mm). At what size will it be printed?',
-							'camptix-badge-designer'
-						),
-						background.pixelWidth,
-						background.pixelHeight,
-						pageSize( size ).width,
-						pageSize( size ).height
-					) }
-				</p>
+			{ ! fits && (
+				<>
+					<SizeQuestion background={ background } size={ size } />
+					<div className="ctbd-size-dialog__fields">
+						{ ! isPdf && (
+							<MmField
+								label={ __(
+									'Width (mm)',
+									'camptix-badge-designer'
+								) }
+								value={ width }
+								min={ LIMITS.width.min }
+								max={ LIMITS.width.max }
+								onChange={ setWidth }
+							/>
+						) }
+						<MmField
+							label={ __(
+								'Bleed (mm)',
+								'camptix-badge-designer'
+							) }
+							value={ bleed }
+							min={ LIMITS.bleed.min }
+							max={ LIMITS.bleed.max }
+							onChange={ setBleed }
+						/>
+					</div>
+				</>
 			) }
-
-			<div className="ctbd-size-dialog__fields">
-				{ ! isPdf && (
-					<MmField
-						label={ __( 'Width (mm)', 'camptix-badge-designer' ) }
-						value={ width }
-						min={ LIMITS.width.min }
-						max={ LIMITS.width.max }
-						onChange={ setWidth }
-					/>
-				) }
-				<MmField
-					label={ __( 'Bleed (mm)', 'camptix-badge-designer' ) }
-					value={ bleed }
-					min={ LIMITS.bleed.min }
-					max={ LIMITS.bleed.max }
-					onChange={ setBleed }
-				/>
-			</div>
 
 			<p>
 				{ sprintf(
@@ -154,6 +179,12 @@ export function BackgroundSizeDialog( {
 				</Notice>
 			) }
 
+			<BadgeTypeControl
+				folded={ folded }
+				size={ newSize }
+				onChange={ setFolded }
+			/>
+
 			<div className="ctbd-size-dialog__actions">
 				<Button variant="tertiary" onClick={ onCancel }>
 					{ __( 'Cancel', 'camptix-badge-designer' ) }
@@ -161,9 +192,9 @@ export function BackgroundSizeDialog( {
 				<Button
 					variant="primary"
 					disabled={ ! valid }
-					onClick={ () => onApply( newSize ) }
+					onClick={ () => onApply( newSize, folded ) }
 				>
-					{ __( 'Use this size', 'camptix-badge-designer' ) }
+					{ __( 'Use this background', 'camptix-badge-designer' ) }
 				</Button>
 			</div>
 		</Modal>

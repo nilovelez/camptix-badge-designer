@@ -39,6 +39,7 @@ function exportDesign( design ) {
 			size: design.size,
 			cropMarks: design.cropMarks,
 			guides: design.guides,
+			folded: !! design.folded,
 			elements,
 		},
 	};
@@ -144,6 +145,7 @@ function readDesignFile( text ) {
 		size: source.size,
 		cropMarks: !! source.cropMarks,
 		guides: source.guides !== false,
+		folded: !! source.folded,
 		elements,
 	};
 	return { imported, notes };

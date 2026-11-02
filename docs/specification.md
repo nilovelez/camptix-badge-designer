@@ -91,6 +91,7 @@ The server (`includes/attendees.php`, REST route `ctbd/v1/attendees`, administra
 - The editor shows the trim line and the safe area as guides, with the bleed dimmed; they are not printed and can be hidden.
 
 - Crop marks: optional, drawn in the PDF the way print shops expect them, as short corner marks outside the bleed area, not as guide lines over the design. With crop marks on, each page grows to make room for them.
+- Badge type (decided by Nilo, milestone 10): **single**, one face per page, printed on one side or both (the default); or **folded**, printed on a sheet twice as tall and folded in half. Either way only one face is designed. For a folded badge, each PDF page holds the face twice, joined at the fold: the bottom one upright and the top one turned 180°, each cut at its top edge so there is no bleed at the fold. The page is the trim width plus the bleed, by twice the trim height plus the bleed at the top and the bottom. With crop marks on, dashed fold marks are drawn on both sides at the fold, outside the bleed. The type is asked whenever a background is chosen, can be changed in the Print size panel, and is saved with the design (`folded`) and in the exported JSON.
 
 ## Elements
 

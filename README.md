@@ -9,7 +9,7 @@ Design printed badges for CampTix attendees in wp-admin, and get one print-ready
 
 ## What it is
 
-Organizers place the attendees' data over their own badge artwork in a visual editor under Tickets › Badge Designer: text boxes with the name and any ticket question, the attendee's Gravatar, and a QR code to their WordPress.org profile. The plugin turns that into a PDF with one badge per page, with bleed and crop marks, ready for the print shop.
+Organizers place the attendees' data over their own badge artwork in a visual editor under Tickets › Badge Designer: text boxes with the name and any ticket question, the attendee's Gravatar, and a QR code to their WordPress.org profile. The plugin turns that into a PDF with one badge per page, with bleed and crop marks, ready for the print shop. Badges to fold in half get the design twice per page, the top one upside down.
 
 The PDF is built in the organizer's browser. The server only sends the design and the attendee data: no images are fetched, generated or stored on it, however big the event.
 
@@ -50,7 +50,7 @@ flowchart LR
 
 - **Editor** (`src/editor/`): React with `@wordpress/components`, built with `@wordpress/scripts`. Toolbar, canvas and a Document/Element sidebar; drag, resize, snap, nudge, undo and redo; text boxes with variables; Gravatar and QR code options; export and import of the design as JSON. Every string is translatable (`@wordpress/i18n`).
 - **Same result on screen and on paper** (`src/shared/`): one text layout, measured with fontkit from the same font files the PDF embeds, one QR path and one Gravatar URL builder, used by the editor and the PDF generator.
-- **PDF** (`src/editor/build-pdf.js`): [pdf-lib](https://pdf-lib.js.org/). A PDF background is embedded once as a vector object and reused on every page; fonts are subset; each Gravatar is downloaded and embedded once; QR codes are vector paths. Text that does not fit its box is clipped exactly as in the editor. WOFF2 fonts from the Font Library are converted to TTF first.
+- **PDF** (`src/editor/build-pdf.js`): [pdf-lib](https://pdf-lib.js.org/). A PDF background is embedded once as a vector object and reused on every page; fonts are subset; each Gravatar is downloaded and embedded once; QR codes are vector paths. Text that does not fit its box is clipped exactly as in the editor. A folded badge draws the same face twice per page, the top one turned 180°, both clipped at the fold. WOFF2 fonts from the Font Library are converted to TTF first.
 - **Preview**: [PDF.js](https://mozilla.github.io/pdf.js/) shows the PDF background in the editor and the one-page preview.
 
 Measured: 140 badges with Gravatars, 11 MB, in 6 to 8 seconds; 300 badges in about 11 seconds, most of it downloading Gravatars. Details and the reasons behind each choice are in [`docs/decisions.md`](docs/decisions.md); what the plugin does, in [`docs/specification.md`](docs/specification.md).

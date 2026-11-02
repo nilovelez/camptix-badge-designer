@@ -17,6 +17,7 @@ import {
 	rectangle,
 	clip,
 	endPath,
+	concatTransformationMatrix,
 } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { layoutText } from '../shared/text-layout';
@@ -50,7 +51,13 @@ export function pageGeometry( design ) {
 	if ( design.cropMarks ) {
 		margin = bleed + CROP_MARK_LENGTH + CROP_MARK_SPARE;
 	}
-	return { margin, width: width + 2 * margin, height: height + 2 * margin };
+	// A folded badge prints the face twice, joined at the fold.
+	const faces = design.folded ? 2 : 1;
+	return {
+		margin,
+		width: width + 2 * margin,
+		height: faces * height + 2 * margin,
+	};
 }
 
 /**
@@ -189,6 +196,31 @@ function drawCropMarks( page, left, bottom, right, top, offset ) {
 			...line,
 		} );
 	}
+}
+
+/**
+ * Fold marks: dashed, on the line of the fold, outside the bleed on both
+ * sides, like the crop marks.
+ *
+ * @param {Object} page   PDF page.
+ * @param {number} left   Left trim edge, in points.
+ * @param {number} right  Right trim edge, in points.
+ * @param {number} y      Fold line, in points.
+ * @param {number} offset Distance from the trim edge, in points (the bleed).
+ */
+function drawFoldMarks( page, left, right, y, offset ) {
+	const length = pt( CROP_MARK_LENGTH );
+	const line = { thickness: 0.25, color: BLACK, dashArray: [ 2, 1.5 ] };
+	page.drawLine( {
+		start: { x: left - offset, y },
+		end: { x: left - offset - length, y },
+		...line,
+	} );
+	page.drawLine( {
+		start: { x: right + offset, y },
+		end: { x: right + offset + length, y },
+		...line,
+	} );
 }
 
 function gravatarPixels( element ) {
@@ -334,29 +366,29 @@ export async function buildBadgesPdf( {
 		} );
 	} );
 
-	// Pages.
+	// Pages. A single badge has one face per page. A folded badge has the
+	// face twice, joined at the fold: the bottom one upright and the top one
+	// upside down, each without the bleed at its top edge, so the page folds
+	// in half into a two-sided badge.
 	const geometry = pageGeometry( design );
 	const { size } = design;
+	const folded = !! design.folded;
 	const trimLeft = pt( geometry.margin );
 	const trimBottom = pt( geometry.margin );
 	const trimRight = trimLeft + pt( size.width );
 	const trimTop = trimBottom + pt( size.height );
 	const fromLeft = ( mm ) => trimLeft + pt( mm );
 	const fromTop = ( mm ) => trimTop - pt( mm );
+	const bleed = pt( size.bleed );
 
-	for ( let index = 0; index < attendees.length; index++ ) {
-		const attendee = attendees[ index ];
-		const page = doc.addPage( [
-			pt( geometry.width ),
-			pt( geometry.height ),
-		] );
-
+	// Draws one face with its trim box at trimLeft, trimBottom.
+	function drawFace( page, attendee ) {
 		if ( background ) {
 			const box = {
-				x: trimLeft - pt( size.bleed ),
-				y: trimBottom - pt( size.bleed ),
-				width: pt( size.width + 2 * size.bleed ),
-				height: pt( size.height + 2 * size.bleed ),
+				x: trimLeft - bleed,
+				y: trimBottom - bleed,
+				width: pt( size.width ) + 2 * bleed,
+				height: pt( size.height ) + 2 * bleed,
 			};
 			if ( background.kind === 'page' ) {
 				page.drawPage( background.object, box );
@@ -446,16 +478,63 @@ export async function buildBadgesPdf( {
 				}
 			}
 		}
+	}
+
+	for ( let index = 0; index < attendees.length; index++ ) {
+		const attendee = attendees[ index ];
+		const page = doc.addPage( [
+			pt( geometry.width ),
+			pt( geometry.height ),
+		] );
+
+		if ( ! folded ) {
+			drawFace( page, attendee );
+		} else {
+			const fold = trimTop;
+			const left = trimLeft - bleed;
+			const width = pt( size.width ) + 2 * bleed;
+
+			// Bottom face, upright, cut at the fold.
+			page.pushOperators(
+				pushGraphicsState(),
+				rectangle(
+					left,
+					trimBottom - bleed,
+					width,
+					fold - trimBottom + bleed
+				),
+				clip(),
+				endPath()
+			);
+			drawFace( page, attendee );
+			page.pushOperators( popGraphicsState() );
+
+			// Top face, turned 180 degrees about the middle of its trim box,
+			// cut at the fold.
+			page.pushOperators(
+				pushGraphicsState(),
+				rectangle( left, fold, width, pt( size.height ) + bleed ),
+				clip(),
+				endPath(),
+				concatTransformationMatrix(
+					-1,
+					0,
+					0,
+					-1,
+					trimLeft + trimRight,
+					2 * fold
+				)
+			);
+			drawFace( page, attendee );
+			page.pushOperators( popGraphicsState() );
+		}
 
 		if ( design.cropMarks ) {
-			drawCropMarks(
-				page,
-				trimLeft,
-				trimBottom,
-				trimRight,
-				trimTop,
-				pt( size.bleed )
-			);
+			const top = folded ? trimTop + pt( size.height ) : trimTop;
+			drawCropMarks( page, trimLeft, trimBottom, trimRight, top, bleed );
+			if ( folded ) {
+				drawFoldMarks( page, trimLeft, trimRight, trimTop, bleed );
+			}
 		}
 
 		// Let the browser breathe and show progress every few pages.
@@ -469,7 +548,6 @@ export async function buildBadgesPdf( {
 			checkCancelled();
 		}
 	}
-
 	onProgress( { step: 'saving' } );
 	const bytes = await doc.save( { useObjectStreams: true } );
 	return { bytes, stats };

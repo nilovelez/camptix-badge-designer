@@ -13,7 +13,7 @@ import { useAttendees, useDesign } from './use-design';
 import { faceKey, resolveFace, useFonts } from './fonts';
 import { newElement } from './elements';
 import { readPdfPageSize } from './pdf';
-import { backgroundFits, round1 } from './geometry';
+import { round1 } from './geometry';
 import { layoutText } from '../shared/text-layout';
 import './editor.scss';
 
@@ -327,12 +327,13 @@ function App() {
 		);
 	}
 
-	function applyBackground( background, file, size ) {
+	function applyBackground( background, file, size, folded ) {
 		setBackgroundFile( file );
 		updateDesign( ( current ) => ( {
 			...current,
 			background,
 			size: size || current.size,
+			folded: folded === undefined ? current.folded : folded,
 		} ) );
 	}
 
@@ -379,12 +380,10 @@ function App() {
 			return;
 		}
 
+		// The dialog asks for the badge type, and for the size when the
+		// background does not fit the current page.
 		const file = { url: attachment.url, filename: attachment.filename };
-		if ( backgroundFits( background, design.size ) ) {
-			applyBackground( background, file );
-		} else {
-			setPending( { background, file } );
-		}
+		setPending( { background, file } );
 	}
 
 	const selectBackground = () =>
@@ -493,12 +492,14 @@ function App() {
 				<BackgroundSizeDialog
 					background={ pending.background }
 					size={ design.size }
+					folded={ design.folded }
 					onCancel={ () => setPending( null ) }
-					onApply={ ( size ) => {
+					onApply={ ( size, folded ) => {
 						applyBackground(
 							pending.background,
 							pending.file,
-							size
+							size,
+							folded
 						);
 						setPending( null );
 					} }

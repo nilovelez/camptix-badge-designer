@@ -30,6 +30,23 @@ export function pageSize( size ) {
 }
 
 /**
+ * Size of each printed page, without crop marks. A folded badge prints
+ * the face twice, one above the other, joined at the fold without bleed
+ * between them: twice the trim height, plus the bleed at the top and the
+ * bottom.
+ *
+ * @param {Object}  size   {width, height, bleed}.
+ * @param {boolean} folded Whether the badge is folded.
+ * @return {{width: number, height: number}} Page size in mm.
+ */
+export function printedPageSize( size, folded ) {
+	return {
+		width: round1( size.width + 2 * size.bleed ),
+		height: round1( ( folded ? 2 : 1 ) * size.height + 2 * size.bleed ),
+	};
+}
+
+/**
  * Resolution of a bitmap background printed on the page with bleed.
  *
  * @param {Object} background Background from the design.

@@ -513,6 +513,7 @@ function ctbd_sandbox_design() {
 			'safe'   => 8.5,
 		),
 		'cropMarks'  => true,
+		'folded'     => false,
 		'guides'     => true,
 		'background' => array(
 			'id'         => $background_id,

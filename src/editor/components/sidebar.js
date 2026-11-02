@@ -23,6 +23,7 @@ import { MmField } from './mm-field';
 import { AttendeesList } from './attendees-list';
 import { ElementPanel } from './element-panel';
 import { DesignPanel } from './design-panel';
+import { BadgeTypeControl } from './badge-type';
 import { elementLabel } from '../elements';
 import {
 	LIMITS,
@@ -209,6 +210,11 @@ function PrintSizePanel( { design, updateDesign } ) {
 					page.height
 				) }
 			</p>
+			<BadgeTypeControl
+				folded={ !! design.folded }
+				size={ size }
+				onChange={ setFlag( 'folded' ) }
+			/>
 			<MmField
 				label={ __( 'Safe area', 'camptix-badge-designer' ) }
 				value={ size.safe }

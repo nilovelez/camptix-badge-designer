@@ -446,6 +446,14 @@ export function GenerateDialog( {
 									) }
 								</strong>
 								<span>{ pagesText }</span>
+								{ design.folded && (
+									<span>
+										{ __(
+											'Folded: each page has the badge twice, the top one upside down, to fold in half.',
+											'camptix-badge-designer'
+										) }
+									</span>
+								) }
 								{ withoutQr > 0 && (
 									<span>
 										{ sprintf(

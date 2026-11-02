@@ -234,6 +234,14 @@ th { background: var(--soft); }
 	<li><strong>Safe area:</strong> keep text and important images at least this far inside the trim (5 mm by default). The editor shows it as a dashed line.</li>
 </ul>
 
+<h3 id="badge-type">Single or folded</h3>
+<p>Badges are usually printed in one of two ways, and you design only one side in both:</p>
+<ul>
+	<li><strong>Single:</strong> one badge per sheet, printed on one side, or on both with the same design.</li>
+	<li><strong>Folded:</strong> a sheet twice as tall, folded in half, so the badge reads the same whichever way it turns on the lanyard. Each page of the PDF has your badge twice: the bottom one upright and the top one upside down, joined at the fold. The bleed at the fold is cut away, so the two halves meet exactly on the fold line.</li>
+</ul>
+<p>Make the background for one side, with bleed on all four edges, in both cases. The editor asks for the badge type when you choose the background, and you can change it later in <strong>Print size</strong>.</p>
+
 <h3 id="background-format">File format</h3>
 <ul>
 	<li><strong>PDF (recommended):</strong> export your artwork as a PDF with bleed. It stays vector in the final PDF, so it prints sharp at any size, and the badges file stays small. Only the first page is used.</li>
@@ -245,7 +253,7 @@ th { background: var(--soft); }
 <figure class="is-narrow">
 	<a href="images/panel-background.webp"><img src="images/panel-background.webp" alt="The Background panel with demo-background.pdf, PDF vector, 112.5 × 159.2 mm, and the Replace and Remove buttons." loading="lazy"></a>
 </figure>
-<p>The editor checks the background against the print size:</p>
+<p>The editor then asks for the badge type, single or folded, and checks the background against the print size:</p>
 <ul>
 	<li>A PDF knows its physical size. If it matches the page with bleed, it is used as it is. If not, the editor shows the PDF's size and asks how much of it is bleed, and sets the print size from it.</li>
 	<li>An image only has pixels. If its proportions match, it is used as it is. If not, the editor asks for the badge width and the bleed, and the height follows the image's proportions.</li>
@@ -261,7 +269,7 @@ th { background: var(--soft); }
 <p>Your work is saved automatically a second after each change, and the toolbar says so ("Saved"). Close the page and come back later: everything is as you left it.</p>
 
 <h3 id="print-size">Print size</h3>
-<p>Width, height and bleed in millimeters, the safe area, crop marks (on by default) and whether the guides are shown.</p>
+<p>Width, height and bleed in millimeters of one side, the badge type (single or folded), the safe area, crop marks (on by default) and whether the guides are shown.</p>
 <figure class="is-narrow">
 	<a href="images/panel-print-size.webp"><img src="images/panel-print-size.webp" alt="The Print size panel: width 102.5, height 149.2, bleed 5, safe area 8.5, and the toggles Crop marks in the PDF and Show trim and safe area." loading="lazy"></a>
 </figure>
@@ -377,6 +385,7 @@ th { background: var(--soft); }
 <h2 id="print-shop">Send it to the print shop</h2>
 <ul>
 	<li>Each page is one badge: the trim size plus the bleed, plus room for the crop marks when they are on. Tell the print shop the trim size and the bleed, and that the file has crop marks.</li>
+	<li>For folded badges, each page is a sheet to fold in half, with dashed fold marks on both sides at the fold. Tell the print shop it is to be cut and folded.</li>
 	<li>Ask them for a test print of one badge first, check the colors and the cut, and scan a QR code with your phone.</li>
 	<li>If the print shop prefers several smaller files, generate the badges in ranges.</li>
 </ul>
