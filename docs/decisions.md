@@ -19,7 +19,7 @@ The plan:
 
 1. Keep developing this as a standalone plugin that can be installed like any other.
 2. A Playground sandbox with the real CampTix, from the `WordPress/wordcamp.org` repo, and invented attendees, with this plugin reading them live (milestone 8, done), and a public link to it, with the built plugin from the `dist` branch and a sample design (milestone 9).
-3. Open the conversation upstream (#1701, #2278) with a link to that demo, so the WordCamp.org team can try it, ask for changes, or send pull requests to this repo (milestone 10: Nilo posts the text).
+3. Open the conversation upstream (#1701, #2278) with a link to that demo, so the WordCamp.org team can try it, ask for changes, or send pull requests to this repo (milestone 10: the proposal is WordPress/wordcamp.org#2286, opened by Nilo in November 2026).
 4. Once they agree: fork `WordPress/wordcamp.org`, integrate the code into the official plugin as a new way to generate badges (for example `includes/pdf-badges.php` plus an npm workspace, using its namespace `CampTix\Badge_Generator`, its text domain `wordcamporg` and its badge fields), and send the pull request that takes the place of the Canva export.
 
 ## Editor: React with WordPress packages (decided)
