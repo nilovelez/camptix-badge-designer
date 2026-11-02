@@ -17,7 +17,7 @@ This file is the single source of working rules for any agent or person picking 
 | `docs/` | Project documentation: specification, milestones, decisions, backlog. |
 | `guppy/` | Project status published to Guppy (see below). |
 | `blueprint.json` | WordPress Playground blueprint for the test site (attendees from the CSV in `test-data/`). |
-| `sandbox/` | WordCamp sandbox: a Playground blueprint with the real CampTix from `WordPress/wordcamp.org` and a must-use plugin with invented tickets, questions, attendees and a sample badge design on the WordCamp Europe 2025 badge background (`demo-background.pdf`, provided by Nilo for the demo). `demo-blueprint.json` is the public demo. Development only. |
+| `sandbox/` | WordCamp sandbox: a Playground blueprint with the real CampTix from `WordPress/wordcamp.org` and a must-use plugin with invented tickets, questions and attendees (the first one is Matt Mullenweg, with his public email address and username, for a real Gravatar and QR code), and a sample badge design on the WordCamp Europe 2025 badge background (`demo-background.pdf`, provided by Nilo for the demo). `demo-blueprint.json` is the public demo. Development only. |
 | `.github/workflows/dist.yml` | Builds the plugin on every push to `main` and publishes it, ready to install, to the `dist` branch. Never commit to `dist` by hand. |
 | `composer.json`, `phpcs.xml.dist` | WordPress Coding Standards (PHPCS). |
 | `includes/` | PHP code loaded by the main file. `camptix.php` reads the attendees live from CampTix; `attendees.php` turns them, or a CSV export, into the badge list. |

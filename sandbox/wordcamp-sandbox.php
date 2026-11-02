@@ -8,8 +8,11 @@
  * sandbox/demo-blueprint.json (public demo). It is a development file, not
  * part of the plugin.
  *
- * Every name, email address and username here is invented. The data is the
- * same on every run: it comes from a fixed random seed.
+ * Every name, email address and username here is invented, except the first
+ * attendee: Matt Mullenweg, with the email address and username he publishes
+ * himself, so the demo opens on a badge with a real Gravatar and QR code
+ * (decided by Nilo). The data is the same on every run: it comes from a fixed
+ * random seed.
  *
  * @package CampTix_Badge_Designer
  */
@@ -25,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version of the sandbox data. Raising it makes the next request delete the
  * sandbox attendees, tickets and questions and create them again.
  */
-const CTBD_SANDBOX_VERSION = 3;
+const CTBD_SANDBOX_VERSION = 4;
 
 /*
  * Stand-ins for the WordCamp.org functions CampTix calls. On WordCamp.org
@@ -328,7 +331,37 @@ function ctbd_sandbox_attendees( $questions, $tickets ) {
 	$sizes       = array( 'XS', 'S', 'M', 'L', 'XL', 'XXL' );
 	$ticket_mix  = array( 'General', 'General', 'General', 'General', 'General', 'General', 'Speaker', 'Sponsor', 'Volunteer' );
 
-	$attendees = array();
+	// The first attendee, and so the first badge: a real person with a public
+	// Gravatar and WordPress.org profile. The ticket and the T-shirt size are
+	// invented. Built before the loop, so the invented attendees stay the same.
+	$attendees = array(
+		array(
+			'title' => 'Matt Mullenweg',
+			'post'  => array(
+				'post_status' => 'publish',
+				'post_date'   => '2026-08-01 09:00:00',
+			),
+			'meta'  => array(
+				'tix_first_name'     => 'Matt',
+				'tix_last_name'      => 'Mullenweg',
+				'tix_email'          => 'matt@mullenweg.com',
+				'tix_receipt_email'  => 'matt@mullenweg.com',
+				'tix_ticket_id'      => $tickets['Speaker'],
+				'tix_timestamp'      => strtotime( '2026-08-01 09:00:00' ),
+				'tix_access_token'   => md5( 'ctbd-sandbox-order-matt' ),
+				'tix_edit_token'     => md5( 'ctbd-sandbox-edit-matt' ),
+				'tix_payment_method' => 'none',
+				'tix_username'       => 'matt',
+				'tix_questions'      => array(
+					$questions['country'] => 'United States',
+					$questions['job']     => 'Co-founder of WordPress',
+					$questions['city']    => 'Houston',
+					$questions['website'] => 'https://ma.tt',
+					$questions['tshirt']  => 'M',
+				),
+			),
+		),
+	);
 	$count     = 150;
 	$order     = 0;
 	// Purchases between August and early September 2026: dates in the past,
