@@ -1,6 +1,6 @@
 # Specification
 
-Draft. It grows as Nilo defines the project; open points are listed at the end.
+What the plugin does, as built through milestone 9. It grows as Nilo defines the project; open points are listed at the end.
 
 ## Goal
 
@@ -10,7 +10,7 @@ Long-term goal: run on every WordCamp site, as part of WordCamp.org's badge plug
 
 ## Workflow
 
-1. The organizer designs the badge background in any drawing program, leaving room for the fields. Templates with the trim, bleed and safe margins will be provided.
+1. The organizer designs the badge background in any drawing program, leaving room for the fields. Templates with the trim, bleed and safe margins are planned (see Open points).
 2. They upload the background in the editor. The editor detects its size and sets the print size and bleed (see below).
 3. They place attendee fields over the background and style them. Some fields generate images (see below). The design is saved on the site.
 4. They generate the PDF for the print shop.
@@ -33,7 +33,7 @@ Long-term goal: run on every WordCamp site, as part of WordCamp.org's badge plug
 ## Attendee data
 
 - When CampTix is active, as on WordCamp sites, the attendee list is read live from its `tix_attendee` posts (`includes/camptix.php`, milestone 8). It is built as the same table CampTix's own CSV export produces, with the same functions and hooks (`get_all_questions()`, `get_attendee_answers()`, the `camptix_attendee_report_*` filters), so both sources go through the same reader and a design works with either. The add-on columns (Username, Severe allergy…) get their English names by internal key, because the export translates its headers into the user's language. The editor is then under Tickets › Badge Designer.
-- Without CampTix, on test sites, the list is read from a CampTix CSV export at a fixed path in `test-data/`, and the editor is Badges in the main menu. No CSV upload is planned for production.
+- Without CampTix, on test sites, the list is read from the newest CampTix CSV export in the plugin's `test-data/` folder, and the editor is Badges in the main menu. No CSV upload is planned for production.
 - Attendee data is not part of the saved design.
 
 ### CampTix data model
@@ -153,19 +153,26 @@ The model is data merge, as in Adobe InDesign: the design holds fields that act 
 - The editor and almost all the work run in the browser, in JavaScript, fed with the attendee data.
 - Everything that can be generated in the browser is generated there, with browser resources (QR codes, Gravatar hashes, layout, ideally the PDF). Earlier attempts at this tool generated and stored images on the server, and with large events the files and the memory and CPU needed became too big. Generated images are not stored.
 - QR codes: the encoder from LadyQR (https://github.com/nilovelez/ladyqr, `assets/qr.js`): no dependencies, GPLv2, compatible with this plugin's GPL-2.0-or-later license.
-- The final PDF may be generated in JavaScript (pdf-lib or jsPDF) or in PHP; to be decided.
+- The PDF is generated in the browser with pdf-lib, and PDF.js shows PDF pages in the editor (decided in milestone 1, built in milestone 6; see `docs/decisions.md`). The server only sends the design and the attendee data.
+- The editor is built with the WordPress packages (`@wordpress/element`, `@wordpress/components`) and `@wordpress/scripts`. It fills the admin content area, fixed to the window like the block editor, and shows a loading bar while its script downloads.
+- Distribution: `build/` is not in Git. A GitHub Action builds the plugin on every push to `main` and publishes it, ready to install, to the `dist` branch (milestone 9).
 
 ## Personal data
 
 CampTix exports contain real names and email addresses.
 
 - Test exports live in `test-data/`, which is ignored by Git, as is every `*.csv` file. Never commit them, and never copy real data into documentation, examples or tests: invent it.
+- The WordCamp sandbox and the public demo use invented attendees. The only exception is the first one, Matt Mullenweg, with the email address and WordPress.org username he publishes himself, so the demo opens on a badge with a real Gravatar and QR code (decided by Nilo).
+- Email addresses never reach the browser (see What reaches the browser), and the PDF holds only what the design prints.
+
+## Public demo
+
+A Playground link anyone can open (milestone 9; the link is in `AGENTS.md`). It installs the real CampTix from `WordPress/wordcamp.org`, the WordCamp sandbox from `main` and the built plugin from `dist`, and opens the editor with a sample design on the WordCamp Europe 2025 badge background (provided by Nilo), ready to generate the PDF of 140 badges.
 
 ## Open points
 
-- PDF generation in the browser or in PHP. A PDF background points to the browser: PDF.js to show it in the editor, and pdf-lib to embed its page as a vector background in the final PDF.
-- Editor technology: to be decided as we test (proposal in `docs/decisions.md`).
-- Full list of text box properties.
+- Background templates with the trim, bleed and safe area marked, for the drawing programs organizers use.
+- The release zip, and Plugin Check on it (see `docs/backlog.md`).
 
 ## Out of the first phase
 

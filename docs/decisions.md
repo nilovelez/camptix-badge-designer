@@ -18,16 +18,16 @@ The goal is to replace that Canva export with this plugin's approach: the PDF is
 The plan:
 
 1. Keep developing this as a standalone plugin that can be installed like any other.
-2. A Playground sandbox with the real CampTix, from the `WordPress/wordcamp.org` repo, and invented attendees, with this plugin reading them live (milestone 8).
-3. Open the conversation upstream (#1701, #2278) with a link to that sandbox, so the WordCamp.org team can try it, ask for changes, or send pull requests to this repo.
+2. A Playground sandbox with the real CampTix, from the `WordPress/wordcamp.org` repo, and invented attendees, with this plugin reading them live (milestone 8, done), and a public link to it, with the built plugin from the `dist` branch and a sample design (milestone 9).
+3. Open the conversation upstream (#1701, #2278) with a link to that demo, so the WordCamp.org team can try it, ask for changes, or send pull requests to this repo (milestone 10: Nilo posts the text).
 4. Once they agree: fork `WordPress/wordcamp.org`, integrate the code into the official plugin as a new way to generate badges (for example `includes/pdf-badges.php` plus an npm workspace, using its namespace `CampTix\Badge_Generator`, its text domain `wordcamporg` and its badge fields), and send the pull request that takes the place of the Canva export.
 
-## Editor: React with WordPress packages (proposal)
+## Editor: React with WordPress packages (decided)
 
-Build the editor with `@wordpress/element` (React) and `@wordpress/components`, compiled with `@wordpress/scripts`.
+The editor is built with `@wordpress/element` (React) and `@wordpress/components`, compiled with `@wordpress/scripts`.
 
 - It looks and behaves like the rest of the WordPress admin, with accessible controls (color picker, number and select fields, panels) ready to use.
-- Translations work through `@wordpress/i18n`, the standard for plugins.
+- Translations can work through `@wordpress/i18n`, the standard for plugins. The editor's strings are not wrapped yet (see `docs/backlog.md`).
 - WordPress loads React itself, so the plugin does not ship it.
 - Drag and resize are done with pointer events on an absolutely positioned layer over the background, in millimeters scaled to the screen. That logic is small and fully under our control.
 
@@ -40,10 +40,13 @@ The milestone 1 spike used this stack for its admin page, and it worked. The edi
 - The safe area is configurable, 5 mm inside the trim by default.
 - The milestone 1 spike stayed under Badges › Technical test until real generation replaced it in milestone 6; its code was removed then (it is in the Git history).
 - One Media Library frame is created and reused: a new frame each time adds another modal to the page.
+- The editor is fixed to the window, like the block editor, from the admin bar down and from the admin menu to the right edge (milestone 9, asked for by Nilo): on sites with a long admin menu, the page scrolled and took the editor with it.
+- PHP prints a loading bar in the editor's container, so it shows while the script downloads (about 1.6 MB, slow on a mobile connection); the editor takes it over, without starting again, while it loads the design. The progress is not real (milestone 9, asked for by Nilo). Making the script smaller is in `docs/backlog.md`.
+- `Notice` from `@wordpress/components` renders its children to a string for screen readers when it has no `spokenMessage`. With buttons inside, their hooks then count as the notice's own, and React crashes when the number of buttons changes (the editor went blank). Every notice with buttons gets a plain-text `spokenMessage`.
 
 ## Screen and paper match (milestone 4)
 
-- The text layout (`src/shared/text-layout.js`) and the QR code path (`src/shared/qr.js`) are shared by the editor and the future PDF generator.
+- The text layout (`src/shared/text-layout.js`) and the QR code path (`src/shared/qr.js`) are shared by the editor and the PDF generator.
 - The editor measures text with fontkit, from the same font files the PDF will embed, and draws it with the browser using those same files (one CSS family per face, so the browser never synthesizes a weight). Checked: fontkit and the drawn width agree to 0.01 mm.
 - Text is centered vertically by its ascent and descent, so the PDF can place the baseline at the same spot.
 - Font Library fonts are usually WOFF2: the editor converts them to TTF before measuring, as the PDF has to (see the WOFF2 finding above). Only upright, single-weight faces are offered; variable fonts and italics are left out.
@@ -94,12 +97,20 @@ Gravatar sizes with the real test export (aggregate only): 78 of 174 addresses h
 The PDF needs the font files, not only CSS.
 
 - The plugin ships one font, Inter 4.1, in weights 400, 600 and 700, as static TTF files in `fonts/inter/` with its SIL Open Font License (`OFL.txt`). Static TTF, not the variable font: embedding and subsetting variable fonts in a PDF is less reliable. Montserrat was considered and left out: it is wide (long names overflow) and has a strong personality; anyone who wants it can install it from the Font Library.
-- The editor also offers every font installed through the WordPress Font Library (WordPress 6.5+), which stores the files on the site itself: no requests to Google from the admin, and the files are available to embed. Font Library files are usually WOFF2, converted to TTF before embedding (see above). Still to check: how to list those fonts and their files (the `wp_font_family` and `wp_font_face` post types, also in the REST API).
+- The editor also offers every font installed through the WordPress Font Library (WordPress 6.5+), which stores the files on the site itself: no requests to Google from the admin, and the files are available to embed. Font Library files are usually WOFF2, converted to TTF before embedding (see above). `includes/fonts.php` lists them from the `wp_font_family` and `wp_font_face` post types and their `_wp_font_face_file` meta.
 
-## Build (proposal)
+## Build and the dist branch (decided by Nilo, milestone 9)
 
 - JavaScript is built with `@wordpress/scripts` into `build/`, which is ignored by Git: after cloning, run `npm install` and `npm run build`. The PDF.js worker is copied to `build/pdf.worker.min.js` by `tools/copy-pdf-worker.mjs`.
-- To decide before the first release: whether to commit `build/` so `git archive` includes it, or build the release zip from the working tree.
+- `build/` stays out of `main`. A GitHub Action (`.github/workflows/dist.yml`) builds the plugin on every push to `main` and publishes it to the `dist` branch: `git archive` (so `export-ignore` in `.gitattributes` leaves the development files out) plus `build/`. It commits on top of the branch's history, and only when something changed. Nobody commits to `dist` by hand.
+- Playground installs the plugin from `dist` with a `git:directory` resource, which works both in the CLI and on playground.wordpress.net. The release zip will come from the same branch (see `docs/backlog.md`).
+
+## Public demo (milestone 9)
+
+- `sandbox/demo-blueprint.json`: the same WordCamp sandbox as `sandbox/blueprint.json`, but everything comes from GitHub (CampTix from `WordPress/wordcamp.org` at a fixed commit, the sandbox folder from `main`, the plugin from `dist`), so it runs on playground.wordpress.net from a link. It loads in about 40 s.
+- The sandbox creates a sample design on the WordCamp Europe 2025 badge (102.5 × 149.2 mm with 5 mm bleed; background and layout provided by Nilo), unless the site already has a design. The design is written already complete, because the plugin may not be active yet, so its sanitizer does not run.
+- The first attendee is Matt Mullenweg, with the email address and username he publishes himself (decided by Nilo): the demo opens on a badge with a real Gravatar and QR code. The other attendees are invented and have neither.
+- Some ad blockers stop playground.wordpress.net from starting ("WordPress request transport did not start"); the demo then needs the blocker off for that site.
 
 ## PDF generation (milestone 6)
 
