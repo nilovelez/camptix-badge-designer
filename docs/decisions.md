@@ -114,7 +114,7 @@ The PDF needs the font files, not only CSS.
 
 - JavaScript is built with `@wordpress/scripts` into `build/`, which is ignored by Git: after cloning, run `npm install` and `npm run build`. The PDF.js worker is copied to `build/pdf.worker.min.js` by `tools/copy-pdf-worker.mjs`.
 - `build/` stays out of `main`. A GitHub Action (`.github/workflows/dist.yml`) builds the plugin on every push to `main` and publishes it to the `dist` branch: `git archive` (so `export-ignore` in `.gitattributes` leaves the development files out) plus `build/`. It commits on top of the branch's history, and only when something changed. Nobody commits to `dist` by hand.
-- Playground installs the plugin from `dist` with a `git:directory` resource, which works both in the CLI and on playground.wordpress.net.
+- The `dist` branch exists for Playground: the public demo installs the plugin from it with a `git:directory` resource, which works both in the CLI and on playground.wordpress.net.
 ## Public demo (milestone 9)
 
 - `sandbox/demo-blueprint.json`: the same WordCamp sandbox as `sandbox/blueprint.json`, but everything comes from GitHub (CampTix from `WordPress/wordcamp.org` at a fixed commit, the sandbox folder from `main`, the plugin from `dist`), so it runs on playground.wordpress.net from a link. It loads in about 40 s.
