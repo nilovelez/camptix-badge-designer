@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CampTix Badge Designer: user guide</title>
+<meta name="description" content="Design WordCamp attendee badges in wp-admin and get a print-ready PDF, generated in your browser. User guide and testing instructions.">
+<style>
+:root {
+	--text: #1e1e1e;
+	--muted: #50575e;
+	--line: #dcdcde;
+	--soft: #f6f7f7;
+	--accent: #3858e9;
+	--accent-dark: #213fd4;
+	--note: #fcf9e8;
+	--note-line: #dba617;
+	--header: #1e1e1e;
+	--toc-width: 260px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+	margin: 0;
+	background: #fff;
+	color: var(--text);
+	font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+a { color: var(--accent); }
+a:hover { color: var(--accent-dark); }
+code {
+	font: 0.88em/1.4 Menlo, Consolas, monaco, monospace;
+	background: var(--soft);
+	border: 1px solid var(--line);
+	border-radius: 3px;
+	padding: 1px 5px;
+	overflow-wrap: anywhere;
+}
+kbd {
+	font: 0.85em/1 Menlo, Consolas, monaco, monospace;
+	border: 1px solid #c3c4c7;
+	border-bottom-width: 2px;
+	border-radius: 4px;
+	padding: 2px 6px;
+	background: #fff;
+}
+
+/* Header, like the make.wordpress.org bar. */
+.site-header {
+	background: var(--header);
+	color: #fff;
+	padding: 14px 16px;
+}
+.site-header__inner {
+	max-width: 1200px;
+	margin: 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.site-header a { color: #fff; text-decoration: none; }
+.site-header__name { font-weight: 600; font-size: 16px; }
+.site-header__links { margin-left: auto; display: flex; gap: 18px; font-size: 15px; }
+.site-header__links a { opacity: 0.85; }
+.site-header__links a:hover { opacity: 1; text-decoration: underline; }
+
+/* Content and the floating table of contents on the right. */
+.layout {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 16px 80px;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) var(--toc-width);
+	gap: 56px;
+}
+main { min-width: 0; max-width: 780px; }
+.toc {
+	position: sticky;
+	top: 24px;
+	align-self: start;
+	max-height: calc(100vh - 48px);
+	overflow-y: auto;
+	margin-top: 48px;
+	padding: 16px 18px;
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	font-size: 14px;
+	line-height: 1.4;
+}
+.toc__title { margin: 0 0 10px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.toc ol { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc a {
+	display: block;
+	padding: 5px 0 5px 10px;
+	border-left: 2px solid transparent;
+	color: var(--text);
+	text-decoration: none;
+}
+.toc ol ol a { padding-left: 22px; font-size: 13px; color: var(--muted); }
+.toc a:hover { color: var(--accent); }
+.toc a.is-current { border-left-color: var(--accent); color: var(--accent); font-weight: 600; }
+.toc details > summary { display: none; }
+
+h1 { font-size: 40px; line-height: 1.2; margin: 48px 0 12px; letter-spacing: -0.01em; }
+h2 { font-size: 28px; line-height: 1.3; margin: 56px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+h3 { font-size: 21px; line-height: 1.35; margin: 32px 0 8px; }
+p, ul, ol, table { margin: 0 0 16px; }
+li { margin-bottom: 4px; }
+.lead { font-size: 20px; color: var(--muted); margin-bottom: 24px; }
+
+figure { margin: 24px 0 28px; }
+figure img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+figure.is-narrow img { max-width: 340px; }
+figure.is-dialog img { max-width: 520px; }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+
+.note, .tip, .warning {
+	border-left: 4px solid var(--accent);
+	background: #f0f3fe;
+	padding: 12px 16px;
+	margin: 20px 0;
+	border-radius: 0 4px 4px 0;
+}
+.note > :last-child, .tip > :last-child, .warning > :last-child { margin-bottom: 0; }
+.warning { border-left-color: var(--note-line); background: var(--note); }
+.tip { border-left-color: #00a32a; background: #edfaef; }
+
+.button {
+	display: inline-block;
+	background: var(--accent);
+	color: #fff;
+	text-decoration: none;
+	padding: 10px 18px;
+	border-radius: 4px;
+	font-weight: 600;
+}
+.button:hover { background: var(--accent-dark); color: #fff; }
+
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: var(--soft); }
+
+.site-footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; padding: 24px 16px; text-align: center; }
+
+/* Small screens: the table of contents goes above the content, folded. */
+@media (max-width: 960px) {
+	.layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+	.toc {
+		position: static;
+		order: -1;
+		max-height: none;
+		margin-top: 24px;
+	}
+	.toc details > summary { display: block; cursor: pointer; font-weight: 600; }
+	.toc .toc__title { display: none; }
+	.toc details[open] > summary { margin-bottom: 8px; }
+	h1 { font-size: 32px; margin-top: 28px; }
+	h2 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+	<div class="site-header__inner">
+		<a class="site-header__name" href="#top">CampTix Badge Designer</a>
+		<nav class="site-header__links" aria-label="Project">
+			<a href="https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/nilovelez/camptix-badge-designer/main/sandbox/demo-blueprint.json">Live demo</a>
+			<a href="https://github.com/nilovelez/camptix-badge-designer">GitHub</a>
+		</nav>
+	</div>
+</header>
+
+<div class="layout">
+<main id="top">
+
+<h1>Create WordCamp badges with the Badge Designer</h1>
+<p class="lead">Design your attendee badges in wp-admin, place the attendees' names, Gravatars and QR codes over your own artwork, and get one print-ready PDF for the print shop. The PDF is made in your browser: no extra software, no spreadsheets, no scripts.</p>
+
+<figure>
+	<a href="images/editor.webp"><img src="images/editor.webp" alt="The Badge Designer editor in wp-admin: a WordCamp Europe badge with Matt Mullenweg's photo, name, job title and QR code, the toolbar on top and the settings sidebar on the right." width="1440" height="900"></a>
+	<figcaption>The editor, under Tickets › Badge Designer, showing the first attendee of the demo site.</figcaption>
+</figure>
+
+<div class="note">
+	<p><strong>This is a test version.</strong> CampTix Badge Designer is a standalone plugin for now, so organizers and the community can try it. Once it has been tested, it will be proposed for <a href="https://github.com/WordPress/wordcamp.org">WordCamp.org</a> as a new way to make badges in the CampTix Badge Generator plugin that every WordCamp site already has. This guide is meant to become part of the <a href="https://make.wordpress.org/community/handbook/wordcamp-organizer/first-steps/helpful-documents-and-templates/create-wordcamp-badges-with-gravatars/">WordCamp Organizer Handbook</a>.</p>
+</div>
+
+<h2 id="why">Why a new way to make badges</h2>
+<p>Until now, WordCamp badges have been made in one of two ways, both described in the handbook:</p>
+<ul>
+	<li><strong><a href="https://make.wordpress.org/community/handbook/wordcamp-organizer/first-steps/helpful-documents-and-templates/create-wordcamp-badges-with-gravatars/personalized-badges-with-html-css/">HTML and CSS</a></strong>, in Tickets › Tools › Generate Badges: badges are styled with CSS in the Customizer and printed from the browser on letter-size pages. Easy, but limited, and the result depends on the browser's print settings.</li>
+	<li><strong><a href="https://make.wordpress.org/community/handbook/wordcamp-organizer/first-steps/helpful-documents-and-templates/create-wordcamp-badges-with-gravatars/personalized-badges-with-indesign/">InDesign</a></strong>: export the attendees as CSV, run a PHP script from the command line to download the Gravatars, and lay out the badges with Data Merge. The best results, but it needs Adobe InDesign and a developer on the team.</li>
+</ul>
+<p>The Badge Designer gives you the InDesign result with the effort of the HTML option:</p>
+<ul>
+	<li>A visual editor in wp-admin: you place the fields over your artwork and see each attendee's badge exactly as it will print.</li>
+	<li>Your own artwork as the background: a PDF from any design tool (Figma, Canva, Illustrator, Affinity, Inkscape…), which stays vector, or a PNG or JPG.</li>
+	<li>Any badge size, with bleed, safe area and crop marks, the way print shops expect them.</li>
+	<li>The attendees' Gravatars, a QR code to their WordPress.org profile, and the answers to your ticket questions: job title, company, country, hometown, anything your event asks.</li>
+	<li>A single PDF with one badge per page, made in your browser in seconds. Nothing is installed on your computer and nothing heavy runs on the server.</li>
+</ul>
+
+<h2 id="demo">Try it in your browser</h2>
+<p>The live demo runs a complete WordCamp-like site in your browser with <a href="https://wordpress.org/playground/">WordPress Playground</a>. Nothing to install, nothing to log in to.</p>
+<p><a class="button" href="https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/nilovelez/camptix-badge-designer/main/sandbox/demo-blueprint.json">Open the live demo</a></p>
+<ul>
+	<li>It takes about 40 seconds to load: it installs WordPress, CampTix from the WordCamp.org code and this plugin, and creates the tickets and the attendees.</li>
+	<li>It opens the editor with a sample design on the WordCamp Europe 2025 badge, ready to print.</li>
+	<li>The 140 attendees are invented, except the first one, Matt Mullenweg, with his public Gravatar and WordPress.org profile, so you can see a complete badge.</li>
+	<li>Everything happens in your browser and nothing is kept: reload the page and you get a fresh site. Change anything you like.</li>
+</ul>
+<div class="warning">
+	<p>If the demo stops with "WordPress request transport did not start", an ad blocker or privacy extension is blocking Playground. Turn it off for playground.wordpress.net and reload.</p>
+</div>
+
+<h2 id="install">Install it on your site</h2>
+<p>To try it with your own event (on a copy of your site or a test site with CampTix):</p>
+<ol>
+	<li>Download the built plugin: <a href="https://github.com/nilovelez/camptix-badge-designer/archive/refs/heads/dist.zip">camptix-badge-designer-dist.zip</a>. It is rebuilt from the latest code on every change.</li>
+	<li>In wp-admin, go to Plugins › Add New Plugin › Upload Plugin, upload the zip and activate it.</li>
+	<li>Open <strong>Tickets › Badge Designer</strong>.</li>
+</ol>
+<p>Requirements: WordPress 6.8 or later, PHP 8.3 or later, and CampTix. Only administrators can open the editor. On a site without CampTix, the plugin shows up as <strong>Badges</strong> in the admin menu and needs a CampTix CSV export to work with; that mode is meant for development.</p>
+
+<h2 id="background">Prepare the background</h2>
+<p>The background is your badge artwork without the attendee data: logos, colors, sponsors, the hole for the lanyard. Make it in any design tool, leaving room for the name, the photo and the QR code.</p>
+
+<h3 id="background-size">Size, bleed and safe area</h3>
+<ul>
+	<li><strong>Print size (trim):</strong> the size of the badge once it is cut. The default is 100 × 150 mm; any size from 20 to 500 mm per side works. Ask your print shop or check your badge holders.</li>
+	<li><strong>Bleed:</strong> the artwork has to go beyond the trim on every side, so no white edge is left if the cut is slightly off. 3 mm is common; ask your print shop. The background file must include it: for 100 × 150 mm with 3 mm bleed, the background is 106 × 156 mm.</li>
+	<li><strong>Safe area:</strong> keep text and important images at least this far inside the trim (5 mm by default). The editor shows it as a dashed line.</li>
+</ul>
+
+<h3 id="background-format">File format</h3>
+<ul>
+	<li><strong>PDF (recommended):</strong> export your artwork as a PDF with bleed. It stays vector in the final PDF, so it prints sharp at any size, and the badges file stays small. Only the first page is used.</li>
+	<li><strong>PNG or JPG:</strong> fine too, at 300 dpi for print. The editor shows the resolution and warns when it is too low: 100 × 150 mm with 3 mm bleed needs 1252 × 1843 pixels.</li>
+</ul>
+
+<h3 id="background-upload">Choose the background</h3>
+<p>In the <strong>Document</strong> tab, open <strong>Background</strong> and choose the file from the Media Library (or upload it there).</p>
+<figure class="is-narrow">
+	<a href="images/panel-background.webp"><img src="images/panel-background.webp" alt="The Background panel with demo-background.pdf, PDF vector, 112.5 × 159.2 mm, and the Replace and Remove buttons." loading="lazy"></a>
+</figure>
+<p>The editor checks the background against the print size:</p>
+<ul>
+	<li>A PDF knows its physical size. If it matches the page with bleed, it is used as it is. If not, the editor shows the PDF's size and asks how much of it is bleed, and sets the print size from it.</li>
+	<li>An image only has pixels. If its proportions match, it is used as it is. If not, the editor asks for the badge width and the bleed, and the height follows the image's proportions.</li>
+	<li>If you change the print size later and the background no longer fits, the editor warns that it is stretched and offers to adjust the print size.</li>
+</ul>
+
+<h2 id="editor">The editor at a glance</h2>
+<ul>
+	<li><strong>Toolbar:</strong> the <strong>+</strong> button adds elements; undo and redo; the attendee pagination (the badge number, the total and the attendee's name); the save state; <strong>Preview badge</strong> and <strong>Generate PDF</strong>.</li>
+	<li><strong>Canvas:</strong> the badge, filled with the data of the attendee on screen. The red dashed line is the trim and the blue one the safe area; the bleed outside the trim is shown too. None of this is printed.</li>
+	<li><strong>Sidebar:</strong> the <strong>Document</strong> tab holds the settings of the whole badge; the <strong>Element</strong> tab, those of the element you select.</li>
+</ul>
+<p>Your work is saved automatically a second after each change, and the toolbar says so ("Saved"). Close the page and come back later: everything is as you left it.</p>
+
+<h3 id="print-size">Print size</h3>
+<p>Width, height and bleed in millimeters, the safe area, crop marks (on by default) and whether the guides are shown.</p>
+<figure class="is-narrow">
+	<a href="images/panel-print-size.webp"><img src="images/panel-print-size.webp" alt="The Print size panel: width 102.5, height 149.2, bleed 5, safe area 8.5, and the toggles Crop marks in the PDF and Show trim and safe area." loading="lazy"></a>
+</figure>
+
+<h2 id="elements">Add and arrange elements</h2>
+<p>A badge is made of elements over the background. There are three kinds: <strong>text boxes</strong>, the <strong>Gravatar</strong> and the <strong>QR code</strong>. A new design starts with the most common ones already in place: the Gravatar, the first name, the last name and the QR code. Add more with the <strong>+</strong> button in the toolbar.</p>
+<ul>
+	<li><strong>Select</strong> an element by clicking it on the badge, or by its name in the <strong>Elements</strong> panel. Its settings open in the <strong>Element</strong> tab.</li>
+	<li><strong>Move</strong> it by dragging. It snaps to the center lines of the badge.</li>
+	<li><strong>Resize</strong> it from its corners. Gravatars and QR codes stay square.</li>
+	<li><strong>Nudge</strong> it with the arrow keys: 0.5 mm per press, 5 mm with <kbd>Shift</kbd>.</li>
+	<li><strong>Delete</strong> it with <kbd>Delete</kbd>, or deselect it with <kbd>Esc</kbd>.</li>
+	<li><strong>Undo and redo</strong> anything with <kbd>Ctrl</kbd> <kbd>Z</kbd> and <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Z</kbd> (<kbd>⌘</kbd> on a Mac), or the toolbar buttons.</li>
+	<li>For exact values, open <strong>Position and size</strong> in the Element tab: millimeters from the top-left corner of the trim.</li>
+</ul>
+<p>The <strong>Elements</strong> panel lists them from the top layer down. Use the arrows to bring an element forward or send it backward, and the bin to delete it.</p>
+<figure class="is-narrow">
+	<a href="images/panel-elements.webp"><img src="images/panel-elements.webp" alt="The Elements panel listing the QR code, the job title and country text, the last name, the first name and the Gravatar, each with arrows to change its layer and a delete button." loading="lazy"></a>
+</figure>
+
+<h2 id="text">Text boxes</h2>
+<p>A text box holds text and <strong>variables</strong>, which are replaced with each attendee's data. Pick them from <strong>Insert variable</strong> or type them in braces:</p>
+<table>
+	<thead><tr><th>Variable</th><th>What it prints</th></tr></thead>
+	<tbody>
+		<tr><td><code>{first_name}</code></td><td>The first name.</td></tr>
+		<tr><td><code>{last_name}</code></td><td>The last name.</td></tr>
+		<tr><td><code>{full_name}</code></td><td>First and last name.</td></tr>
+		<tr><td><code>{question:job-title}</code></td><td>The answer to a ticket question, here "Job title". Every question of your event is in the list, with its own name.</td></tr>
+	</tbody>
+</table>
+<p>Mix them with your own text, for example <code>{question:job-title} · {question:country}</code>. When an attendee left a question empty, the spare spaces are removed. A variable with a typo is printed as typed, so you notice it.</p>
+<figure>
+	<a href="images/text-selected.webp"><img src="images/text-selected.webp" alt="The first name text box selected on the badge, and its settings in the Element tab: the text {first_name}, Insert variable, font Inter, size 26, weight Bold, alignment, uppercase and color." loading="lazy"></a>
+</figure>
+<p>Each text box has:</p>
+<ul>
+	<li><strong>Font:</strong> Inter, included with the plugin, or any font installed on the site through the Font Library (Appearance › Fonts), Google Fonts included.</li>
+	<li><strong>Size</strong> in points, <strong>weight</strong>, <strong>alignment</strong> and <strong>uppercase</strong>.</li>
+	<li><strong>Color</strong> from the site's color palette.</li>
+</ul>
+<p>Names are tidied up before they are printed: a name typed all in capitals or all in lowercase ("MARÍA", "garcía") gets normal capitals ("María", "García"). Names typed with mixed case, such as "McDonald", are left as they are, and particles such as "de" or "del" stay in lowercase.</p>
+
+<h3 id="text-cut">Text that does not fit</h3>
+<p>A text box is always one line, and the text is never shrunk: names at different sizes look uneven on a lanyard. When an attendee's text is longer than the box, it is cut at the edge, and the editor warns you so you can fix the design before printing: make the box wider, the text smaller, or use a shorter variable.</p>
+<figure>
+	<a href="images/text-cut.webp"><img src="images/text-cut.webp" alt="A badge where the job title Head of Engineering and Developer Experience does not fit: the box has a red dashed border and a warning icon, and the Attendees panel lists the 14 attendees with text that is cut." loading="lazy"></a>
+	<figcaption>The box is marked in red on the canvas, and the Attendees panel lists every attendee affected. Click a name to jump to that badge.</figcaption>
+</figure>
+
+<h2 id="gravatar">Gravatar</h2>
+<p>The attendee's <a href="https://gravatar.com/">Gravatar</a>, from the email address they bought the ticket with.</p>
+<ul>
+	<li><strong>Shape:</strong> round or square.</li>
+	<li><strong>When there is no Gravatar:</strong> print nothing, so the background shows; one of the images Gravatar generates for each address (identicon, monster, wavatar, retro or robot); or your own image from the Media Library, for example the WordCamp logo.</li>
+</ul>
+<figure>
+	<a href="images/gravatar-selected.webp"><img src="images/gravatar-selected.webp" alt="The Gravatar selected on the badge, with its settings: shape round or square, and the option for attendees without a Gravatar." loading="lazy"></a>
+</figure>
+<div class="tip">
+	<p>Before printing, remind your attendees to add a photo to Gravatar with the email address of their ticket. You can email them all from Tickets › Tools › Notify.</p>
+</div>
+
+<h2 id="qr">QR code</h2>
+<p>A QR code that opens the attendee's WordPress.org profile, so other attendees can find them after the event.</p>
+<ul>
+	<li>It uses the WordPress.org username the attendee gave when buying the ticket. Attendees without a username get no QR code: that space shows the background, and the editor marks it with a dashed box that is not printed.</li>
+	<li>It is at least 20 × 20 mm: smaller codes may not scan once printed.</li>
+	<li>By default it is black on a white square, which phones read on any background. <strong>Transparent background</strong> removes the white square, for light backgrounds that are not pure white. Phones only read it on a light, plain background: print a test badge and scan it before printing them all.</li>
+</ul>
+<figure>
+	<a href="images/qr-selected.webp"><img src="images/qr-selected.webp" alt="The QR code selected on the badge, with its settings: the Transparent background toggle." loading="lazy"></a>
+</figure>
+
+<h2 id="check">Check every badge</h2>
+<p>The canvas shows one attendee at a time. Use the arrows in the toolbar, or type a number, to go through them: very long names, attendees without a Gravatar or without a username, empty answers.</p>
+<p>The <strong>Attendees</strong> panel sums it up: how many attendees there are, how many have no WordPress.org username, and which ones have text that is cut. <strong>View list</strong> shows them all in a table.</p>
+<figure class="is-narrow">
+	<a href="images/panel-attendees.webp"><img src="images/panel-attendees.webp" alt="The Attendees panel: 140 attendees in purchase order, 55 without a WordPress.org username, source CampTix, a warning listing 14 attendees with text that is cut, and the View list button." loading="lazy"></a>
+</figure>
+<p>Only paid tickets get a badge. Tickets bought for someone who has not filled in their details yet are left out until they do.</p>
+
+<h2 id="pdf">Preview and generate the PDF</h2>
+
+<h3 id="preview">Preview one badge</h3>
+<p><strong>Preview badge</strong> makes the PDF of the attendee on screen and shows it, exactly as the print shop will get it, crop marks included. Download it to print a test copy.</p>
+<figure class="is-dialog">
+	<a href="images/preview.webp"><img src="images/preview.webp" alt="The Preview dialog showing the one-page PDF of Matt Mullenweg's badge with crop marks, 124.5 × 171.2 mm." loading="lazy"></a>
+</figure>
+
+<h3 id="generate">Generate all the badges</h3>
+<p><strong>Generate PDF</strong> makes one PDF with one page per attendee. Before you start, it tells you how many badges there are, the page size, and how many have no QR code or have text that is cut.</p>
+<figure class="is-dialog">
+	<a href="images/generate.webp"><img src="images/generate.webp" alt="The Generate PDF dialog: pages All (1–140) or A range, and the summary: 140 badges, 124.5 × 171.2 mm pages with crop marks, 55 without a QR code, 14 with text that is cut." loading="lazy"></a>
+</figure>
+<ul>
+	<li>It runs in your browser and shows its progress; you can cancel it. The demo's 140 badges take a few seconds and make an 11 MB file. Most of the time goes into downloading the Gravatars, so a big event with a slow connection may take a minute.</li>
+	<li>The file downloads as <code>badges-1-140.pdf</code>, after the pages it holds.</li>
+</ul>
+
+<h3 id="batches">Print in batches</h3>
+<p>Badges are numbered in purchase order, never alphabetically, so new tickets are always added at the end and never shift the ones you already printed. Choose <strong>A range</strong> to print in batches: send badges 1 to 250 to the print shop a few weeks before the event, and 251 onwards when ticket sales close.</p>
+<figure class="is-dialog">
+	<a href="images/generate-range.webp"><img src="images/generate-range.webp" alt="The Generate PDF dialog with A range selected and the From and To fields." loading="lazy"></a>
+</figure>
+
+<h2 id="print-shop">Send it to the print shop</h2>
+<ul>
+	<li>Each page is one badge: the trim size plus the bleed, plus room for the crop marks when they are on. Tell the print shop the trim size and the bleed, and that the file has crop marks.</li>
+	<li>Ask them for a test print of one badge first, check the colors and the cut, and scan a QR code with your phone.</li>
+	<li>If the print shop prefers several smaller files, generate the badges in ranges.</li>
+</ul>
+
+<h2 id="reuse">Reuse a design</h2>
+<p>In the <strong>Document</strong> tab, <strong>Import/Export Design</strong> saves the design as a <code>badge-design.json</code> file and loads it on another site, for example to start next year's WordCamp from this year's badges.</p>
+<figure class="is-narrow">
+	<a href="images/panel-import-export.webp"><img src="images/panel-import-export.webp" alt="The Import/Export Design panel with the Export JSON and Import JSON buttons." loading="lazy"></a>
+</figure>
+<ul>
+	<li>The file holds the print size and every element with its position and style. It does not hold the background or the fallback image, which are files of the site: choose them again after importing.</li>
+	<li>Importing asks for confirmation and can be undone. Fonts the site does not have are listed; the text uses Inter until you install them.</li>
+</ul>
+
+<h2 id="privacy">Privacy</h2>
+<ul>
+	<li>The attendee data comes from CampTix on your own site. Only administrators can open the editor.</li>
+	<li>Email addresses never leave the server: the browser gets an anonymous Gravatar hash instead. Allergies, accessibility needs and payment data are never offered as variables.</li>
+	<li>Your browser downloads the Gravatars directly from Gravatar to build the badges. Nothing is sent anywhere else, and the badges are not stored on the server.</li>
+	<li>Deleting the plugin deletes the design. The background and images stay in the Media Library.</li>
+</ul>
+
+<h2 id="testing">Help us test it</h2>
+<p>This plugin is being tested before it is proposed for every WordCamp site. You can help, whether or not you are organizing a WordCamp:</p>
+<ol>
+	<li>Open the <a href="https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/nilovelez/camptix-badge-designer/main/sandbox/demo-blueprint.json">live demo</a>.</li>
+	<li>Make a badge of your own: replace the background with your WordCamp's artwork, change the print size, add a text box with a ticket question, try the Gravatar and QR code options.</li>
+	<li>Go through the attendees and look for anything that looks wrong.</li>
+	<li>Generate the PDF and open it. If you can, print a page at its real size and scan the QR code.</li>
+	<li>Tell us what worked, what was confusing and what you missed.</li>
+</ol>
+<p>Things we would especially like to hear about:</p>
+<ul>
+	<li>Badges you have made for past WordCamps: could you make them with this editor? What is missing?</li>
+	<li>What your print shop asked for (size, bleed, crop marks, one file or several).</li>
+	<li>Very large events: how long the PDF takes and how big it gets.</li>
+	<li>Other browsers and operating systems.</li>
+</ul>
+<p>Report problems and ideas in the <a href="https://github.com/nilovelez/camptix-badge-designer/issues">GitHub issues</a> of the project. Screenshots help a lot.</p>
+
+<h3 id="limitations">Known limitations</h3>
+<ul>
+	<li>One design per site. For a different badge, for example for organizers or volunteers, export the design, change it, generate those badges and import it back.</li>
+	<li>Text boxes are one line.</li>
+	<li>The editor is only in English for now.</li>
+	<li>The editor needs a computer: it is not made for phones.</li>
+</ul>
+
+</main>
+
+<aside class="toc" aria-label="Table of contents">
+	<details open>
+		<summary>Table of contents</summary>
+		<p class="toc__title">In this guide</p>
+		<ol id="toc-list"></ol>
+	</details>
+</aside>
+</div>
+
+<footer class="site-footer">
+	CampTix Badge Designer is free software, GPL-2.0-or-later. Source on <a href="https://github.com/nilovelez/camptix-badge-designer">GitHub</a>.
+</footer>
+
+<script>
+( function () {
+	// Builds the table of contents from the headings, and marks the section
+	// being read.
+	var list = document.getElementById( 'toc-list' );
+	var headings = document.querySelectorAll( 'main h2[id], main h3[id]' );
+	var links = {};
+	var current = null;
+
+	headings.forEach( function ( heading ) {
+		var item = document.createElement( 'li' );
+		var link = document.createElement( 'a' );
+		link.href = '#' + heading.id;
+		link.textContent = heading.textContent;
+		item.appendChild( link );
+		links[ heading.id ] = link;
+		if ( heading.tagName === 'H3' && current ) {
+			var sub = current.querySelector( 'ol' );
+			if ( ! sub ) {
+				sub = document.createElement( 'ol' );
+				current.appendChild( sub );
+			}
+			sub.appendChild( item );
+		} else {
+			list.appendChild( item );
+			current = item;
+		}
+	} );
+
+	// On small screens the list is folded; close it after a jump.
+	var details = document.querySelector( '.toc details' );
+	var small = window.matchMedia( '(max-width: 960px)' );
+	function fold() {
+		details.open = ! small.matches;
+	}
+	fold();
+	small.addEventListener( 'change', fold );
+	list.addEventListener( 'click', function () {
+		if ( small.matches ) {
+			details.open = false;
+		}
+	} );
+
+	function mark() {
+		var active = null;
+		headings.forEach( function ( heading ) {
+			if ( heading.getBoundingClientRect().top < 120 ) {
+				active = heading.id;
+			}
+		} );
+		Object.keys( links ).forEach( function ( id ) {
+			links[ id ].classList.toggle( 'is-current', id === active );
+		} );
+	}
+	window.addEventListener( 'scroll', mark, { passive: true } );
+	mark();
+}() );
+</script>
+</body>
+</html>
