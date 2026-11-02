@@ -92,6 +92,17 @@ Gravatar sizes with the real test export (aggregate only): 78 of 174 addresses h
 
 178 badges from the test CSV (69 without QR code), with real Gravatars where they exist (78 people) and identicons for the rest: 11.3 s, 18.6 MB. Gravatars: 145 PNG and 29 JPEG, none failed.
 
+## Gravatar from the WordPress.org username (planned for milestone 11, decided by Nilo)
+
+When the CampTix email address has no Gravatar, use the Gravatar of the attendee's WordPress.org account. It recovers the photo of people who bought their ticket with an address other than their WordPress.org one. Left out of milestone 5 because no API was known; researched in November 2026:
+
+- **Endpoint.** `https://profiles.wordpress.org/wp-json/wporg/v1/users?slug=a,b,c&per_page=100&_fields=slug,avatar_urls` returns, for each username that exists, `avatar_urls` with the Gravatar hash of the account's email address (MD5). Usernames that do not exist are left out, with no error. Up to 100 per request (`per_page=101` gives a 400); 100 usernames took about 0.65 s.
+- **From the browser.** It answers with `Access-Control-Allow-Origin` set to the request origin, so the editor can call it directly, like Gravatar. With `d=404`, Gravatar tells whether the account has a photo, as the plugin already does.
+- **Few requests.** Only attendees without a Gravatar for their CampTix address and with a valid username are looked up: one request covers most WordCamps.
+- **Not documented.** `wporg/v1` is an internal WordPress.org endpoint: public and working, but it may change. If it fails, the attendee gets the configured fallback, as today. If the plugin moves into WordCamp.org, ask the WordPress.org team whether it can be relied on.
+- **Privacy.** The usernames are sent to WordPress.org; say so in the readme's privacy notes.
+- **Whose username it is.** CampTix (`addons/require-login.php` in WordPress/wordcamp.org) gives each ticket its own username: the buyer's goes on the first ticket of the order, unless the buyer marks it as for an unknown attendee; the other tickets hold `[[ unconfirmed ]]` until each attendee logs in with their own account and confirms; a username can confirm only one ticket of an order. The plugin already drops `[[ unconfirmed ]]`. So a company buying 10 tickets does not get 10 badges with the buyer's photo. The remaining gap is the first ticket, when the buyer registers it in someone else's name without marking it as unknown: it carries the buyer's username, which already affects the QR code and `{username}` today.
+
 ## Fonts (decided by Nilo)
 
 The PDF needs the font files, not only CSS.
