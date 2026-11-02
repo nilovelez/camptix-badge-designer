@@ -4,7 +4,8 @@
 		'wp-api-fetch',
 		'wp-components',
 		'wp-element',
+		'wp-i18n',
 		'wp-primitives'
 	),
-	'version' => 'af861176c05f04cb72f0'
+	'version' => '51a3d777cbad31046aad'
 );
