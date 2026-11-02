@@ -404,13 +404,17 @@ export async function buildBadgesPdf( {
 				const side = pt( element.width );
 				const x = fromLeft( element.x );
 				const top = fromTop( element.y );
-				page.drawRectangle( {
-					x,
-					y: top - side,
-					width: side,
-					height: side,
-					color: WHITE,
-				} );
+				// A transparent code leaves the background behind it, which
+				// must be light and plain enough for phones to read it.
+				if ( ! element.transparent ) {
+					page.drawRectangle( {
+						x,
+						y: top - side,
+						width: side,
+						height: side,
+						color: WHITE,
+					} );
+				}
 				page.drawSvgPath( qr.path, {
 					x,
 					y: top,

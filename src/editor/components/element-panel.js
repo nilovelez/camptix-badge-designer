@@ -45,7 +45,7 @@ const DESCRIPTIONS = {
 	],
 	qr: [
 		'QR code',
-		"Links to the attendee's WordPress.org profile. Black on white, at least " +
+		"Links to the attendee's WordPress.org profile. Black, at least " +
 			QR_MIN_SIZE +
 			' × ' +
 			QR_MIN_SIZE +
@@ -276,6 +276,24 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 	);
 }
 
+function QrPanel( { element, change } ) {
+	return (
+		<PanelBody title="Settings">
+			<ToggleControl
+				__nextHasNoMarginBottom
+				label="Transparent background"
+				help={
+					element.transparent
+						? 'No white square behind the code. Phones only read it on a light, plain background: test a printed badge before printing them all.'
+						: 'The code is printed on a white square, which phones read on any background.'
+				}
+				checked={ !! element.transparent }
+				onChange={ ( transparent ) => change( { transparent } ) }
+			/>
+		</PanelBody>
+	);
+}
+
 function PositionPanel( { element, change } ) {
 	const square = isSquare( element );
 	const minSize = element.type === 'qr' ? QR_MIN_SIZE : 3;
@@ -376,6 +394,9 @@ export function ElementPanel( {
 					images={ images }
 					onPickImage={ onPickImage }
 				/>
+			) }
+			{ element.type === 'qr' && (
+				<QrPanel element={ element } change={ change } />
 			) }
 			<PositionPanel element={ element } change={ change } />
 			<div className="ctbd-sidebar__footer">

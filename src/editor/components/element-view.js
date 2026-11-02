@@ -34,7 +34,7 @@ function TextView( { element, layout, fonts, scale } ) {
 	);
 }
 
-function QrView( { attendee } ) {
+function QrView( { element, attendee } ) {
 	if ( ! attendee.username ) {
 		// Nothing is printed; the editor shows where the code would go.
 		return (
@@ -51,7 +51,9 @@ function QrView( { attendee } ) {
 			shapeRendering="crispEdges"
 			aria-label="QR code"
 		>
-			<rect width={ qr.size } height={ qr.size } fill="#fff" />
+			{ ! element.transparent && (
+				<rect width={ qr.size } height={ qr.size } fill="#fff" />
+			) }
 			<path d={ qr.path } fill="#000" />
 		</svg>
 	);
@@ -128,7 +130,7 @@ export function ElementView( {
 		);
 	}
 	if ( element.type === 'qr' ) {
-		return <QrView attendee={ attendee } />;
+		return <QrView element={ element } attendee={ attendee } />;
 	}
 	return (
 		<GravatarView

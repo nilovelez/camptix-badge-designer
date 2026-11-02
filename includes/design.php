@@ -189,6 +189,9 @@ function ctbd_sanitize_element( $input ) {
 		$side              = max( CTBD_QR_MIN_SIZE, $element['width'], $element['height'] );
 		$element['width']  = $side;
 		$element['height'] = $side;
+
+		// No white square behind the code: the background shows through.
+		$element['transparent'] = ! empty( $input['transparent'] );
 	}
 
 	return $element;

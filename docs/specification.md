@@ -120,7 +120,7 @@ New elements are added with the + button. Every change can be undone and redone 
 
 - Points to the attendee's WordPress.org profile: `https://profiles.wordpress.org/<username>/`, built from the `Username` column (not from the export's `wordpress.org/@<username>` URL).
 - When the attendee has no valid username, the QR code is not drawn: its space stays empty, showing the background, and generation goes on.
-- Black and white, no options.
+- Black on a white square by default. The only option is a transparent background, with no white square (asked for by Nilo, November 2026, for backgrounds that are light but not white; simpler than picking a background color). The editor warns that phones only read it on a light, plain background.
 - At least 20 × 20 mm (decided by Nilo): smaller codes may not scan once printed. The editor does not let it get smaller, and the server enforces it too.
 - Generated in the browser with the LadyQR encoder (see Architecture).
 

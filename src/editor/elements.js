@@ -65,6 +65,7 @@ export function makeQr( props ) {
 		y: 10,
 		width: 25,
 		height: 25,
+		transparent: false,
 		...props,
 	};
 }
