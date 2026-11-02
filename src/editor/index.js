@@ -2,6 +2,7 @@
  * Badge editor: toolbar, canvas and the Document and Element sidebar.
  */
 import { createRoot, useEffect, useMemo, useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import { Notice } from '@wordpress/components';
 import { Toolbar } from './components/toolbar';
 import { Canvas } from './components/canvas';
@@ -26,13 +27,16 @@ const BACKGROUND_TYPES = {
 // as WordPress recommends: each new frame would add another modal.
 const MEDIA_FRAMES = {
 	background: {
-		title: 'Select the badge background',
-		button: 'Use as background',
+		title: __( 'Select the badge background', 'camptix-badge-designer' ),
+		button: __( 'Use as background', 'camptix-badge-designer' ),
 		types: Object.keys( BACKGROUND_TYPES ),
 	},
 	gravatarFallback: {
-		title: 'Select the image for attendees without a Gravatar',
-		button: 'Use this image',
+		title: __(
+			'Select the image for attendees without a Gravatar',
+			'camptix-badge-designer'
+		),
+		button: __( 'Use this image', 'camptix-badge-designer' ),
 		types: [ 'image/png', 'image/jpeg' ],
 	},
 };
@@ -118,7 +122,12 @@ function LoadingBar() {
 	return (
 		<div className="ctbd-editor__loading">
 			<div className="ctbd-loading" role="status">
-				<p>Loading the badge editor…</p>
+				<p>
+					{ __(
+						'Loading the badge editor…',
+						'camptix-badge-designer'
+					) }
+				</p>
 				<div className="ctbd-loading__bar">
 					<div
 						className="ctbd-loading__fill"
@@ -305,7 +314,14 @@ function App() {
 		return (
 			<div className="ctbd-editor__loading">
 				<Notice status="error" isDismissible={ false }>
-					The design could not be loaded: { loadError }
+					{ sprintf(
+						/* translators: %s: error message. */
+						__(
+							'The design could not be loaded: %s',
+							'camptix-badge-designer'
+						),
+						loadError
+					) }
 				</Notice>
 			</div>
 		);
@@ -324,7 +340,12 @@ function App() {
 		setError( null );
 		const type = BACKGROUND_TYPES[ attachment.mime ];
 		if ( ! type ) {
-			setError( 'The background must be a PDF, PNG or JPG file.' );
+			setError(
+				__(
+					'The background must be a PDF, PNG or JPG file.',
+					'camptix-badge-designer'
+				)
+			);
 			return;
 		}
 
@@ -346,7 +367,14 @@ function App() {
 			}
 		} catch ( e ) {
 			setError(
-				'The background could not be read: ' + ( e.message || e )
+				sprintf(
+					/* translators: %s: error message. */
+					__(
+						'The background could not be read: %s',
+						'camptix-badge-designer'
+					),
+					e.message || e
+				)
 			);
 			return;
 		}
@@ -369,7 +397,12 @@ function App() {
 				attachment.mime !== 'image/png' &&
 				attachment.mime !== 'image/jpeg'
 			) {
-				setError( 'The image must be a PNG or JPG file.' );
+				setError(
+					__(
+						'The image must be a PNG or JPG file.',
+						'camptix-badge-designer'
+					)
+				);
 				return;
 			}
 			addImage( attachment.id, attachment.url );

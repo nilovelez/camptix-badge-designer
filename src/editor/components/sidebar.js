@@ -2,6 +2,7 @@
  * The fixed right sidebar, with the Document and Element tabs.
  */
 import { useState } from '@wordpress/element';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	Button,
 	Modal,
@@ -46,13 +47,15 @@ function BackgroundPanel( {
 
 	if ( ! background ) {
 		return (
-			<PanelBody title="Background">
+			<PanelBody title={ __( 'Background', 'camptix-badge-designer' ) }>
 				<p>
-					A PDF, PNG or JPG file with the badge artwork, including the
-					bleed.
+					{ __(
+						'A PDF, PNG or JPG file with the badge artwork, including the bleed.',
+						'camptix-badge-designer'
+					) }
 				</p>
 				<Button variant="secondary" onClick={ onSelectBackground }>
-					Select background
+					{ __( 'Select background', 'camptix-badge-designer' ) }
 				</Button>
 			</PanelBody>
 		);
@@ -62,26 +65,25 @@ function BackgroundPanel( {
 	const fits = backgroundFits( background, size );
 	let detail;
 	if ( background.type === 'pdf' ) {
-		detail =
-			'PDF, vector · ' +
-			background.pageWidth +
-			' × ' +
-			background.pageHeight +
-			' mm';
+		detail = sprintf(
+			/* translators: 1: width, 2: height of the PDF page, in millimeters. */
+			__( 'PDF, vector · %1$s × %2$s mm', 'camptix-badge-designer' ),
+			background.pageWidth,
+			background.pageHeight
+		);
 	} else {
-		detail =
-			TYPE_NAMES[ background.type ] +
-			' · ' +
-			background.pixelWidth +
-			' × ' +
-			background.pixelHeight +
-			' px · ' +
-			dpi +
-			' dpi';
+		detail = sprintf(
+			/* translators: 1: file type (PNG or JPG), 2: width, 3: height, in pixels; 4: resolution, in dpi. */
+			__( '%1$s · %2$d × %3$d px · %4$d dpi', 'camptix-badge-designer' ),
+			TYPE_NAMES[ background.type ],
+			background.pixelWidth,
+			background.pixelHeight,
+			dpi
+		);
 	}
 
 	return (
-		<PanelBody title="Background">
+		<PanelBody title={ __( 'Background', 'camptix-badge-designer' ) }>
 			<div className="ctbd-background-card">
 				{ backgroundFile && background.type !== 'pdf' ? (
 					<img
@@ -98,44 +100,65 @@ function BackgroundPanel( {
 					<strong>
 						{ backgroundFile
 							? backgroundFile.filename
-							: 'Missing file' }
+							: __( 'Missing file', 'camptix-badge-designer' ) }
 					</strong>
 					<span>{ detail }</span>
 				</span>
 			</div>
 			{ ! backgroundFile && (
 				<Notice status="error" isDismissible={ false }>
-					The background file is no longer in the Media Library.
-					Select it again.
+					{ __(
+						'The background file is no longer in the Media Library. Select it again.',
+						'camptix-badge-designer'
+					) }
 				</Notice>
 			) }
 			{ dpi !== null && dpi < RECOMMENDED_DPI && (
 				<Notice status="warning" isDismissible={ false }>
-					Low resolution for print. At this size, { RECOMMENDED_DPI }{ ' ' }
-					dpi needs { recommendedPixels( size ).width } ×{ ' ' }
-					{ recommendedPixels( size ).height } px.
+					{ sprintf(
+						/* translators: 1: recommended resolution, in dpi; 2: width, 3: height, in pixels. */
+						__(
+							'Low resolution for print. At this size, %1$d dpi needs %2$d × %3$d px.',
+							'camptix-badge-designer'
+						),
+						RECOMMENDED_DPI,
+						recommendedPixels( size ).width,
+						recommendedPixels( size ).height
+					) }
 				</Notice>
 			) }
 			{ ! fits && (
 				<Notice
 					status="warning"
 					isDismissible={ false }
-					spokenMessage="The background does not match the page with bleed, so it is stretched."
+					spokenMessage={ __(
+						'The background does not match the page with bleed, so it is stretched.',
+						'camptix-badge-designer'
+					) }
 				>
-					The background does not match the page with bleed (
-					{ pageSize( size ).width } × { pageSize( size ).height }{ ' ' }
-					mm), so it is stretched.{ ' ' }
+					{ sprintf(
+						/* translators: 1: width, 2: height of the page with bleed, in millimeters. */
+						__(
+							'The background does not match the page with bleed (%1$s × %2$s mm), so it is stretched.',
+							'camptix-badge-designer'
+						),
+						pageSize( size ).width,
+						pageSize( size ).height
+					) }{ ' ' }
 					<Button variant="link" onClick={ onFixSize }>
-						Adjust the print size
+						{ __(
+							'Adjust the print size',
+							'camptix-badge-designer'
+						) }
 					</Button>
 				</Notice>
 			) }
 			<div className="ctbd-button-row">
 				<Button variant="secondary" onClick={ onSelectBackground }>
-					Replace
+					{ __( 'Replace', 'camptix-badge-designer' ) }
 				</Button>
 				<Button variant="tertiary" isDestructive onClick={ onRemove }>
-					Remove
+					{ __( 'Remove', 'camptix-badge-designer' ) }
 				</Button>
 			</div>
 		</PanelBody>
@@ -154,48 +177,64 @@ function PrintSizePanel( { design, updateDesign } ) {
 		updateDesign( ( current ) => ( { ...current, [ key ]: value } ) );
 
 	return (
-		<PanelBody title="Print size">
+		<PanelBody title={ __( 'Print size', 'camptix-badge-designer' ) }>
 			<div className="ctbd-size-grid">
 				<MmField
-					label="Width"
+					label={ __( 'Width', 'camptix-badge-designer' ) }
 					value={ size.width }
 					{ ...LIMITS.width }
 					onChange={ setSize( 'width' ) }
 				/>
 				<MmField
-					label="Height"
+					label={ __( 'Height', 'camptix-badge-designer' ) }
 					value={ size.height }
 					{ ...LIMITS.height }
 					onChange={ setSize( 'height' ) }
 				/>
 				<MmField
-					label="Bleed"
+					label={ __( 'Bleed', 'camptix-badge-designer' ) }
 					value={ size.bleed }
 					{ ...LIMITS.bleed }
 					onChange={ setSize( 'bleed' ) }
 				/>
 			</div>
 			<p className="ctbd-help">
-				Millimeters. Page with bleed: { page.width } × { page.height }{ ' ' }
-				mm.
+				{ sprintf(
+					/* translators: 1: width, 2: height of the page with bleed, in millimeters. */
+					__(
+						'Millimeters. Page with bleed: %1$s × %2$s mm.',
+						'camptix-badge-designer'
+					),
+					page.width,
+					page.height
+				) }
 			</p>
 			<MmField
-				label="Safe area"
+				label={ __( 'Safe area', 'camptix-badge-designer' ) }
 				value={ size.safe }
 				{ ...LIMITS.safe }
 				onChange={ setSize( 'safe' ) }
-				help="Margin inside the trim for text and images."
+				help={ __(
+					'Margin inside the trim for text and images.',
+					'camptix-badge-designer'
+				) }
 			/>
 			<div className="ctbd-toggles">
 				<ToggleControl
 					__nextHasNoMarginBottom
-					label="Crop marks in the PDF"
+					label={ __(
+						'Crop marks in the PDF',
+						'camptix-badge-designer'
+					) }
 					checked={ design.cropMarks }
 					onChange={ setFlag( 'cropMarks' ) }
 				/>
 				<ToggleControl
 					__nextHasNoMarginBottom
-					label="Show trim and safe area"
+					label={ __(
+						'Show trim and safe area',
+						'camptix-badge-designer'
+					) }
 					checked={ design.guides }
 					onChange={ setFlag( 'guides' ) }
 				/>
@@ -214,9 +253,12 @@ function ElementsPanel( {
 	const elements = design.elements;
 	if ( ! elements.length ) {
 		return (
-			<PanelBody title="Elements">
+			<PanelBody title={ __( 'Elements', 'camptix-badge-designer' ) }>
 				<p className="ctbd-help">
-					No elements. Add one with the + button.
+					{ __(
+						'No elements. Add one with the + button.',
+						'camptix-badge-designer'
+					) }
 				</p>
 			</PanelBody>
 		);
@@ -224,7 +266,7 @@ function ElementsPanel( {
 	// Top layer first, as in layer lists.
 	const rows = [ ...elements ].reverse();
 	return (
-		<PanelBody title="Elements">
+		<PanelBody title={ __( 'Elements', 'camptix-badge-designer' ) }>
 			<ul className="ctbd-layers">
 				{ rows.map( ( element ) => {
 					const index = elements.indexOf( element );
@@ -245,21 +287,30 @@ function ElementsPanel( {
 							<Button
 								size="small"
 								icon={ chevronUp }
-								label="Bring forward"
+								label={ __(
+									'Bring forward',
+									'camptix-badge-designer'
+								) }
 								disabled={ index === elements.length - 1 }
 								onClick={ () => onReorder( element.id, 1 ) }
 							/>
 							<Button
 								size="small"
 								icon={ chevronDown }
-								label="Send backward"
+								label={ __(
+									'Send backward',
+									'camptix-badge-designer'
+								) }
 								disabled={ index === 0 }
 								onClick={ () => onReorder( element.id, -1 ) }
 							/>
 							<Button
 								size="small"
 								icon={ trash }
-								label="Delete"
+								label={ __(
+									'Delete',
+									'camptix-badge-designer'
+								) }
 								onClick={ () => onDelete( element.id ) }
 							/>
 						</li>
@@ -274,11 +325,16 @@ function OverflowList( { overflows, onGoTo } ) {
 	if ( ! overflows.length ) {
 		return null;
 	}
-	const summary =
-		( overflows.length === 1
-			? '1 attendee has'
-			: overflows.length + ' attendees have' ) +
-		' text that does not fit and is cut';
+	const summary = sprintf(
+		/* translators: %d: number of attendees. */
+		_n(
+			'%d attendee has text that does not fit and is cut',
+			'%d attendees have text that does not fit and is cut',
+			overflows.length,
+			'camptix-badge-designer'
+		),
+		overflows.length
+	);
 	// A plain-text spokenMessage: without it, Notice serializes its children
 	// for screen readers, which renders the Buttons outside React and breaks
 	// the editor when the list changes.
@@ -302,7 +358,13 @@ function OverflowList( { overflows, onGoTo } ) {
 				) ) }
 			</ul>
 			{ overflows.length > 50 && (
-				<span>…and { overflows.length - 50 } more.</span>
+				<span>
+					{ sprintf(
+						/* translators: %d: number of attendees not listed. */
+						__( '…and %d more.', 'camptix-badge-designer' ),
+						overflows.length - 50
+					) }
+				</span>
 			) }
 		</Notice>
 	);
@@ -324,20 +386,41 @@ function AttendeesPanel( { attendees, overflows, onGoTo } ) {
 	} else {
 		body = (
 			<>
-				<p>{ data.attendees.length } attendees, in purchase order.</p>
+				<p>
+					{ sprintf(
+						/* translators: %d: number of attendees. */
+						_n(
+							'%d attendee, in purchase order.',
+							'%d attendees, in purchase order.',
+							data.attendees.length,
+							'camptix-badge-designer'
+						),
+						data.attendees.length
+					) }
+				</p>
 				<p className="ctbd-help">
-					{ data.stats.withoutUsername } without a WordPress.org
-					username (no QR code).
+					{ sprintf(
+						/* translators: %d: number of attendees. */
+						__(
+							'%d without a WordPress.org username (no QR code).',
+							'camptix-badge-designer'
+						),
+						data.stats.withoutUsername
+					) }
 					<br />
-					Source: { data.source }
+					{ sprintf(
+						/* translators: %s: where the attendees come from, CampTix or a CSV file. */
+						__( 'Source: %s', 'camptix-badge-designer' ),
+						data.source
+					) }
 				</p>
 				<OverflowList overflows={ overflows } onGoTo={ onGoTo } />
 				<Button variant="secondary" onClick={ () => setOpen( true ) }>
-					View list
+					{ __( 'View list', 'camptix-badge-designer' ) }
 				</Button>
 				{ open && (
 					<Modal
-						title="Attendees"
+						title={ __( 'Attendees', 'camptix-badge-designer' ) }
 						onRequestClose={ () => setOpen( false ) }
 						size="fill"
 					>
@@ -349,7 +432,10 @@ function AttendeesPanel( { attendees, overflows, onGoTo } ) {
 	}
 
 	return (
-		<PanelBody title="Attendees" initialOpen={ true }>
+		<PanelBody
+			title={ __( 'Attendees', 'camptix-badge-designer' ) }
+			initialOpen={ true }
+		>
 			{ body }
 		</PanelBody>
 	);
@@ -374,17 +460,22 @@ function DocumentTab( props ) {
 	);
 }
 
-const TABS = [
-	{ name: 'document', title: 'Document' },
-	{ name: 'element', title: 'Element' },
-];
+function tabs() {
+	return [
+		{ name: 'document', title: __( 'Document', 'camptix-badge-designer' ) },
+		{ name: 'element', title: __( 'Element', 'camptix-badge-designer' ) },
+	];
+}
 
 export function Sidebar( props ) {
 	const { tab, onTab } = props;
 	return (
-		<aside className="ctbd-sidebar" aria-label="Settings">
+		<aside
+			className="ctbd-sidebar"
+			aria-label={ __( 'Settings', 'camptix-badge-designer' ) }
+		>
 			<div className="ctbd-sidebar__tabs" role="tablist">
-				{ TABS.map( ( item ) => (
+				{ tabs().map( ( item ) => (
 					<button
 						key={ item.name }
 						type="button"

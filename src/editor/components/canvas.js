@@ -4,6 +4,7 @@
  * the attendee on screen.
  */
 import { useEffect, useRef, useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import { Button, Spinner } from '@wordpress/components';
 import { loadPdf } from '../pdf';
 import { pageSize } from '../geometry';
@@ -94,7 +95,10 @@ function PdfBackground( { url, width, height } ) {
 			) }
 			{ state === 'error' && (
 				<div className="ctbd-canvas__overlay">
-					The PDF background could not be loaded.
+					{ __(
+						'The PDF background could not be loaded.',
+						'camptix-badge-designer'
+					) }
 				</div>
 			) }
 		</>
@@ -200,7 +204,10 @@ function ElementBox( {
 			{ overflow && (
 				<span
 					className="ctbd-element__warning"
-					title="This text does not fit for this attendee: it is cut."
+					title={ __(
+						'This text does not fit for this attendee: it is cut.',
+						'camptix-badge-designer'
+					) }
 				>
 					!
 				</span>
@@ -281,15 +288,18 @@ export function Canvas( {
 	} else if ( background && ! backgroundFile ) {
 		backgroundLayer = (
 			<div className="ctbd-canvas__overlay">
-				The background file is no longer in the Media Library.
+				{ __(
+					'The background file is no longer in the Media Library.',
+					'camptix-badge-designer'
+				) }
 			</div>
 		);
 	} else {
 		backgroundLayer = (
 			<div className="ctbd-canvas__overlay is-empty">
-				<p>No background yet.</p>
+				<p>{ __( 'No background yet.', 'camptix-badge-designer' ) }</p>
 				<Button variant="secondary" onClick={ onSelectBackground }>
-					Select background
+					{ __( 'Select background', 'camptix-badge-designer' ) }
 				</Button>
 			</div>
 		);
@@ -299,7 +309,7 @@ export function Canvas( {
 		<main
 			className="ctbd-canvas"
 			ref={ areaRef }
-			aria-label="Badge canvas"
+			aria-label={ __( 'Badge canvas', 'camptix-badge-designer' ) }
 			onPointerDown={ () => onSelect( null ) }
 		>
 			{ scale > 0 && (
@@ -309,13 +319,15 @@ export function Canvas( {
 						<>
 							<div
 								className="ctbd-canvas__trim"
-								title={
-									'Trim: ' +
-									size.width +
-									' × ' +
-									size.height +
-									' mm'
-								}
+								title={ sprintf(
+									/* translators: 1: width, 2: height, in millimeters. */
+									__(
+										'Trim: %1$s × %2$s mm',
+										'camptix-badge-designer'
+									),
+									size.width,
+									size.height
+								) }
 								style={ {
 									left: mm( size.bleed ),
 									top: mm( size.bleed ),
@@ -325,11 +337,14 @@ export function Canvas( {
 							/>
 							<div
 								className="ctbd-canvas__safe"
-								title={
-									'Safe area: ' +
-									size.safe +
-									' mm inside the trim'
-								}
+								title={ sprintf(
+									/* translators: %s: distance in millimeters. */
+									__(
+										'Safe area: %s mm inside the trim',
+										'camptix-badge-designer'
+									),
+									size.safe
+								) }
 								style={ {
 									left: mm( size.bleed + size.safe ),
 									top: mm( size.bleed + size.safe ),

@@ -4,6 +4,7 @@
  * Each face is loaded once.
  */
 import { useEffect, useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import fontkit from '@pdf-lib/fontkit';
 
 const families = window.ctbdSettings.fontFamilies || [];
@@ -84,7 +85,13 @@ export function loadFace( face ) {
 		const promise = ( async () => {
 			const response = await fetch( face.url );
 			if ( ! response.ok ) {
-				throw new Error( 'Font not found: ' + face.url );
+				throw new Error(
+					sprintf(
+						/* translators: %s: URL of the font file. */
+						__( 'Font not found: %s', 'camptix-badge-designer' ),
+						face.url
+					)
+				);
 			}
 			const bytes = await toTtf(
 				new Uint8Array( await response.arrayBuffer() )

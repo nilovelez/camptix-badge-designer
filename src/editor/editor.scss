@@ -65,16 +65,44 @@ $accent: var(--wp-admin-theme-color, #3858e9);
 	}
 }
 
-// Small screens: the admin menu is hidden, and slides in from the left.
-@media (max-width: 782px) {
-	.ctbd-editor,
-	.folded .ctbd-editor,
-	.auto-fold .ctbd-editor {
-		left: 0;
+// Smallest window the editor works in: below it, a notice printed by PHP
+// takes its place. Keep in step with CTBD_EDITOR_MIN_* in includes/admin.php.
+$min-width: 960px;
+$min-height: 560px;
+
+.ctbd-small-screen {
+	display: none;
+}
+
+@media (max-width: $min-width - 1px), (max-height: $min-height - 1px) {
+	.ctbd-editor {
+		display: none;
 	}
 
-	.wp-responsive-open .ctbd-editor {
-		left: 190px;
+	.ctbd-small-screen {
+		display: block;
+		padding: 48px 16px;
+	}
+
+	.ctbd-small-screen__box {
+		max-width: 480px;
+		margin: 0 auto;
+		padding: 24px;
+		background: #fff;
+		border: 1px solid $border;
+		border-radius: 4px;
+
+		h2 {
+			margin: 0 0 12px;
+			font-size: 18px;
+			line-height: 1.4;
+		}
+
+		p {
+			margin: 0;
+			font-size: 14px;
+			line-height: 1.6;
+		}
 	}
 }
 

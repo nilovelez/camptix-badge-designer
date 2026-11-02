@@ -224,15 +224,6 @@ th { background: var(--soft); }
 	<p>If the demo stops with "WordPress request transport did not start", an ad blocker or privacy extension is blocking Playground. Turn it off for playground.wordpress.net and reload.</p>
 </div>
 
-<h2 id="install">Install it on your site</h2>
-<p>To try it with your own event (on a copy of your site or a test site with CampTix):</p>
-<ol>
-	<li>Download the built plugin: <a href="https://github.com/nilovelez/camptix-badge-designer/archive/refs/heads/dist.zip">camptix-badge-designer-dist.zip</a>. It is rebuilt from the latest code on every change.</li>
-	<li>In wp-admin, go to Plugins › Add New Plugin › Upload Plugin, upload the zip and activate it.</li>
-	<li>Open <strong>Tickets › Badge Designer</strong>.</li>
-</ol>
-<p>Requirements: WordPress 6.8 or later, PHP 8.3 or later, and CampTix. Only administrators can open the editor. On a site without CampTix, the plugin shows up as <strong>Badges</strong> in the admin menu and needs a CampTix CSV export to work with; that mode is meant for development.</p>
-
 <h2 id="background">Prepare the background</h2>
 <p>The background is your badge artwork without the attendee data: logos, colors, sponsors, the hole for the lanyard. Make it in any design tool, leaving room for the name, the photo and the QR code.</p>
 
@@ -315,7 +306,12 @@ th { background: var(--soft); }
 <p>Names are tidied up before they are printed: a name typed all in capitals or all in lowercase ("MARÍA", "garcía") gets normal capitals ("María", "García"). Names typed with mixed case, such as "McDonald", are left as they are, and particles such as "de" or "del" stay in lowercase.</p>
 
 <h3 id="text-cut">Text that does not fit</h3>
-<p>A text box is always one line, and the text is never shrunk: names at different sizes look uneven on a lanyard. When an attendee's text is longer than the box, it is cut at the edge, and the editor warns you so you can fix the design before printing: make the box wider, the text smaller, or use a shorter variable.</p>
+<p>A text box is always one line, and its text is never shrunk to fit. This is on purpose, and it is what print designers usually do:</p>
+<ul>
+	<li>Every badge keeps the same layout and the same type sizes, so names do not look uneven on a lanyard, and text never grows into the photo or the QR code.</li>
+	<li>Attendees type their own data. A very long answer, by mistake or on purpose to fill a badge with spam, cannot take over the design: whatever does not fit is left out.</li>
+</ul>
+<p>When an attendee's text is longer than the box, it is cut at the edge, and the editor warns you so you can check it before printing: make the box wider, the text smaller, use a shorter variable, or fix the attendee's data in CampTix.</p>
 <figure>
 	<a href="images/text-cut.webp"><img src="images/text-cut.webp" alt="A badge where the job title Head of Engineering and Developer Experience does not fit: the box has a red dashed border and a warning icon, and the Attendees panel lists the 14 attendees with text that is cut." loading="lazy"></a>
 	<figcaption>The box is marked in red on the canvas, and the Attendees panel lists every attendee affected. Click a name to jump to that badge.</figcaption>
@@ -418,14 +414,12 @@ th { background: var(--soft); }
 	<li>Very large events: how long the PDF takes and how big it gets.</li>
 	<li>Other browsers and operating systems.</li>
 </ul>
-<p>Report problems and ideas in the <a href="https://github.com/nilovelez/camptix-badge-designer/issues">GitHub issues</a> of the project. Screenshots help a lot.</p>
+<p>Share what you find in the proposal issue on GitHub, linked here as soon as it is open. Screenshots help a lot.</p>
 
 <h3 id="limitations">Known limitations</h3>
 <ul>
 	<li>One design per site. For a different badge, for example for organizers or volunteers, export the design, change it, generate those badges and import it back.</li>
-	<li>Text boxes are one line.</li>
-	<li>The editor is only in English for now.</li>
-	<li>The editor needs a computer: it is not made for phones.</li>
+	<li>The editor needs a window of at least 960 × 560 pixels, to show the badge and its settings side by side. On a phone or a small window it shows a notice instead.</li>
 </ul>
 
 </main>

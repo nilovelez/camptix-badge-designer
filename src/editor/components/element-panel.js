@@ -2,6 +2,7 @@
  * The Element tab: properties of the selected element.
  */
 import { useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import {
 	Button,
 	ColorPalette,
@@ -18,38 +19,62 @@ import { familyWeights, fontFamilies } from '../fonts';
 import { isSquare, QR_MIN_SIZE } from '../elements';
 
 const WEIGHT_NAMES = {
-	100: 'Thin',
-	200: 'Extra light',
-	300: 'Light',
-	400: 'Regular',
-	500: 'Medium',
-	600: 'Semibold',
-	700: 'Bold',
-	800: 'Extra bold',
-	900: 'Black',
+	100: __( 'Thin', 'camptix-badge-designer' ),
+	200: __( 'Extra light', 'camptix-badge-designer' ),
+	300: __( 'Light', 'camptix-badge-designer' ),
+	400: __( 'Regular', 'camptix-badge-designer' ),
+	500: __( 'Medium', 'camptix-badge-designer' ),
+	600: __( 'Semibold', 'camptix-badge-designer' ),
+	700: __( 'Bold', 'camptix-badge-designer' ),
+	800: __( 'Extra bold', 'camptix-badge-designer' ),
+	900: __( 'Black', 'camptix-badge-designer' ),
 };
 
 const ALIGNMENTS = [
-	{ value: 'left', label: 'Align left', icon: alignLeft },
-	{ value: 'center', label: 'Align center', icon: alignCenter },
-	{ value: 'right', label: 'Align right', icon: alignRight },
+	{
+		value: 'left',
+		label: __( 'Align left', 'camptix-badge-designer' ),
+		icon: alignLeft,
+	},
+	{
+		value: 'center',
+		label: __( 'Align center', 'camptix-badge-designer' ),
+		icon: alignCenter,
+	},
+	{
+		value: 'right',
+		label: __( 'Align right', 'camptix-badge-designer' ),
+		icon: alignRight,
+	},
 ];
 
 const palette = window.ctbdSettings.palette || [];
 
 const DESCRIPTIONS = {
-	text: [ 'Text box', 'Text with attendee variables, on one line.' ],
+	text: [
+		__( 'Text box', 'camptix-badge-designer' ),
+		__(
+			'Text with attendee variables, on one line.',
+			'camptix-badge-designer'
+		),
+	],
 	gravatar: [
-		'Gravatar',
-		"The attendee's Gravatar, from their email address.",
+		__( 'Gravatar', 'camptix-badge-designer' ),
+		__(
+			"The attendee's Gravatar, from their email address.",
+			'camptix-badge-designer'
+		),
 	],
 	qr: [
-		'QR code',
-		"Links to the attendee's WordPress.org profile. Black, at least " +
-			QR_MIN_SIZE +
-			' × ' +
-			QR_MIN_SIZE +
-			' mm. Nothing is printed for attendees without a username.',
+		__( 'QR code', 'camptix-badge-designer' ),
+		sprintf(
+			/* translators: 1: minimum size of the QR code, in millimeters. */
+			__(
+				"Links to the attendee's WordPress.org profile. Black, at least %1$d × %1$d mm. Nothing is printed for attendees without a username.",
+				'camptix-badge-designer'
+			),
+			QR_MIN_SIZE
+		),
 	],
 };
 
@@ -57,12 +82,12 @@ function ContentPanel( { element, change, questions } ) {
 	const [ variable, setVariable ] = useState( '' );
 	const variables = textVariables( questions );
 	return (
-		<PanelBody title="Content">
+		<PanelBody title={ __( 'Content', 'camptix-badge-designer' ) }>
 			<TextControl
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 				className="ctbd-content-field"
-				label="Text"
+				label={ __( 'Text', 'camptix-badge-designer' ) }
 				value={ element.content }
 				onChange={ ( content ) => change( { content }, 'content' ) }
 			/>
@@ -70,10 +95,16 @@ function ContentPanel( { element, change, questions } ) {
 			<SelectControl
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
-				label="Insert variable"
+				label={ __( 'Insert variable', 'camptix-badge-designer' ) }
 				value={ variable }
 				options={ [
-					{ label: 'Choose a variable…', value: '' },
+					{
+						label: __(
+							'Choose a variable…',
+							'camptix-badge-designer'
+						),
+						value: '',
+					},
 					...variables.map( ( v ) => ( {
 						label: v.label,
 						value: v.token,
@@ -100,16 +131,23 @@ function TypographyPanel( { element, change } ) {
 	const families = fontFamilies();
 	const weights = familyWeights( element.font );
 	return (
-		<PanelBody title="Typography">
+		<PanelBody title={ __( 'Typography', 'camptix-badge-designer' ) }>
 			<SelectControl
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
-				label="Font"
+				label={ __( 'Font', 'camptix-badge-designer' ) }
 				value={ element.font }
 				options={ families.map( ( f ) => ( {
 					label:
 						f.source === 'library'
-							? f.family + ' (Font Library)'
+							? sprintf(
+									/* translators: %s: font family name. */
+									__(
+										'%s (Font Library)',
+										'camptix-badge-designer'
+									),
+									f.family
+								)
 							: f.family,
 					value: f.family,
 				} ) ) }
@@ -130,7 +168,7 @@ function TypographyPanel( { element, change } ) {
 			/>
 			<div className="ctbd-two-columns">
 				<MmField
-					label="Size (pt)"
+					label={ __( 'Size (pt)', 'camptix-badge-designer' ) }
 					value={ element.size }
 					min={ 4 }
 					max={ 200 }
@@ -140,7 +178,7 @@ function TypographyPanel( { element, change } ) {
 				<SelectControl
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
-					label="Weight"
+					label={ __( 'Weight', 'camptix-badge-designer' ) }
 					value={ String( element.weight ) }
 					options={ weights.map( ( w ) => ( {
 						label: WEIGHT_NAMES[ w ] || w,
@@ -149,8 +187,14 @@ function TypographyPanel( { element, change } ) {
 					onChange={ ( weight ) => change( { weight } ) }
 				/>
 			</div>
-			<p className="ctbd-label">Alignment</p>
-			<div className="ctbd-segmented" role="group" aria-label="Alignment">
+			<p className="ctbd-label">
+				{ __( 'Alignment', 'camptix-badge-designer' ) }
+			</p>
+			<div
+				className="ctbd-segmented"
+				role="group"
+				aria-label={ __( 'Alignment', 'camptix-badge-designer' ) }
+			>
 				{ ALIGNMENTS.map( ( a ) => (
 					<Button
 						key={ a.value }
@@ -163,11 +207,13 @@ function TypographyPanel( { element, change } ) {
 			</div>
 			<ToggleControl
 				__nextHasNoMarginBottom
-				label="Uppercase"
+				label={ __( 'Uppercase', 'camptix-badge-designer' ) }
 				checked={ element.uppercase }
 				onChange={ ( uppercase ) => change( { uppercase } ) }
 			/>
-			<p className="ctbd-label">Color</p>
+			<p className="ctbd-label">
+				{ __( 'Color', 'camptix-badge-designer' ) }
+			</p>
 			{ palette.length ? (
 				<ColorPalette
 					colors={ palette }
@@ -177,7 +223,12 @@ function TypographyPanel( { element, change } ) {
 					clearable={ false }
 				/>
 			) : (
-				<p className="ctbd-help">This site has no color palette.</p>
+				<p className="ctbd-help">
+					{ __(
+						'This site has no color palette.',
+						'camptix-badge-designer'
+					) }
+				</p>
 			) }
 		</PanelBody>
 	);
@@ -192,26 +243,52 @@ function OverflowNotice( { layout } ) {
 	return (
 		<div className="ctbd-element-notice">
 			<Notice status="warning" isDismissible={ false }>
-				For this attendee the text does not fit the box: it is cut. Make
-				the box wider or the text smaller.
+				{ __(
+					'For this attendee the text does not fit the box: it is cut. Make the box wider or the text smaller.',
+					'camptix-badge-designer'
+				) }
 			</Notice>
 		</div>
 	);
 }
 
 const SHAPES = [
-	{ value: 'round', label: 'Round' },
-	{ value: 'square', label: 'Square' },
+	{ value: 'round', label: __( 'Round', 'camptix-badge-designer' ) },
+	{ value: 'square', label: __( 'Square', 'camptix-badge-designer' ) },
 ];
 
 const FALLBACKS = [
-	{ value: '404', label: 'None: print nothing' },
-	{ value: 'identicon', label: 'Identicon (generated)' },
-	{ value: 'monsterid', label: 'Monster (generated)' },
-	{ value: 'wavatar', label: 'Wavatar (generated)' },
-	{ value: 'retro', label: 'Retro (generated)' },
-	{ value: 'robohash', label: 'Robot (generated)' },
-	{ value: 'image', label: 'An image from the Media Library' },
+	{
+		value: '404',
+		label: __( 'None: print nothing', 'camptix-badge-designer' ),
+	},
+	{
+		value: 'identicon',
+		label: __( 'Identicon (generated)', 'camptix-badge-designer' ),
+	},
+	{
+		value: 'monsterid',
+		label: __( 'Monster (generated)', 'camptix-badge-designer' ),
+	},
+	{
+		value: 'wavatar',
+		label: __( 'Wavatar (generated)', 'camptix-badge-designer' ),
+	},
+	{
+		value: 'retro',
+		label: __( 'Retro (generated)', 'camptix-badge-designer' ),
+	},
+	{
+		value: 'robohash',
+		label: __( 'Robot (generated)', 'camptix-badge-designer' ),
+	},
+	{
+		value: 'image',
+		label: __(
+			'An image from the Media Library',
+			'camptix-badge-designer'
+		),
+	},
 ];
 
 function GravatarPanel( { element, change, images, onPickImage } ) {
@@ -222,9 +299,15 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 		);
 
 	return (
-		<PanelBody title="Gravatar">
-			<p className="ctbd-label">Shape</p>
-			<div className="ctbd-segmented" role="group" aria-label="Shape">
+		<PanelBody title={ __( 'Gravatar', 'camptix-badge-designer' ) }>
+			<p className="ctbd-label">
+				{ __( 'Shape', 'camptix-badge-designer' ) }
+			</p>
+			<div
+				className="ctbd-segmented"
+				role="group"
+				aria-label={ __( 'Shape', 'camptix-badge-designer' ) }
+			>
 				{ SHAPES.map( ( shape ) => (
 					<Button
 						key={ shape.value }
@@ -238,7 +321,10 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 			<SelectControl
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
-				label="When there is no Gravatar"
+				label={ __(
+					'When there is no Gravatar',
+					'camptix-badge-designer'
+				) }
 				value={ element.fallback }
 				options={ FALLBACKS }
 				onChange={ ( fallback ) => {
@@ -261,16 +347,23 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 							alt=""
 						/>
 					) : (
-						<span className="ctbd-help">Image not found.</span>
+						<span className="ctbd-help">
+							{ __(
+								'Image not found.',
+								'camptix-badge-designer'
+							) }
+						</span>
 					) }
 					<Button variant="secondary" onClick={ pickImage }>
-						Replace image
+						{ __( 'Replace image', 'camptix-badge-designer' ) }
 					</Button>
 				</div>
 			) }
 			<p className="ctbd-help">
-				Generated images are made by Gravatar from each email address,
-				so every attendee gets a different one.
+				{ __(
+					'Generated images are made by Gravatar from each email address, so every attendee gets a different one.',
+					'camptix-badge-designer'
+				) }
 			</p>
 		</PanelBody>
 	);
@@ -278,14 +371,23 @@ function GravatarPanel( { element, change, images, onPickImage } ) {
 
 function QrPanel( { element, change } ) {
 	return (
-		<PanelBody title="Settings">
+		<PanelBody title={ __( 'Settings', 'camptix-badge-designer' ) }>
 			<ToggleControl
 				__nextHasNoMarginBottom
-				label="Transparent background"
+				label={ __(
+					'Transparent background',
+					'camptix-badge-designer'
+				) }
 				help={
 					element.transparent
-						? 'No white square behind the code. Phones only read it on a light, plain background: test a printed badge before printing them all.'
-						: 'The code is printed on a white square, which phones read on any background.'
+						? __(
+								'No white square behind the code. Phones only read it on a light, plain background: test a printed badge before printing them all.',
+								'camptix-badge-designer'
+							)
+						: __(
+								'The code is printed on a white square, which phones read on any background.',
+								'camptix-badge-designer'
+							)
 				}
 				checked={ !! element.transparent }
 				onChange={ ( transparent ) => change( { transparent } ) }
@@ -298,24 +400,27 @@ function PositionPanel( { element, change } ) {
 	const square = isSquare( element );
 	const minSize = element.type === 'qr' ? QR_MIN_SIZE : 3;
 	return (
-		<PanelBody title="Position and size" initialOpen={ false }>
+		<PanelBody
+			title={ __( 'Position and size', 'camptix-badge-designer' ) }
+			initialOpen={ false }
+		>
 			<div className="ctbd-two-columns">
 				<MmField
-					label="X (mm)"
+					label={ __( 'X (mm)', 'camptix-badge-designer' ) }
 					value={ element.x }
 					min={ -500 }
 					max={ 1000 }
 					onChange={ ( x ) => change( { x }, 'x' ) }
 				/>
 				<MmField
-					label="Y (mm)"
+					label={ __( 'Y (mm)', 'camptix-badge-designer' ) }
 					value={ element.y }
 					min={ -500 }
 					max={ 1000 }
 					onChange={ ( y ) => change( { y }, 'y' ) }
 				/>
 				<MmField
-					label="Width (mm)"
+					label={ __( 'Width (mm)', 'camptix-badge-designer' ) }
 					value={ element.width }
 					min={ minSize }
 					max={ 1000 }
@@ -327,7 +432,7 @@ function PositionPanel( { element, change } ) {
 					}
 				/>
 				<MmField
-					label="Height (mm)"
+					label={ __( 'Height (mm)', 'camptix-badge-designer' ) }
 					value={ element.height }
 					min={ minSize }
 					max={ 1000 }
@@ -340,8 +445,15 @@ function PositionPanel( { element, change } ) {
 				/>
 			</div>
 			<p className="ctbd-help">
-				From the top-left corner of the trim.
-				{ square ? ' Width and height stay equal.' : '' }
+				{ square
+					? __(
+							'From the top-left corner of the trim. Width and height stay equal.',
+							'camptix-badge-designer'
+						)
+					: __(
+							'From the top-left corner of the trim.',
+							'camptix-badge-designer'
+						) }
 			</p>
 		</PanelBody>
 	);
@@ -359,7 +471,10 @@ export function ElementPanel( {
 	if ( ! element ) {
 		return (
 			<p className="ctbd-sidebar__empty">
-				Select an element on the badge to edit it.
+				{ __(
+					'Select an element on the badge to edit it.',
+					'camptix-badge-designer'
+				) }
 			</p>
 		);
 	}
@@ -401,7 +516,7 @@ export function ElementPanel( {
 			<PositionPanel element={ element } change={ change } />
 			<div className="ctbd-sidebar__footer">
 				<Button variant="tertiary" isDestructive onClick={ onDelete }>
-					Delete element
+					{ __( 'Delete element', 'camptix-badge-designer' ) }
 				</Button>
 			</div>
 		</>

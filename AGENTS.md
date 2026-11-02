@@ -15,6 +15,7 @@ This file is the single source of working rules for any agent or person picking 
 | `HANDOFF.md` | Current state, next steps and how to resume. Keep it up to date. |
 | `README.md` | Project overview for GitHub. |
 | `docs/` | Project documentation: specification, milestones, decisions, backlog. |
+| `guide/` | User guide for organizers and testers: one HTML page with its screenshots, published to GitHub Pages by `.github/workflows/pages.yml` (https://nilovelez.github.io/camptix-badge-designer/). Meant to become part of the WordCamp Organizer Handbook. |
 | `guppy/` | Project status published to Guppy (see below). |
 | `blueprint.json` | WordPress Playground blueprint for the test site (attendees from the CSV in `test-data/`). |
 | `sandbox/` | WordCamp sandbox: a Playground blueprint with the real CampTix from `WordPress/wordcamp.org` and a must-use plugin with invented tickets, questions and attendees (the first one is Matt Mullenweg, with his public email address and username, for a real Gravatar and QR code), and a sample badge design on the WordCamp Europe 2025 badge background (`demo-background.pdf`, provided by Nilo for the demo). `demo-blueprint.json` is the public demo. Development only. |

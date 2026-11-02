@@ -154,7 +154,8 @@ The model is data merge, as in Adobe InDesign: the design holds fields that act 
 - Everything that can be generated in the browser is generated there, with browser resources (QR codes, Gravatar hashes, layout, ideally the PDF). Earlier attempts at this tool generated and stored images on the server, and with large events the files and the memory and CPU needed became too big. Generated images are not stored.
 - QR codes: the encoder from LadyQR (https://github.com/nilovelez/ladyqr, `assets/qr.js`): no dependencies, GPLv2, compatible with this plugin's GPL-2.0-or-later license.
 - The PDF is generated in the browser with pdf-lib, and PDF.js shows PDF pages in the editor (decided in milestone 1, built in milestone 6; see `docs/decisions.md`). The server only sends the design and the attendee data.
-- The editor is built with the WordPress packages (`@wordpress/element`, `@wordpress/components`) and `@wordpress/scripts`. It fills the admin content area, fixed to the window like the block editor, and shows a loading bar while its script downloads.
+- The editor is built with the WordPress packages (`@wordpress/element`, `@wordpress/components`) and `@wordpress/scripts`. It fills the admin content area, fixed to the window like the block editor, and shows a loading bar while its script downloads. Below 960 × 560 pixels it shows a notice instead, printed by PHP and switched by CSS (asked for by Nilo): the badge and its settings do not fit side by side.
+- Every string is translatable: PHP with `__()` and the editor with `@wordpress/i18n`, loaded with `wp_set_script_translations()` (milestone 10, asked for by Nilo before anything goes public).
 - Distribution: `build/` is not in Git. A GitHub Action builds the plugin on every push to `main` and publishes it, ready to install, to the `dist` branch (milestone 9).
 
 ## Personal data

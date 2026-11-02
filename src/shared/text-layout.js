@@ -10,6 +10,8 @@
  * Box positions are in millimeters; font sizes in points.
  */
 
+import { __ } from '@wordpress/i18n';
+
 const MM_PER_PT = 25.4 / 72;
 
 /**
@@ -20,9 +22,18 @@ const MM_PER_PT = 25.4 / 72;
  */
 export function textVariables( questions = [] ) {
 	const variables = [
-		{ token: '{first_name}', label: 'First name' },
-		{ token: '{last_name}', label: 'Last name' },
-		{ token: '{full_name}', label: 'Full name' },
+		{
+			token: '{first_name}',
+			label: __( 'First name', 'camptix-badge-designer' ),
+		},
+		{
+			token: '{last_name}',
+			label: __( 'Last name', 'camptix-badge-designer' ),
+		},
+		{
+			token: '{full_name}',
+			label: __( 'Full name', 'camptix-badge-designer' ),
+		},
 	];
 	for ( const question of questions ) {
 		variables.push( {

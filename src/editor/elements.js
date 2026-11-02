@@ -3,6 +3,7 @@
  * moving and resizing. Positions and sizes are in millimeters from the
  * top-left corner of the trim box.
  */
+import { __ } from '@wordpress/i18n';
 import { round1 } from './geometry';
 
 export const DESIGN_VERSION = 2;
@@ -180,12 +181,12 @@ export function isSquare( element ) {
 
 export function elementLabel( element ) {
 	if ( element.type === 'gravatar' ) {
-		return 'Gravatar';
+		return __( 'Gravatar', 'camptix-badge-designer' );
 	}
 	if ( element.type === 'qr' ) {
-		return 'QR code: profile';
+		return __( 'QR code: profile', 'camptix-badge-designer' );
 	}
-	return element.content || 'Empty text box';
+	return element.content || __( 'Empty text box', 'camptix-badge-designer' );
 }
 
 /**

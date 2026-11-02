@@ -3,6 +3,7 @@
  * the missing usernames can be reviewed.
  */
 import { useState } from '@wordpress/element';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { SelectControl } from '@wordpress/components';
 
 const cellStyle = { whiteSpace: 'nowrap' };
@@ -10,49 +11,122 @@ const cellStyle = { whiteSpace: 'nowrap' };
 function Summary( { data } ) {
 	const { stats, attendees, questions, source } = data;
 	const skipped = Object.entries( stats.skippedByStatus );
+	const variables = [
+		__( 'First name', 'camptix-badge-designer' ),
+		__( 'Last name', 'camptix-badge-designer' ),
+		__( 'Full name', 'camptix-badge-designer' ),
+		...questions.map( ( q ) => q.label ),
+	];
 	return (
 		<ul
 			style={ { margin: '0 0 16px', listStyle: 'disc', paddingLeft: 20 } }
 		>
 			<li>
-				Source: <code>{ source }</code>, { stats.rows } rows read.
+				{ sprintf(
+					/* translators: 1: data source, 2: number of rows. */
+					_n(
+						'Source: %1$s, %2$d row read.',
+						'Source: %1$s, %2$d rows read.',
+						stats.rows,
+						'camptix-badge-designer'
+					),
+					source,
+					stats.rows
+				) }
 			</li>
 			<li>
-				<strong>{ attendees.length } badges</strong>, in purchase order
-				(Attendee ID).
+				<strong>
+					{ sprintf(
+						/* translators: %d: number of badges. */
+						_n(
+							'%d badge',
+							'%d badges',
+							attendees.length,
+							'camptix-badge-designer'
+						),
+						attendees.length
+					) }
+				</strong>
+				{ ', ' +
+					__(
+						'in purchase order (Attendee ID).',
+						'camptix-badge-designer'
+					) }
 			</li>
 			{ skipped.length > 0 && (
 				<li>
-					Left out by ticket status:{ ' ' }
-					{ skipped
-						.map( ( [ status, n ] ) => status + ' (' + n + ')' )
-						.join( ', ' ) }
-					.
+					{ sprintf(
+						/* translators: %s: list of ticket statuses with their counts. */
+						__(
+							'Left out by ticket status: %s.',
+							'camptix-badge-designer'
+						),
+						skipped
+							.map( ( [ status, n ] ) => status + ' (' + n + ')' )
+							.join( ', ' )
+					) }
 				</li>
 			) }
 			{ stats.placeholders > 0 && (
 				<li>
-					Tickets bought for an unknown attendee, left out until
-					claimed: { stats.placeholders }.
+					{ sprintf(
+						/* translators: %d: number of tickets. */
+						__(
+							'Tickets bought for an unknown attendee, left out until claimed: %d.',
+							'camptix-badge-designer'
+						),
+						stats.placeholders
+					) }
 				</li>
 			) }
 			{ stats.malformed > 0 && (
-				<li>Malformed rows skipped: { stats.malformed }.</li>
+				<li>
+					{ sprintf(
+						/* translators: %d: number of rows. */
+						__(
+							'Malformed rows skipped: %d.',
+							'camptix-badge-designer'
+						),
+						stats.malformed
+					) }
+				</li>
 			) }
 			<li>
-				Without a valid WordPress.org username, so without QR code:{ ' ' }
-				{ stats.withoutUsername }.
+				{ sprintf(
+					/* translators: %d: number of attendees. */
+					__(
+						'Without a valid WordPress.org username, so without QR code: %d.',
+						'camptix-badge-designer'
+					),
+					stats.withoutUsername
+				) }
 			</li>
 			<li>
-				Without a valid email address, so without Gravatar:{ ' ' }
-				{ stats.withoutEmail }.
+				{ sprintf(
+					/* translators: %d: number of attendees. */
+					__(
+						'Without a valid email address, so without Gravatar: %d.',
+						'camptix-badge-designer'
+					),
+					stats.withoutEmail
+				) }
 			</li>
 			<li>
-				Names with their case normalized: { stats.namesNormalized }.
+				{ sprintf(
+					/* translators: %d: number of names. */
+					__(
+						'Names with their case normalized: %d.',
+						'camptix-badge-designer'
+					),
+					stats.namesNormalized
+				) }
 			</li>
 			<li>
-				Variables: First name, Last name, Full name
-				{ questions.map( ( q ) => ', ' + q.label ) }.
+				{ sprintf(
+					/* translators: %s: list of variable names. */
+					__( 'Variables: %s.', 'camptix-badge-designer' ),
+					variables.join( ', ' )
+				) }
 			</li>
 		</ul>
 	);
@@ -79,15 +153,27 @@ export function AttendeesList( { data } ) {
 			<SelectControl
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
-				label="Show"
+				label={ __( 'Show', 'camptix-badge-designer' ) }
 				value={ filter }
 				options={ [
-					{ label: 'All attendees', value: 'all' },
 					{
-						label: 'Without username (no QR code)',
+						label: __( 'All attendees', 'camptix-badge-designer' ),
+						value: 'all',
+					},
+					{
+						label: __(
+							'Without username (no QR code)',
+							'camptix-badge-designer'
+						),
 						value: 'no-username',
 					},
-					{ label: 'The 20 longest names', value: 'long' },
+					{
+						label: __(
+							'The 20 longest names',
+							'camptix-badge-designer'
+						),
+						value: 'long',
+					},
 				] }
 				onChange={ setFilter }
 			/>
@@ -96,11 +182,27 @@ export function AttendeesList( { data } ) {
 					<thead>
 						<tr>
 							<th>#</th>
-							<th>Attendee ID</th>
-							<th>First name</th>
-							<th>Last name</th>
-							<th>Username (QR)</th>
-							<th>Gravatar</th>
+							<th>
+								{ __(
+									'Attendee ID',
+									'camptix-badge-designer'
+								) }
+							</th>
+							<th>
+								{ __( 'First name', 'camptix-badge-designer' ) }
+							</th>
+							<th>
+								{ __( 'Last name', 'camptix-badge-designer' ) }
+							</th>
+							<th>
+								{ __(
+									'Username (QR)',
+									'camptix-badge-designer'
+								) }
+							</th>
+							<th>
+								{ __( 'Gravatar', 'camptix-badge-designer' ) }
+							</th>
 							{ data.questions.map( ( q ) => (
 								<th key={ q.key }>{ q.label }</th>
 							) ) }
@@ -114,7 +216,11 @@ export function AttendeesList( { data } ) {
 								<td style={ cellStyle }>{ a.firstName }</td>
 								<td style={ cellStyle }>{ a.lastName }</td>
 								<td>{ a.username || '—' }</td>
-								<td>{ a.gravatarHash ? 'Yes' : '—' }</td>
+								<td>
+									{ a.gravatarHash
+										? __( 'Yes', 'camptix-badge-designer' )
+										: '—' }
+								</td>
 								{ data.questions.map( ( q ) => (
 									<td key={ q.key }>
 										{ a.answers[ q.key ] }

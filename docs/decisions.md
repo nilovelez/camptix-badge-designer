@@ -27,7 +27,7 @@ The plan:
 The editor is built with `@wordpress/element` (React) and `@wordpress/components`, compiled with `@wordpress/scripts`.
 
 - It looks and behaves like the rest of the WordPress admin, with accessible controls (color picker, number and select fields, panels) ready to use.
-- Translations can work through `@wordpress/i18n`, the standard for plugins. The editor's strings are not wrapped yet (see `docs/backlog.md`).
+- Translations work through `@wordpress/i18n`, the standard for plugins (milestone 10). The ESLint rules of `@wordpress/scripts` check them: `sprintf` needs a literal format string (so a choice between two sentences is two `sprintf` calls, not a ternary inside one), and every placeholder needs a translators comment.
 - WordPress loads React itself, so the plugin does not ship it.
 - Drag and resize are done with pointer events on an absolutely positioned layer over the background, in millimeters scaled to the screen. That logic is small and fully under our control.
 

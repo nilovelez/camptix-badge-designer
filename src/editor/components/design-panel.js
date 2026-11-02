@@ -8,6 +8,7 @@
  * after importing.
  */
 import { useState } from '@wordpress/element';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	Button,
 	FormFileUpload,
@@ -27,7 +28,7 @@ function exportDesign( design ) {
 			return element;
 		}
 		// The fixed image is a file of this site: it is not exported.
-		const { fallbackImage, ...rest } = element; // eslint-disable-line no-unused-vars
+		const { fallbackImage, ...rest } = element;
 		return rest;
 	} );
 	const file = {
@@ -66,16 +67,24 @@ function readDesignFile( text ) {
 	try {
 		file = JSON.parse( text );
 	} catch {
-		throw new Error( 'The file is not valid JSON.' );
+		throw new Error(
+			__( 'The file is not valid JSON.', 'camptix-badge-designer' )
+		);
 	}
 	if ( ! file || file.format !== FORMAT || ! file.design ) {
 		throw new Error(
-			'The file is not a badge design exported by this plugin.'
+			__(
+				'The file is not a badge design exported by this plugin.',
+				'camptix-badge-designer'
+			)
 		);
 	}
 	if ( file.version > DESIGN_VERSION ) {
 		throw new Error(
-			'The file comes from a newer version of the plugin. Update the plugin first.'
+			__(
+				'The file comes from a newer version of the plugin. Update the plugin first.',
+				'camptix-badge-designer'
+			)
 		);
 	}
 	const source = file.design;
@@ -85,7 +94,10 @@ function readDesignFile( text ) {
 		! Array.isArray( source.elements )
 	) {
 		throw new Error(
-			'The file is damaged: it has no print size or no elements.'
+			__(
+				'The file is damaged: it has no print size or no elements.',
+				'camptix-badge-designer'
+			)
 		);
 	}
 
@@ -106,7 +118,10 @@ function readDesignFile( text ) {
 			}
 			if ( element.type === 'gravatar' && element.fallback === 'image' ) {
 				notes.push(
-					'Choose the image for attendees without a Gravatar again: images are not exported.'
+					__(
+						'Choose the image for attendees without a Gravatar again: images are not exported.',
+						'camptix-badge-designer'
+					)
 				);
 				return { ...element, fallback: '404', fallbackImage: 0 };
 			}
@@ -114,9 +129,14 @@ function readDesignFile( text ) {
 		} );
 	if ( missingFonts.size ) {
 		notes.push(
-			'Install these fonts in Appearance › Fonts, or the text uses Inter: ' +
-				[ ...missingFonts ].join( ', ' ) +
-				'.'
+			sprintf(
+				/* translators: %s: list of font family names. */
+				__(
+					'Install these fonts in Appearance › Fonts, or the text uses Inter: %s.',
+					'camptix-badge-designer'
+				),
+				[ ...missingFonts ].join( ', ' )
+			)
 		);
 	}
 
@@ -127,6 +147,38 @@ function readDesignFile( text ) {
 		elements,
 	};
 	return { imported, notes };
+}
+
+/**
+ * The print size of an imported design, for the confirmation.
+ *
+ * @param {Object} imported Design parts read from the file.
+ * @return {string} Text.
+ */
+function importedSizeText( imported ) {
+	const { width, height, bleed } = imported.size;
+	if ( imported.cropMarks ) {
+		return sprintf(
+			/* translators: 1: width, 2: height, 3: bleed, in millimeters. */
+			__(
+				'Print size %1$s × %2$s mm, %3$s mm bleed, with crop marks.',
+				'camptix-badge-designer'
+			),
+			width,
+			height,
+			bleed
+		);
+	}
+	return sprintf(
+		/* translators: 1: width, 2: height, 3: bleed, in millimeters. */
+		__(
+			'Print size %1$s × %2$s mm, %3$s mm bleed.',
+			'camptix-badge-designer'
+		),
+		width,
+		height,
+		bleed
+	);
 }
 
 export function DesignPanel( { design, updateDesign } ) {
@@ -166,24 +218,29 @@ export function DesignPanel( { design, updateDesign } ) {
 	}
 
 	return (
-		<PanelBody title="Import/Export Design" initialOpen={ false }>
+		<PanelBody
+			title={ __( 'Import/Export Design', 'camptix-badge-designer' ) }
+			initialOpen={ false }
+		>
 			<p className="ctbd-help">
-				Reuse this design on another site. The file has the print size
-				and the elements with their styles; not the background.
+				{ __(
+					'Reuse this design on another site. The file has the print size and the elements with their styles; not the background.',
+					'camptix-badge-designer'
+				) }
 			</p>
 			<div className="ctbd-button-row">
 				<Button
 					variant="secondary"
 					onClick={ () => exportDesign( design ) }
 				>
-					Export JSON
+					{ __( 'Export JSON', 'camptix-badge-designer' ) }
 				</Button>
 				<FormFileUpload
 					accept="application/json,.json"
 					onChange={ onFile }
 					render={ ( { openFileDialog } ) => (
 						<Button variant="secondary" onClick={ openFileDialog }>
-							Import JSON
+							{ __( 'Import JSON', 'camptix-badge-designer' ) }
 						</Button>
 					) }
 				/>
@@ -195,7 +252,10 @@ export function DesignPanel( { design, updateDesign } ) {
 			) }
 			{ done && (
 				<Notice status="success" onRemove={ () => setDone( null ) }>
-					Design imported. You can undo it.
+					{ __(
+						'Design imported. You can undo it.',
+						'camptix-badge-designer'
+					) }
 					{ done.length > 0 && (
 						<ul className="ctbd-notes">
 							{ [ ...new Set( done ) ].map( ( note ) => (
@@ -207,34 +267,39 @@ export function DesignPanel( { design, updateDesign } ) {
 			) }
 			{ pending && (
 				<Modal
-					title="Import design"
+					title={ __( 'Import design', 'camptix-badge-designer' ) }
 					onRequestClose={ () => setPending( null ) }
 					className="ctbd-pdf-dialog"
 				>
 					<p>
-						Replace the current design with{ ' ' }
-						<strong>{ pending.name }</strong>?
+						{ sprintf(
+							/* translators: %s: file name. */
+							__(
+								'Replace the current design with %s?',
+								'camptix-badge-designer'
+							),
+							pending.name
+						) }
 					</p>
 					<div className="ctbd-summary">
+						<span>{ importedSizeText( pending.imported ) }</span>
 						<span>
-							Print size { pending.imported.size.width } ×{ ' ' }
-							{ pending.imported.size.height } mm,{ ' ' }
-							{ pending.imported.size.bleed } mm bleed
-							{ pending.imported.cropMarks
-								? ', with crop marks'
-								: '' }
-							.
+							{ sprintf(
+								/* translators: %d: number of elements. */
+								_n(
+									'%d element.',
+									'%d elements.',
+									pending.imported.elements.length,
+									'camptix-badge-designer'
+								),
+								pending.imported.elements.length
+							) }
 						</span>
 						<span>
-							{ pending.imported.elements.length }{ ' ' }
-							{ pending.imported.elements.length === 1
-								? 'element'
-								: 'elements' }
-							.
-						</span>
-						<span>
-							The background stays as it is. You can undo the
-							import.
+							{ __(
+								'The background stays as it is. You can undo the import.',
+								'camptix-badge-designer'
+							) }
 						</span>
 					</div>
 					{ pending.notes.length > 0 && (
@@ -253,10 +318,10 @@ export function DesignPanel( { design, updateDesign } ) {
 							variant="tertiary"
 							onClick={ () => setPending( null ) }
 						>
-							Cancel
+							{ __( 'Cancel', 'camptix-badge-designer' ) }
 						</Button>
 						<Button variant="primary" onClick={ apply }>
-							Import
+							{ __( 'Import', 'camptix-badge-designer' ) }
 						</Button>
 					</div>
 				</Modal>

@@ -3,6 +3,7 @@
  * pagination; the save state, Preview badge and Generate PDF.
  */
 import { useEffect, useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import { Button, DropdownMenu } from '@wordpress/components';
 import {
 	plus,
@@ -15,12 +16,15 @@ import {
 	grid,
 } from '@wordpress/icons';
 
-const SAVE_LABELS = {
-	saved: 'Saved',
-	unsaved: 'Unsaved changes',
-	saving: 'Saving…',
-	error: 'Not saved',
-};
+function saveLabel( status ) {
+	const labels = {
+		saved: __( 'Saved', 'camptix-badge-designer' ),
+		unsaved: __( 'Unsaved changes', 'camptix-badge-designer' ),
+		saving: __( 'Saving…', 'camptix-badge-designer' ),
+		error: __( 'Not saved', 'camptix-badge-designer' ),
+	};
+	return labels[ status ];
+}
 
 function Pager( { attendees, index, onChange } ) {
 	const total = attendees.length;
@@ -35,11 +39,14 @@ function Pager( { attendees, index, onChange } ) {
 	}
 
 	return (
-		<nav className="ctbd-pager" aria-label="Attendees">
+		<nav
+			className="ctbd-pager"
+			aria-label={ __( 'Attendees', 'camptix-badge-designer' ) }
+		>
 			<Button
 				size="small"
 				icon={ chevronLeft }
-				label="Previous attendee"
+				label={ __( 'Previous attendee', 'camptix-badge-designer' ) }
 				disabled={ index <= 0 }
 				onClick={ () => go( index ) }
 			/>
@@ -48,7 +55,7 @@ function Pager( { attendees, index, onChange } ) {
 				type="number"
 				min="1"
 				max={ total }
-				aria-label="Attendee number"
+				aria-label={ __( 'Attendee number', 'camptix-badge-designer' ) }
 				value={ text }
 				onChange={ ( event ) => {
 					setText( event.target.value );
@@ -59,11 +66,17 @@ function Pager( { attendees, index, onChange } ) {
 				} }
 				onBlur={ () => setText( String( index + 1 ) ) }
 			/>
-			<span className="ctbd-pager__total">of { total }</span>
+			<span className="ctbd-pager__total">
+				{ sprintf(
+					/* translators: %d: number of attendees. */
+					__( 'of %d', 'camptix-badge-designer' ),
+					total
+				) }
+			</span>
 			<Button
 				size="small"
 				icon={ chevronRight }
-				label="Next attendee"
+				label={ __( 'Next attendee', 'camptix-badge-designer' ) }
 				disabled={ index >= total - 1 }
 				onClick={ () => go( index + 2 ) }
 			/>
@@ -95,21 +108,24 @@ export function Toolbar( {
 			<DropdownMenu
 				className="ctbd-toolbar__add"
 				icon={ plus }
-				label="Add element"
+				label={ __( 'Add element', 'camptix-badge-designer' ) }
 				toggleProps={ { variant: 'primary', size: 'compact' } }
 				controls={ [
 					{
-						title: 'Text box',
+						title: __( 'Text box', 'camptix-badge-designer' ),
 						icon: typography,
 						onClick: () => onAdd( 'text' ),
 					},
 					{
-						title: 'Gravatar',
+						title: __( 'Gravatar', 'camptix-badge-designer' ),
 						icon: image,
 						onClick: () => onAdd( 'gravatar' ),
 					},
 					{
-						title: 'QR code: profile',
+						title: __(
+							'QR code: profile',
+							'camptix-badge-designer'
+						),
 						icon: grid,
 						onClick: () => onAdd( 'qr' ),
 					},
@@ -117,7 +133,7 @@ export function Toolbar( {
 			/>
 			<Button
 				icon={ undo }
-				label="Undo"
+				label={ __( 'Undo', 'camptix-badge-designer' ) }
 				shortcut="Ctrl+Z"
 				size="compact"
 				disabled={ ! history.canUndo }
@@ -125,7 +141,7 @@ export function Toolbar( {
 			/>
 			<Button
 				icon={ redo }
-				label="Redo"
+				label={ __( 'Redo', 'camptix-badge-designer' ) }
 				shortcut="Ctrl+Shift+Z"
 				size="compact"
 				disabled={ ! history.canRedo }
@@ -144,13 +160,13 @@ export function Toolbar( {
 				title={ saveError || undefined }
 				role="status"
 			>
-				{ SAVE_LABELS[ saveStatus ] }
+				{ saveLabel( saveStatus ) }
 			</span>
 			<Button variant="secondary" onClick={ onPreview }>
-				Preview badge
+				{ __( 'Preview badge', 'camptix-badge-designer' ) }
 			</Button>
 			<Button variant="primary" onClick={ onGenerate }>
-				Generate PDF
+				{ __( 'Generate PDF', 'camptix-badge-designer' ) }
 			</Button>
 		</div>
 	);

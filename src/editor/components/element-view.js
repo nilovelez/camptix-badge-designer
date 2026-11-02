@@ -2,6 +2,7 @@
  * What each element shows on the canvas for the attendee on screen.
  */
 import { useState } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 import { profileQr } from '../../shared/qr';
 import { faceKey, resolveFace } from '../fonts';
 import { gravatarUrl } from '../../shared/gravatar';
@@ -39,7 +40,7 @@ function QrView( { element, attendee } ) {
 		// Nothing is printed; the editor shows where the code would go.
 		return (
 			<span className="ctbd-element__placeholder">
-				No username: no QR code
+				{ __( 'No username: no QR code', 'camptix-badge-designer' ) }
 			</span>
 		);
 	}
@@ -49,7 +50,7 @@ function QrView( { element, attendee } ) {
 			className="ctbd-element__qr"
 			viewBox={ '0 0 ' + qr.size + ' ' + qr.size }
 			shapeRendering="crispEdges"
-			aria-label="QR code"
+			aria-label={ __( 'QR code', 'camptix-badge-designer' ) }
 		>
 			{ ! element.transparent && (
 				<rect width={ qr.size } height={ qr.size } fill="#fff" />
@@ -91,7 +92,10 @@ function GravatarView( { element, attendee, scale, images } ) {
 		return (
 			<span
 				className={ className + ' is-missing' }
-				title="No Gravatar for this attendee"
+				title={ __(
+					'No Gravatar for this attendee',
+					'camptix-badge-designer'
+				) }
 			>
 				<svg viewBox="0 0 24 24" aria-hidden="true">
 					<circle cx="12" cy="9" r="4" />

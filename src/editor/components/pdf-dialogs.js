@@ -3,6 +3,7 @@
  * PDF (one page per attendee, for a range of pages).
  */
 import { useEffect, useRef, useState } from '@wordpress/element';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	Button,
 	Modal,
@@ -13,13 +14,32 @@ import {
 import { buildBadgesPdf, pageGeometry } from '../build-pdf';
 import { loadPdf } from '../pdf';
 
-const STEP_LABELS = {
-	fonts: 'Embedding fonts…',
-	background: 'Embedding the background…',
-	gravatars: 'Fetching Gravatars',
-	pages: 'Laying out pages',
-	saving: 'Saving the PDF…',
-};
+function stepLabel( step, done, total ) {
+	if ( step === 'gravatars' && total ) {
+		return sprintf(
+			/* translators: 1: Gravatars fetched so far, 2: Gravatars to fetch. */
+			__( 'Fetching Gravatars %1$d of %2$d', 'camptix-badge-designer' ),
+			done,
+			total
+		);
+	}
+	if ( step === 'pages' && total ) {
+		return sprintf(
+			/* translators: 1: pages laid out so far, 2: pages to lay out. */
+			__( 'Laying out pages %1$d of %2$d', 'camptix-badge-designer' ),
+			done,
+			total
+		);
+	}
+	const labels = {
+		fonts: __( 'Embedding fonts…', 'camptix-badge-designer' ),
+		background: __( 'Embedding the background…', 'camptix-badge-designer' ),
+		gravatars: __( 'Fetching Gravatars…', 'camptix-badge-designer' ),
+		pages: __( 'Laying out pages…', 'camptix-badge-designer' ),
+		saving: __( 'Saving the PDF…', 'camptix-badge-designer' ),
+	};
+	return labels[ step ] || '';
+}
 
 function formatSize( bytes ) {
 	if ( bytes < 1048576 ) {
@@ -47,19 +67,13 @@ function Progress( { progress } ) {
 	if ( ! progress ) {
 		return <Spinner />;
 	}
-	const label = STEP_LABELS[ progress.step ] || '';
-	const counted = progress.total
-		? ' ' + progress.done + ' of ' + progress.total
-		: '';
+	const label = stepLabel( progress.step, progress.done, progress.total );
 	const percent = progress.total
 		? Math.round( ( progress.done / progress.total ) * 100 )
 		: null;
 	return (
 		<div className="ctbd-progress">
-			<p>
-				{ label }
-				{ counted }
-			</p>
+			<p>{ label }</p>
 			<div className="ctbd-progress__bar">
 				<span
 					style={ {
@@ -145,8 +159,16 @@ function GravatarNote( { stats } ) {
 	}
 	return (
 		<Notice status="warning" isDismissible={ false }>
-			{ stats.gravatarsFailed } Gravatars could not be downloaded (network
-			error); those badges have none.
+			{ sprintf(
+				/* translators: %d: number of Gravatars. */
+				_n(
+					'%d Gravatar could not be downloaded (network error); that badge has none.',
+					'%d Gravatars could not be downloaded (network error); those badges have none.',
+					stats.gravatarsFailed,
+					'camptix-badge-designer'
+				),
+				stats.gravatarsFailed
+			) }
 		</Notice>
 	);
 }
@@ -199,7 +221,11 @@ export function PreviewDialog( {
 
 	return (
 		<Modal
-			title={ 'Preview: badge ' + attendee.number }
+			title={ sprintf(
+				/* translators: %d: badge number. */
+				__( 'Preview: badge %d', 'camptix-badge-designer' ),
+				attendee.number
+			) }
 			onRequestClose={ onClose }
 			className="ctbd-pdf-dialog"
 		>
@@ -208,16 +234,29 @@ export function PreviewDialog( {
 			) }
 			{ state.status === 'error' && (
 				<Notice status="error" isDismissible={ false }>
-					The preview could not be made: { state.message }
+					{ sprintf(
+						/* translators: %s: error message. */
+						__(
+							'The preview could not be made: %s',
+							'camptix-badge-designer'
+						),
+						state.message
+					) }
 				</Notice>
 			) }
 			{ state.status === 'done' && (
 				<>
 					<p className="ctbd-help">
-						The PDF as the print shop will get it:{ ' ' }
-						{ pageGeometry( design ).width } ×{ ' ' }
-						{ pageGeometry( design ).height } mm,{ ' ' }
-						{ formatSize( state.bytes.length ) }.
+						{ sprintf(
+							/* translators: 1: page width, 2: page height, in millimeters; 3: file size. */
+							__(
+								'The PDF as the print shop will get it: %1$s × %2$s mm, %3$s.',
+								'camptix-badge-designer'
+							),
+							pageGeometry( design ).width,
+							pageGeometry( design ).height,
+							formatSize( state.bytes.length )
+						) }
 					</p>
 					<div className="ctbd-pdf-dialog__preview">
 						<canvas ref={ canvasRef } />
@@ -227,7 +266,7 @@ export function PreviewDialog( {
 			) }
 			<div className="ctbd-pdf-dialog__actions">
 				<Button variant="tertiary" onClick={ onClose }>
-					Close
+					{ __( 'Close', 'camptix-badge-designer' ) }
 				</Button>
 				{ state.status === 'done' && (
 					<>
@@ -237,13 +276,16 @@ export function PreviewDialog( {
 							target="_blank"
 							rel="noreferrer"
 						>
-							Open in a new tab
+							{ __(
+								'Open in a new tab',
+								'camptix-badge-designer'
+							) }
 						</Button>
 						<Button
 							variant="primary"
 							onClick={ () => download( state.url, filename ) }
 						>
-							Download
+							{ __( 'Download', 'camptix-badge-designer' ) }
 						</Button>
 					</>
 				) }
@@ -281,6 +323,30 @@ export function GenerateDialog( {
 				.length
 		: 0;
 	const filename = 'badges-' + first + '-' + last + '.pdf';
+	const pageSizes = [
+		geometry.width,
+		geometry.height,
+		design.size.width,
+		design.size.height,
+		design.size.bleed,
+	];
+	const pagesText = design.cropMarks
+		? sprintf(
+				/* translators: 1: page width, 2: page height, 3: trim width, 4: trim height, 5: bleed, all in millimeters. */
+				__(
+					'%1$s × %2$s mm pages (%3$s × %4$s mm + %5$s mm bleed), with crop marks.',
+					'camptix-badge-designer'
+				),
+				...pageSizes
+			)
+		: sprintf(
+				/* translators: 1: page width, 2: page height, 3: trim width, 4: trim height, 5: bleed, all in millimeters. */
+				__(
+					'%1$s × %2$s mm pages (%3$s × %4$s mm + %5$s mm bleed).',
+					'camptix-badge-designer'
+				),
+				...pageSizes
+			);
 
 	async function generate() {
 		const url = await start( {
@@ -298,28 +364,49 @@ export function GenerateDialog( {
 
 	return (
 		<Modal
-			title="Generate PDF"
+			title={ __( 'Generate PDF', 'camptix-badge-designer' ) }
 			onRequestClose={ running ? cancel : onClose }
 			className="ctbd-pdf-dialog ctbd-generate-dialog"
 		>
 			{ state.status !== 'done' && (
 				<>
 					<p className="ctbd-help">
-						One page per attendee, numbered in purchase order.
+						{ __(
+							'One page per attendee, numbered in purchase order.',
+							'camptix-badge-designer'
+						) }
 					</p>
 					<RadioControl
-						label="Pages"
+						label={ __( 'Pages', 'camptix-badge-designer' ) }
 						selected={ range }
 						disabled={ running }
 						options={ [
-							{ label: 'All (1–' + total + ')', value: 'all' },
-							{ label: 'A range', value: 'range' },
+							{
+								label: sprintf(
+									/* translators: %d: number of the last page. */
+									__(
+										'All (1–%d)',
+										'camptix-badge-designer'
+									),
+									total
+								),
+								value: 'all',
+							},
+							{
+								label: __(
+									'A range',
+									'camptix-badge-designer'
+								),
+								value: 'range',
+							},
 						] }
 						onChange={ setRange }
 					/>
 					{ range === 'range' && (
 						<div className="ctbd-range">
-							<label htmlFor="ctbd-range-from">From</label>
+							<label htmlFor="ctbd-range-from">
+								{ __( 'From', 'camptix-badge-designer' ) }
+							</label>
 							<input
 								id="ctbd-range-from"
 								type="number"
@@ -329,7 +416,9 @@ export function GenerateDialog( {
 								disabled={ running }
 								onChange={ ( e ) => setFrom( e.target.value ) }
 							/>
-							<label htmlFor="ctbd-range-to">to</label>
+							<label htmlFor="ctbd-range-to">
+								{ __( 'to', 'camptix-badge-designer' ) }
+							</label>
 							<input
 								id="ctbd-range-to"
 								type="number"
@@ -345,35 +434,53 @@ export function GenerateDialog( {
 						{ valid ? (
 							<>
 								<strong>
-									{ count }{ ' ' }
-									{ count === 1 ? 'badge' : 'badges' }
+									{ sprintf(
+										/* translators: %d: number of badges. */
+										_n(
+											'%d badge',
+											'%d badges',
+											count,
+											'camptix-badge-designer'
+										),
+										count
+									) }
 								</strong>
-								<span>
-									{ geometry.width } × { geometry.height } mm
-									pages ({ design.size.width } ×{ ' ' }
-									{ design.size.height } mm +{ ' ' }
-									{ design.size.bleed } mm bleed)
-									{ design.cropMarks
-										? ', with crop marks'
-										: '' }
-									.
-								</span>
+								<span>{ pagesText }</span>
 								{ withoutQr > 0 && (
 									<span>
-										{ withoutQr } without a QR code (no
-										username).
+										{ sprintf(
+											/* translators: %d: number of badges. */
+											__(
+												'%d without a QR code (no username).',
+												'camptix-badge-designer'
+											),
+											withoutQr
+										) }
 									</span>
 								) }
 								{ cut > 0 && (
 									<span className="is-warning">
-										{ cut } with text that is cut.
+										{ sprintf(
+											/* translators: %d: number of badges. */
+											__(
+												'%d with text that is cut.',
+												'camptix-badge-designer'
+											),
+											cut
+										) }
 									</span>
 								) }
 							</>
 						) : (
 							<span className="is-warning">
-								Choose pages between 1 and { total }, the first
-								not after the last.
+								{ sprintf(
+									/* translators: %d: number of the last page. */
+									__(
+										'Choose pages between 1 and %d, the first not after the last.',
+										'camptix-badge-designer'
+									),
+									total
+								) }
 							</span>
 						) }
 					</div>
@@ -382,16 +489,31 @@ export function GenerateDialog( {
 			{ running && <Progress progress={ state.progress } /> }
 			{ state.status === 'error' && (
 				<Notice status="error" isDismissible={ false }>
-					The PDF could not be made: { state.message }
+					{ sprintf(
+						/* translators: %s: error message. */
+						__(
+							'The PDF could not be made: %s',
+							'camptix-badge-designer'
+						),
+						state.message
+					) }
 				</Notice>
 			) }
 			{ state.status === 'done' && (
 				<>
 					<Notice status="success" isDismissible={ false }>
-						{ state.stats.pages } badges,{ ' ' }
-						{ formatSize( state.bytes.length ) }, made in{ ' ' }
-						{ state.seconds.toFixed( 1 ) } s. The download has
-						started.
+						{ sprintf(
+							/* translators: 1: number of badges, 2: file size, 3: seconds. */
+							_n(
+								'%1$d badge, %2$s, made in %3$s s. The download has started.',
+								'%1$d badges, %2$s, made in %3$s s. The download has started.',
+								state.stats.pages,
+								'camptix-badge-designer'
+							),
+							state.stats.pages,
+							formatSize( state.bytes.length ),
+							state.seconds.toFixed( 1 )
+						) }
 					</Notice>
 					<GravatarNote stats={ state.stats } />
 				</>
@@ -399,12 +521,14 @@ export function GenerateDialog( {
 			<div className="ctbd-pdf-dialog__actions">
 				{ running && (
 					<Button variant="tertiary" onClick={ cancel }>
-						Cancel
+						{ __( 'Cancel', 'camptix-badge-designer' ) }
 					</Button>
 				) }
 				{ ! running && (
 					<Button variant="tertiary" onClick={ onClose }>
-						{ state.status === 'done' ? 'Close' : 'Cancel' }
+						{ state.status === 'done'
+							? __( 'Close', 'camptix-badge-designer' )
+							: __( 'Cancel', 'camptix-badge-designer' ) }
 					</Button>
 				) }
 				{ state.status === 'done' && (
@@ -412,7 +536,7 @@ export function GenerateDialog( {
 						variant="secondary"
 						onClick={ () => download( state.url, filename ) }
 					>
-						Download again
+						{ __( 'Download again', 'camptix-badge-designer' ) }
 					</Button>
 				) }
 				{ state.status !== 'done' && (
@@ -422,7 +546,7 @@ export function GenerateDialog( {
 						isBusy={ running }
 						onClick={ generate }
 					>
-						Generate PDF
+						{ __( 'Generate PDF', 'camptix-badge-designer' ) }
 					</Button>
 				) }
 			</div>

@@ -22,10 +22,6 @@ Buttons to go to the next attendee without a QR code, without a Gravatar, or wit
 
 `build/` stays out of `main` (decided by Nilo, November 2026). Since milestone 9, a GitHub Action (`.github/workflows/dist.yml`) builds the plugin on every push to `main` and publishes it, ready to install, to the `dist` branch, with only what goes in the plugin (no `src/`, tests or docs); the public Playground demo installs it from there. Still to do: the release zip from the same branch (or attached to a GitHub release), and Plugin Check on it. Plugin Check already passes on a release-like copy (milestone 7).
 
-## Translatable editor strings
-
-The PHP strings are translatable, but the editor's JavaScript strings are plain English. Wrap them with `@wordpress/i18n` (`__`, `_n`, `sprintf`) and load the translations with `wp_set_script_translations()`, so organizers can use the editor in their language. Found in the milestone 7 review (October 2026).
-
 ## Integration into the official WordCamp.org badge plugin
 
 Once the WordCamp.org team agrees (see "Name, and the road to WordCamp.org" in `docs/decisions.md`): fork `WordPress/wordcamp.org`, move the code into its `camptix-badge-generator` plugin following that repo's conventions, and send the pull request.

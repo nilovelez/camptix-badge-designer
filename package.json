@@ -18,6 +18,7 @@
 		"@wordpress/api-fetch": "^8.0.0",
 		"@wordpress/components": "^43.0.0",
 		"@wordpress/element": "^10.0.0",
+		"@wordpress/i18n": "^7.0.0",
 		"@wordpress/icons": "^19.0.0",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^6.4.299",

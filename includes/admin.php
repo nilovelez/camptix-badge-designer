@@ -10,6 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Smallest window the editor works in, in CSS pixels. Keep in step with
+ * $min-width and $min-height in src/editor/editor.scss.
+ */
+const CTBD_EDITOR_MIN_WIDTH  = 960;
+const CTBD_EDITOR_MIN_HEIGHT = 560;
+
+/**
  * Registers the editor page: Tickets > Badge Designer on sites with
  * CampTix, next to its other tools, and Badges in the main menu otherwise.
  */
@@ -70,6 +77,19 @@ function ctbd_render_editor_page() {
 	echo '<div class="ctbd-loading__bar"><div class="ctbd-loading__fill"></div></div>';
 	echo '</div></div>';
 	echo '</div>';
+
+	// Shown instead of the editor on small screens, by editor.css.
+	echo '<div class="ctbd-small-screen"><div class="ctbd-small-screen__box">';
+	echo '<h2>' . esc_html__( 'Your screen is too small for the badge editor', 'camptix-badge-designer' ) . '</h2>';
+	echo '<p>' . esc_html(
+		sprintf(
+			/* translators: 1: minimum width, 2: minimum height, in pixels. */
+			__( 'The badge editor needs a window of at least %1$d × %2$d pixels, to show the badge and its settings side by side. Open this page on a computer, or make the window bigger.', 'camptix-badge-designer' ),
+			CTBD_EDITOR_MIN_WIDTH,
+			CTBD_EDITOR_MIN_HEIGHT
+		)
+	) . '</p>';
+	echo '</div></div>';
 }
 
 /**
@@ -103,6 +123,8 @@ function ctbd_enqueue_admin_assets( $hook_suffix ) {
 	// The Media Library modal, to pick the background and images.
 	wp_enqueue_media();
 	wp_enqueue_script( 'ctbd-editor', CTBD_PLUGIN_URL . 'build/editor.js', $asset['dependencies'], $asset['version'], true );
+	// The editor's strings, translated on translate.wordpress.org like the PHP ones.
+	wp_set_script_translations( 'ctbd-editor', 'camptix-badge-designer' );
 	wp_enqueue_style( 'ctbd-editor', CTBD_PLUGIN_URL . 'build/editor.css', array( 'wp-components' ), $asset['version'] );
 
 	$settings = array(
