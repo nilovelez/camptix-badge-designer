@@ -43,6 +43,8 @@ function ctbd_default_design() {
 		),
 		'cropMarks'  => true,
 		'guides'     => true,
+		// Folded: the face is printed twice on a taller page, to fold in half.
+		'folded'     => false,
 		'background' => null,
 		'elements'   => null,
 	);
@@ -101,6 +103,7 @@ function ctbd_sanitize_design( $input ) {
 		),
 		'cropMarks'  => ! empty( $input['cropMarks'] ),
 		'guides'     => ! empty( $input['guides'] ),
+		'folded'     => ! empty( $input['folded'] ),
 		'background' => null,
 		'elements'   => array(),
 	);

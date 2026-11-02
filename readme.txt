@@ -23,6 +23,7 @@ Features:
 
 * Visual editor in the WordPress admin, saved automatically, with undo.
 * Any print size; 100 × 150 mm with 3 mm bleed by default.
+* Single badges, or badges to fold in half: you design one side, and each page gets it twice, the top one upside down.
 * A vector PDF background stays vector in the final PDF.
 * Text in Inter, included, or any font installed with the WordPress Font Library, in the colors of your site's palette.
 * Text that does not fit is cut and listed, so it can be checked before printing.
