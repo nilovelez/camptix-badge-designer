@@ -175,8 +175,6 @@ A Playground link anyone can open (milestone 9; the link is in `AGENTS.md`). It 
 ## Open points
 
 - Background templates with the trim, bleed and safe area marked, for the drawing programs organizers use.
-- The release zip, and Plugin Check on it (see `docs/backlog.md`).
-
 ## Out of the first phase
 
 - Several designs per site, or styles that depend on the ticket type (organizer, speaker, volunteer...).
