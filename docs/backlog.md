@@ -14,10 +14,6 @@ Use the avatar of the attendee's WordPress.org profile when the CampTix email ad
 
 Buttons to go to the next attendee without a QR code, without a Gravatar, or with text that is cut, to review them before printing. Nilo moved it here from milestone 5: it will probably be done another way (October 2026).
 
-## Smaller editor script
-
-`build/editor.js` is about 1.6 MB, and on a slow mobile connection the editor takes a few seconds to appear (a loading bar covers it since milestone 9). Most of it is pdf-lib and PDF.js: load them with a dynamic `import()` only when they are needed (the background preview and Generate PDF), so the editor itself loads first. Nilo agreed to note it here (November 2026).
-
 ## Release zip and built plugin
 
 `build/` stays out of `main` (decided by Nilo, November 2026). Since milestone 9, a GitHub Action (`.github/workflows/dist.yml`) builds the plugin on every push to `main` and publishes it, ready to install, to the `dist` branch, with only what goes in the plugin (no `src/`, tests or docs); the public Playground demo installs it from there. Still to do: the release zip from the same branch (or attached to a GitHub release), and Plugin Check on it. Plugin Check already passes on a release-like copy (milestone 7).
