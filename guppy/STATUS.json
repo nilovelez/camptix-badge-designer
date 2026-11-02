@@ -3,9 +3,9 @@
   "title": "CampTix Badge Designer",
   "description": "WordPress plugin for WordCamp organizers: design attendee badges in a visual editor and generate a print-ready PDF in the browser from CampTix data.",
   "status": "active",
-  "status_text": "Badge editor and in-browser PDF generation work with CampTix CSV exports. Next: a WordCamp sandbox reading CampTix attendees live, then a proposal to WordCamp.org.",
-  "last_update": "2026-10-31 23:59:02 +0100",
-  "last_update_unix": 1793487542,
+  "status_text": "Public demo and user guide are out, and the proposal is open as WordPress/wordcamp.org#2286. Next: a refinement milestone, then integration into WordCamp.org if agreed.",
+  "last_update": "2026-11-02 18:44:27 +0100",
+  "last_update_unix": 1793641467,
   "url": "https://github.com/nilovelez/camptix-badge-designer",
   "status_url": "https://raw.githubusercontent.com/nilovelez/camptix-badge-designer/main/guppy/STATUS.md",
   "icon": null
