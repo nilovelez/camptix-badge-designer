@@ -68,6 +68,14 @@ check( 'hyphenated', ctbd_normalize_name( 'fernández-villaverde' ), 'Fernández
 check( 'ñ and accents', ctbd_normalize_name( 'ÍÑIGO NÚÑEZ' ), 'Íñigo Núñez' );
 check( 'extra spaces', ctbd_normalize_name( '  ana   ruiz ' ), 'Ana Ruiz' );
 check( 'empty', ctbd_normalize_name( '' ), '' );
+check( 'apostrophe', ctbd_normalize_name( "O'BRIEN" ), "O'Brien" );
+check( 'typographic apostrophe', ctbd_normalize_name( 'd’angelo' ), 'D’Angelo' );
+check( 'Mc', ctbd_normalize_name( 'MCDONALD' ), 'McDonald' );
+check( 'Mac is left alone', ctbd_normalize_name( 'MACÍAS' ), 'Macías' );
+check( 'particles with no name after them', ctbd_normalize_name( 'LE VAN' ), 'Le Van' );
+check( 'particle before a name', ctbd_normalize_name( 'VAN DER BERG' ), 'van der Berg' );
+check( 'particle at the end', ctbd_normalize_name( 'JUAN DE' ), 'Juan De' );
+check( 'apostrophe after a particle', ctbd_normalize_name( "jeanne d'arc" ), "Jeanne D'Arc" );
 
 // Usernames.
 check( 'valid username', ctbd_sanitize_wporg_username( 'janedoe42' ), 'janedoe42' );
@@ -99,6 +107,24 @@ check( 'questions: event ones and first time, never allergies', array_column( $r
 check( 'answers keyed by question', $result['attendees'][1]['answers'], array( 'first-time-attending' => 'Yes', 'vendras-el-domingo' => 'Sí' ) );
 check( 'stats', array( $result['stats']['rows'], $result['stats']['malformed'], $result['stats']['withoutUsername'] ), array( 5, 1, 1 ) );
 check( 'unknown attendee placeholder left out', $result['stats']['placeholders'], 1 );
+check( 'no flags from a CSV', array( $result['flags'], $result['attendees'][1]['flags'] ), array( array(), array() ) );
+
+// Live from CampTix: only the event's questions become variables, and the
+// admin flags are read from their columns.
+$live   = array(
+	'header'           => array( 'Attendee ID', 'Ticket Type', 'First Name', 'Last Name', 'E-mail Address', 'Status', 'Country', 'Phone Number', 'Volunteer', 'Username', 'First Time Attending' ),
+	'rows'             => array(
+		array( '4', 'General', 'Eva', 'Vidal', 'eva@example.com', 'Publish', 'Spain', '+34 600 000 000', 'Yes', 'eva', 'No' ),
+		array( '5', 'General', 'Jon', 'Sanz', 'jon@example.com', 'Publish', 'Italy', '', 'No', 'jon', 'Yes' ),
+	),
+	'malformed'        => 0,
+	'question_columns' => array( 'Country' ),
+	'flag_columns'     => array( 'volunteer' => 'Volunteer' ),
+);
+$result = ctbd_parse_attendees( $live );
+check( 'live: only questions and allowed columns', array_column( $result['questions'], 'label' ), array( 'Country', 'First Time Attending' ) );
+check( 'live: flags listed', $result['flags'], array( array( 'key' => 'volunteer', 'label' => 'Volunteer' ) ) );
+check( 'live: attendee flags', array_column( $result['attendees'], 'flags' ), array( array( 'volunteer' ), array() ) );
 
 echo $failures ? "\n$failures failed\n" : "\nAll passed\n";
 exit( $failures ? 1 : 0 );

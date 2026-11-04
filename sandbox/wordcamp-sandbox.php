@@ -160,9 +160,65 @@ function ctbd_sandbox_maybe_seed() {
 	ctbd_sandbox_seed();
 	ctbd_sandbox_design();
 	update_option( 'ctbd_sandbox_version', CTBD_SANDBOX_VERSION );
+	delete_option( 'ctbd_sandbox_flags' );
 	delete_option( 'ctbd_sandbox_lock' );
 }
 add_action( 'init', 'ctbd_sandbox_maybe_seed', 100 );
+
+/**
+ * Admin flags, when the CampTix Admin Flags plugin is active, as in the local
+ * sandbox (sandbox/blueprint.json). The public demo does not install it, so
+ * this does nothing there. Two flags: Volunteer, on the attendees with a
+ * Volunteer ticket, and Organizer, on every 12th attendee.
+ */
+function ctbd_sandbox_maybe_flag() {
+	if ( ! class_exists( 'CampTix_Admin_Flags_Addon' ) || get_option( 'ctbd_sandbox_flags' ) ) {
+		return;
+	}
+	if ( (int) get_option( 'ctbd_sandbox_version' ) !== CTBD_SANDBOX_VERSION ) {
+		return;
+	}
+
+	$options = (array) get_option( 'camptix_options', array() );
+
+	$options['camptix-admin-flags-data']        = "volunteer: Volunteer\norganizer: Organizer";
+	$options['camptix-admin-flags-data-parsed'] = array(
+		'volunteer' => 'Volunteer',
+		'organizer' => 'Organizer',
+	);
+	update_option( 'camptix_options', $options );
+
+	$volunteer_ticket = get_posts(
+		array(
+			'post_type'      => 'tix_ticket',
+			'title'          => 'Volunteer',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		)
+	);
+	$attendees        = get_posts(
+		array(
+			'post_type'      => 'tix_attendee',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
+			'fields'         => 'ids',
+		)
+	);
+	foreach ( $attendees as $position => $attendee_id ) {
+		delete_post_meta( $attendee_id, 'camptix-admin-flag' );
+		if ( $volunteer_ticket && (int) get_post_meta( $attendee_id, 'tix_ticket_id', true ) === $volunteer_ticket[0] ) {
+			add_post_meta( $attendee_id, 'camptix-admin-flag', 'volunteer' );
+		}
+		if ( 0 === ( $position + 1 ) % 12 ) {
+			add_post_meta( $attendee_id, 'camptix-admin-flag', 'organizer' );
+		}
+	}
+
+	update_option( 'ctbd_sandbox_flags', 1 );
+}
+add_action( 'init', 'ctbd_sandbox_maybe_flag', 101 );
 
 /**
  * Deletes every ticket, question and attendee.

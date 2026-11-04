@@ -49,6 +49,20 @@
 			}
 		},
 		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "git:directory",
+				"url": "https://github.com/WordPress/wordcamp.org",
+				"ref": "89f80bcbb2c6c1e40397317dc47a942332d427e4",
+				"refType": "commit",
+				"path": "public_html/wp-content/plugins/camptix-admin-flags"
+			},
+			"options": {
+				"activate": true,
+				"targetFolderName": "camptix-admin-flags"
+			}
+		},
+		{
 			"step": "activatePlugin",
 			"pluginPath": "camptix-badge-designer/camptix-badge-designer.php"
 		}
