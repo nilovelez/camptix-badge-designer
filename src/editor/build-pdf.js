@@ -24,41 +24,22 @@ import { layoutText } from '../shared/text-layout';
 import { profileQr } from '../shared/qr';
 import { gravatarUrl } from '../shared/gravatar';
 import { faceKey, loadFace, resolveFace } from './fonts';
+import {
+	CROP_MARK_LENGTH,
+	HOLE_MARK_ARM,
+	HOLE_MARK_OFFSET,
+	pageGeometry,
+} from './geometry';
 
 const PT_PER_MM = 72 / 25.4;
 const pt = ( mm ) => mm * PT_PER_MM;
 
-// Crop marks: 5 mm long, starting at the edge of the bleed. The page grows
-// by the bleed plus 6 mm on every side to make room for them.
-const CROP_MARK_LENGTH = 5;
-const CROP_MARK_SPARE = 1;
 const PRINT_DPI = 300;
 // Gravatar requests running at once.
 const GRAVATAR_LANES = 8;
 
 const BLACK = rgb( 0, 0, 0 );
 const WHITE = rgb( 1, 1, 1 );
-
-/**
- * Size of each PDF page.
- *
- * @param {Object} design Design.
- * @return {{margin: number, width: number, height: number}} In mm: the space around the trim box and the page size.
- */
-export function pageGeometry( design ) {
-	const { width, height, bleed } = design.size;
-	let margin = bleed;
-	if ( design.cropMarks ) {
-		margin = bleed + CROP_MARK_LENGTH + CROP_MARK_SPARE;
-	}
-	// A folded badge prints the face twice, joined at the fold.
-	const faces = design.folded ? 2 : 1;
-	return {
-		margin,
-		width: width + 2 * margin,
-		height: faces * height + 2 * margin,
-	};
-}
 
 /**
  * @param {string} hex Color as #rrggbb.
@@ -194,6 +175,35 @@ function drawCropMarks( page, left, bottom, right, top, offset ) {
 			start: { x, y: y + dy * offset },
 			end: { x, y: y + dy * ( offset + length ) },
 			...line,
+		} );
+	}
+}
+
+/**
+ * Hole mark: a small cross where the lanyard hole is punched, black on a
+ * thin white outline so it shows on light and dark backgrounds.
+ *
+ * @param {Object} page PDF page.
+ * @param {number} x    Center, in points.
+ * @param {number} y    Center, in points.
+ */
+function drawHoleMark( page, x, y ) {
+	const arm = pt( HOLE_MARK_ARM );
+	for ( const [ color, thickness ] of [
+		[ WHITE, 1.2 ],
+		[ BLACK, 0.4 ],
+	] ) {
+		page.drawLine( {
+			start: { x: x - arm, y },
+			end: { x: x + arm, y },
+			thickness,
+			color,
+		} );
+		page.drawLine( {
+			start: { x, y: y - arm },
+			end: { x, y: y + arm },
+			thickness,
+			color,
 		} );
 	}
 }
@@ -477,6 +487,14 @@ export async function buildBadgesPdf( {
 					);
 				}
 			}
+		}
+
+		if ( design.holeMark ) {
+			drawHoleMark(
+				page,
+				( trimLeft + trimRight ) / 2,
+				fromTop( HOLE_MARK_OFFSET )
+			);
 		}
 	}
 

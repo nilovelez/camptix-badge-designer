@@ -9,10 +9,24 @@ import {
 	Modal,
 	Notice,
 	RadioControl,
+	SelectControl,
 	Spinner,
 } from '@wordpress/components';
-import { buildBadgesPdf, pageGeometry } from '../build-pdf';
+import { pageGeometry } from '../geometry';
 import { loadPdf } from '../pdf';
+
+/**
+ * The PDF generator, with pdf-lib, loaded the first time a PDF is made, so
+ * the editor itself loads without it.
+ *
+ * @return {Promise<Function>} buildBadgesPdf().
+ */
+async function loadBuilder() {
+	const module = await import(
+		/* webpackChunkName: "build-pdf" */ '../build-pdf'
+	);
+	return module.buildBadgesPdf;
+}
 
 function stepLabel( step, done, total ) {
 	if ( step === 'gravatars' && total ) {
@@ -113,6 +127,7 @@ function useBuild() {
 		setState( { status: 'running', progress: null } );
 		const started = performance.now();
 		try {
+			const buildBadgesPdf = await loadBuilder();
 			const result = await buildBadgesPdf( {
 				...options,
 				signal: controller.current.signal,
@@ -299,6 +314,7 @@ export function GenerateDialog( {
 	backgroundFile,
 	images,
 	attendees,
+	flags,
 	overflows,
 	onClose,
 } ) {
@@ -306,23 +322,30 @@ export function GenerateDialog( {
 	const [ range, setRange ] = useState( 'all' );
 	const [ from, setFrom ] = useState( '1' );
 	const [ to, setTo ] = useState( String( total ) );
+	// A CampTix admin flag, to print only the attendees who have it.
+	const [ flag, setFlag ] = useState( '' );
 	const { state, start, cancel } = useBuild();
 
 	const first = range === 'all' ? 1 : parseInt( from, 10 );
 	const last = range === 'all' ? total : parseInt( to, 10 );
-	const valid = first >= 1 && last <= total && first <= last;
-	const count = valid ? last - first + 1 : 0;
+	const validRange = first >= 1 && last <= total && first <= last;
+	const selected = validRange
+		? attendees
+				.slice( first - 1, last )
+				.filter(
+					( a ) => ! flag || ( a.flags && a.flags.includes( flag ) )
+				)
+		: [];
+	const valid = selected.length > 0;
+	const count = selected.length;
 	const geometry = pageGeometry( design );
-	const cut = valid
-		? overflows.filter(
-				( item ) => item.number >= first && item.number <= last
-			).length
-		: 0;
-	const withoutQr = valid
-		? attendees.slice( first - 1, last ).filter( ( a ) => ! a.username )
-				.length
-		: 0;
-	const filename = 'badges-' + first + '-' + last + '.pdf';
+	const selectedNumbers = new Set( selected.map( ( a ) => a.number ) );
+	const cut = overflows.filter( ( item ) =>
+		selectedNumbers.has( item.number )
+	).length;
+	const withoutQr = selected.filter( ( a ) => ! a.username ).length;
+	const filename =
+		'badges-' + first + '-' + last + ( flag ? '-' + flag : '' ) + '.pdf';
 	const pageSizes = [
 		geometry.width,
 		geometry.height,
@@ -353,7 +376,7 @@ export function GenerateDialog( {
 			design,
 			backgroundFile,
 			images,
-			attendees: attendees.slice( first - 1, last ),
+			attendees: selected,
 		} );
 		if ( url ) {
 			download( url, filename );
@@ -430,6 +453,43 @@ export function GenerateDialog( {
 							/>
 						</div>
 					) }
+					{ flags.length > 0 && (
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __(
+								'Attendees',
+								'camptix-badge-designer'
+							) }
+							value={ flag }
+							disabled={ running }
+							options={ [
+								{
+									label: __(
+										'Everyone',
+										'camptix-badge-designer'
+									),
+									value: '',
+								},
+								...flags.map( ( item ) => ( {
+									label: sprintf(
+										/* translators: %s: name of a CampTix admin flag, such as Volunteer. */
+										__(
+											'Only those flagged: %s',
+											'camptix-badge-designer'
+										),
+										item.label
+									),
+									value: item.key,
+								} ) ),
+							] }
+							onChange={ setFlag }
+							help={ __(
+								'Admin flags are set on each attendee in CampTix.',
+								'camptix-badge-designer'
+							) }
+						/>
+					) }
 					<div className="ctbd-summary">
 						{ valid ? (
 							<>
@@ -481,14 +541,19 @@ export function GenerateDialog( {
 							</>
 						) : (
 							<span className="is-warning">
-								{ sprintf(
-									/* translators: %d: number of the last page. */
-									__(
-										'Choose pages between 1 and %d, the first not after the last.',
-										'camptix-badge-designer'
-									),
-									total
-								) }
+								{ validRange
+									? __(
+											'No attendee in these pages has this flag.',
+											'camptix-badge-designer'
+										)
+									: sprintf(
+											/* translators: %d: number of the last page. */
+											__(
+												'Choose pages between 1 and %d, the first not after the last.',
+												'camptix-badge-designer'
+											),
+											total
+										) }
 							</span>
 						) }
 					</div>

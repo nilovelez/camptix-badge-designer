@@ -24,7 +24,7 @@ import { AttendeesList } from './attendees-list';
 import { ElementPanel } from './element-panel';
 import { DesignPanel } from './design-panel';
 import { BadgeTypeControl } from './badge-type';
-import { elementLabel } from '../elements';
+import { elementLabel, isPastTrim, moveInsideTrim } from '../elements';
 import {
 	LIMITS,
 	RECOMMENDED_DPI,
@@ -166,6 +166,58 @@ function BackgroundPanel( {
 	);
 }
 
+/**
+ * Warns about elements that go past the trim, for example after the print
+ * size changed, and offers to bring them back inside.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.design       Design.
+ * @param {Function} props.updateDesign Design updater.
+ */
+function PastTrimNotice( { design, updateDesign } ) {
+	const past = design.elements.filter( ( element ) =>
+		isPastTrim( element, design.size )
+	);
+	if ( ! past.length ) {
+		return null;
+	}
+	const message = sprintf(
+		/* translators: 1: number of elements, 2: their names. */
+		_n(
+			'%1$d element goes past the edge of the badge and will be cut: %2$s.',
+			'%1$d elements go past the edge of the badge and will be cut: %2$s.',
+			past.length,
+			'camptix-badge-designer'
+		),
+		past.length,
+		past.map( elementLabel ).join( ', ' )
+	);
+	return (
+		<Notice
+			status="warning"
+			isDismissible={ false }
+			spokenMessage={ message }
+		>
+			{ message }{ ' ' }
+			<Button
+				variant="link"
+				onClick={ () =>
+					updateDesign( ( current ) => ( {
+						...current,
+						elements: current.elements.map( ( element ) =>
+							isPastTrim( element, current.size )
+								? moveInsideTrim( element, current.size )
+								: element
+						),
+					} ) )
+				}
+			>
+				{ __( 'Move them inside', 'camptix-badge-designer' ) }
+			</Button>
+		</Notice>
+	);
+}
+
 function PrintSizePanel( { design, updateDesign } ) {
 	const { size } = design;
 	const page = pageSize( size );
@@ -210,6 +262,7 @@ function PrintSizePanel( { design, updateDesign } ) {
 					page.height
 				) }
 			</p>
+			<PastTrimNotice design={ design } updateDesign={ updateDesign } />
 			<BadgeTypeControl
 				folded={ !! design.folded }
 				size={ size }
@@ -238,6 +291,19 @@ function PrintSizePanel( { design, updateDesign } ) {
 				<ToggleControl
 					__nextHasNoMarginBottom
 					label={ __(
+						'Mark for the lanyard hole',
+						'camptix-badge-designer'
+					) }
+					help={ __(
+						'A small cross at the top center, to punch the hole.',
+						'camptix-badge-designer'
+					) }
+					checked={ !! design.holeMark }
+					onChange={ setFlag( 'holeMark' ) }
+				/>
+				<ToggleControl
+					__nextHasNoMarginBottom
+					label={ __(
 						'Show trim and safe area',
 						'camptix-badge-designer'
 					) }
@@ -251,6 +317,7 @@ function PrintSizePanel( { design, updateDesign } ) {
 
 function ElementsPanel( {
 	design,
+	updateDesign,
 	selectedId,
 	onSelectElement,
 	onReorder,
@@ -273,6 +340,7 @@ function ElementsPanel( {
 	const rows = [ ...elements ].reverse();
 	return (
 		<PanelBody title={ __( 'Elements', 'camptix-badge-designer' ) }>
+			<PastTrimNotice design={ design } updateDesign={ updateDesign } />
 			<ul className="ctbd-layers">
 				{ rows.map( ( element ) => {
 					const index = elements.indexOf( element );

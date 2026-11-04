@@ -46,6 +46,38 @@ export function printedPageSize( size, folded ) {
 	};
 }
 
+// Crop marks: 5 mm long, starting at the edge of the bleed. The page grows
+// by the bleed plus 6 mm on every side to make room for them.
+export const CROP_MARK_LENGTH = 5;
+export const CROP_MARK_SPARE = 1;
+
+// Hole mark: a cross centered this far below the top edge of the trim (on a
+// folded badge, below the fold), with arms this long, in mm.
+export const HOLE_MARK_OFFSET = 6;
+export const HOLE_MARK_ARM = 1.5;
+
+/**
+ * Size of each PDF page. Here and not in build-pdf.js, so the PDF dialogs
+ * can show it before pdf-lib loads.
+ *
+ * @param {Object} design Design.
+ * @return {{margin: number, width: number, height: number}} In mm: the space around the trim box and the page size.
+ */
+export function pageGeometry( design ) {
+	const { width, height, bleed } = design.size;
+	let margin = bleed;
+	if ( design.cropMarks ) {
+		margin = bleed + CROP_MARK_LENGTH + CROP_MARK_SPARE;
+	}
+	// A folded badge prints the face twice, joined at the fold.
+	const faces = design.folded ? 2 : 1;
+	return {
+		margin,
+		width: width + 2 * margin,
+		height: faces * height + 2 * margin,
+	};
+}
+
 /**
  * Resolution of a bitmap background printed on the page with bleed.
  *

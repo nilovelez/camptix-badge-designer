@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { Button, Spinner } from '@wordpress/components';
 import { loadPdf } from '../pdf';
-import { pageSize } from '../geometry';
-import { moveElement, resizeElement } from '../elements';
+import { HOLE_MARK_ARM, HOLE_MARK_OFFSET, pageSize } from '../geometry';
+import { isPastTrim, moveElement, resizeElement } from '../elements';
 import { ElementView } from './element-view';
 
 // Free space around the page, in screen pixels.
@@ -187,6 +187,9 @@ function ElementBox( {
 	}
 	if ( overflow ) {
 		className += ' is-overflow';
+	}
+	if ( isPastTrim( element, size ) ) {
+		className += ' is-past-trim';
 	}
 
 	return (
@@ -395,6 +398,21 @@ export function Canvas( {
 								/>
 							</ElementBox>
 						) ) }
+						{ design.holeMark && (
+							<div
+								className="ctbd-canvas__hole"
+								title={ __(
+									'Mark for the lanyard hole',
+									'camptix-badge-designer'
+								) }
+								style={ {
+									left: mm( size.width / 2 - HOLE_MARK_ARM ),
+									top: mm( HOLE_MARK_OFFSET - HOLE_MARK_ARM ),
+									width: mm( 2 * HOLE_MARK_ARM ),
+									height: mm( 2 * HOLE_MARK_ARM ),
+								} }
+							/>
+						) }
 						{ snap && snap.x && (
 							<div className="ctbd-canvas__snap is-vertical" />
 						) }

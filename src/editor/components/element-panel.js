@@ -234,8 +234,8 @@ function TypographyPanel( { element, change } ) {
 	);
 }
 
-// Text is never resized: when it does not fit the box, it is cut and the
-// editor warns.
+// Text that does not fit shrinks a little; when it still does not fit, it is
+// cut and the editor warns.
 function OverflowNotice( { layout } ) {
 	if ( ! layout || ! layout.overflow ) {
 		return null;
@@ -244,7 +244,7 @@ function OverflowNotice( { layout } ) {
 		<div className="ctbd-element-notice">
 			<Notice status="warning" isDismissible={ false }>
 				{ __(
-					'For this attendee the text does not fit the box: it is cut. Make the box wider or the text smaller.',
+					'For this attendee the text does not fit the box, even made smaller: it is cut. Make the box wider or the text smaller.',
 					'camptix-badge-designer'
 				) }
 			</Notice>

@@ -3,8 +3,9 @@
  * and the paper match: the same variables, the same font metrics (from
  * fontkit, as pdf-lib uses them) and the same rules.
  *
- * Text boxes hold one line at the size chosen; text is never resized. When
- * it does not fit, it is cut at the edge of the box, starting from the left
+ * Text boxes hold one line, never two (decided by Nilo). Text that does not
+ * fit at the size chosen shrinks, down to SHRINK_LIMIT of that size. If it
+ * still does not fit, it is cut after the last whole character that fits,
  * so its beginning stays readable, and the editor warns.
  *
  * Box positions are in millimeters; font sizes in points.
@@ -13,6 +14,14 @@
 import { __ } from '@wordpress/i18n';
 
 const MM_PER_PT = 25.4 / 72;
+
+// Text may shrink to 80% of its size to fit its box.
+export const SHRINK_LIMIT = 0.8;
+
+// Characters that separate two variables, as in "{job} · {country}".
+const SEPARATOR = '[·•|/,;:\\u2013\\u2014-]';
+const SEPARATOR_AT_END = new RegExp( '\\s*' + SEPARATOR + '+\\s*$' );
+const SEPARATOR_AT_START = new RegExp( '^\\s*' + SEPARATOR + '+\\s*' );
 
 /**
  * Variables a text box can hold.
@@ -52,36 +61,87 @@ export function textVariables( questions = [] ) {
 }
 
 /**
+ * Value of one variable for an attendee.
+ *
+ * @param {string} match    The variable as typed.
+ * @param {string} name     Its name.
+ * @param {string} key      Its key, for questions.
+ * @param {Object} attendee Attendee.
+ * @return {string} Value; the variable as typed when it is unknown.
+ */
+function variableValue( match, name, key, attendee ) {
+	if ( name === 'first_name' ) {
+		return attendee.firstName;
+	}
+	if ( name === 'last_name' ) {
+		return attendee.lastName;
+	}
+	if ( name === 'full_name' ) {
+		return ( attendee.firstName + ' ' + attendee.lastName ).trim();
+	}
+	// As the HTML badges print it: @username, or nothing without one.
+	if ( name === 'username' ) {
+		return attendee.username ? '@' + attendee.username : '';
+	}
+	if ( name === 'question' && key ) {
+		return ( attendee.answers && attendee.answers[ key ] ) || '';
+	}
+	return match;
+}
+
+/**
  * Replaces the variables with the attendee's data. Unknown variables are
  * left as typed, so a typo shows on the badge instead of vanishing.
+ *
+ * An empty variable takes one separator next to it with it, so
+ * "{job} · {country}" gives "Italy", not "· Italy": the one before it when
+ * there is text before, otherwise the one after it.
  *
  * @param {string} content  Text with variables.
  * @param {Object} attendee Attendee from the REST API.
  * @return {string} Text.
  */
 export function resolveText( content, attendee ) {
-	return content.replace(
-		/\{([a-z_]+)(?::([a-z0-9-]+))?\}/g,
-		( match, name, key ) => {
-			if ( name === 'first_name' ) {
-				return attendee.firstName;
-			}
-			if ( name === 'last_name' ) {
-				return attendee.lastName;
-			}
-			if ( name === 'full_name' ) {
-				return ( attendee.firstName + ' ' + attendee.lastName ).trim();
-			}
-			// As the HTML badges print it: @username, or nothing without one.
-			if ( name === 'username' ) {
-				return attendee.username ? '@' + attendee.username : '';
-			}
-			if ( name === 'question' && key ) {
-				return ( attendee.answers && attendee.answers[ key ] ) || '';
-			}
-			return match;
+	// Literal text and variables, in order.
+	const parts = [];
+	const pattern = /\{([a-z_]+)(?::([a-z0-9-]+))?\}/g;
+	let last = 0;
+	let match;
+	while ( ( match = pattern.exec( content ) ) !== null ) {
+		parts.push( { literal: content.slice( last, match.index ) } );
+		parts.push( {
+			value: variableValue(
+				match[ 0 ],
+				match[ 1 ],
+				match[ 2 ],
+				attendee
+			),
+		} );
+		last = pattern.lastIndex;
+	}
+	parts.push( { literal: content.slice( last ) } );
+
+	for ( let i = 0; i < parts.length; i++ ) {
+		if ( parts[ i ].value !== '' ) {
+			continue;
 		}
-	);
+		const before = parts[ i - 1 ];
+		const after = parts[ i + 1 ];
+		const trimmedBefore = before.literal.replace( SEPARATOR_AT_END, '' );
+		const textBefore = (
+			parts
+				.slice( 0, i - 1 )
+				.map( ( part ) => part.literal ?? part.value )
+				.join( '' ) + trimmedBefore
+		).trim();
+		if ( textBefore && SEPARATOR_AT_END.test( before.literal ) ) {
+			before.literal = trimmedBefore;
+		} else if ( after && SEPARATOR_AT_START.test( after.literal ) ) {
+			after.literal = after.literal.replace( SEPARATOR_AT_START, '' );
+		}
+	}
+
+	return parts.map( ( part ) => part.literal ?? part.value ).join( '' );
 }
 
 /**
@@ -103,9 +163,11 @@ export function textWidth( font, text, size ) {
  * @param {Object} font     Fontkit font of the box's family and weight.
  * @param {Object} element  Text element.
  * @param {Object} attendee Attendee.
- * @return {Object} {text, size, width, overflow, x, baseline, ascent, descent}:
- *   size in points; width, x (from the box's left edge), baseline (from the
- *   box's top edge), ascent and descent (negative) in mm.
+ * @return {Object} {text, size, width, shrunk, overflow, x, baseline, ascent,
+ *   descent}: text as printed (cut when overflow is true); size in points,
+ *   smaller than the element's when shrunk is true; width, x (from the box's
+ *   left edge), baseline (from the box's top edge), ascent and descent
+ *   (negative) in mm.
  */
 export function layoutText( font, element, attendee ) {
 	// An empty variable must not leave stray spaces that shift the text.
@@ -116,14 +178,43 @@ export function layoutText( font, element, attendee ) {
 		text = text.toLocaleUpperCase();
 	}
 
-	const size = element.size;
-	const width = textWidth( font, text, size );
-	const overflow = width > element.width + 0.01;
+	let size = element.size;
+	let width = textWidth( font, text, size );
+	let shrunk = false;
+	let overflow = false;
+
+	if ( width > element.width + 0.01 ) {
+		// Width grows with the size: the size that fits, in tenths of a point.
+		const fitting =
+			Math.floor( ( size * element.width * 10 ) / width ) / 10;
+		const smallest = Math.round( size * SHRINK_LIMIT * 10 ) / 10;
+		shrunk = true;
+		size = Math.max( fitting, smallest );
+		width = textWidth( font, text, size );
+		if ( width > element.width + 0.01 ) {
+			// Cut after the last whole character that fits.
+			overflow = true;
+			const chars = Array.from( text );
+			let low = 0;
+			let high = chars.length;
+			while ( low < high ) {
+				const middle = Math.ceil( ( low + high ) / 2 );
+				const candidate = chars.slice( 0, middle ).join( '' );
+				if ( textWidth( font, candidate, size ) <= element.width ) {
+					low = middle;
+				} else {
+					high = middle - 1;
+				}
+			}
+			text = chars.slice( 0, low ).join( '' ).trimEnd();
+			width = textWidth( font, text, size );
+		}
+	}
 
 	let x = 0;
-	if ( ! overflow && element.align === 'center' ) {
+	if ( element.align === 'center' ) {
 		x = ( element.width - width ) / 2;
-	} else if ( ! overflow && element.align === 'right' ) {
+	} else if ( element.align === 'right' ) {
 		x = element.width - width;
 	}
 
@@ -136,6 +227,7 @@ export function layoutText( font, element, attendee ) {
 		text,
 		size,
 		width,
+		shrunk,
 		overflow,
 		x,
 		baseline,

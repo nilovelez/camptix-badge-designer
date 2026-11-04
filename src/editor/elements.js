@@ -190,6 +190,50 @@ export function elementLabel( element ) {
 }
 
 /**
+ * Whether an element goes past the trim, where it would be cut. Half a
+ * millimeter is allowed, for rounding.
+ *
+ * @param {Object} element Element.
+ * @param {Object} size    Print size.
+ * @return {boolean} Whether it does.
+ */
+export function isPastTrim( element, size ) {
+	return (
+		element.x < -0.5 ||
+		element.y < -0.5 ||
+		element.x + element.width > size.width + 0.5 ||
+		element.y + element.height > size.height + 0.5
+	);
+}
+
+/**
+ * Brings an element back inside the trim: it moves in, and only shrinks if
+ * it is bigger than the badge.
+ *
+ * @param {Object} element Element.
+ * @param {Object} size    Print size.
+ * @return {Object} Element inside the trim.
+ */
+export function moveInsideTrim( element, size ) {
+	let width = Math.min( element.width, size.width );
+	let height = Math.min( element.height, size.height );
+	if ( isSquare( element ) ) {
+		const side = Math.min( width, height );
+		width = side;
+		height = side;
+	}
+	const x = Math.min( Math.max( element.x, 0 ), size.width - width );
+	const y = Math.min( Math.max( element.y, 0 ), size.height - height );
+	return {
+		...element,
+		x: round1( x ),
+		y: round1( y ),
+		width: round1( width ),
+		height: round1( height ),
+	};
+}
+
+/**
  * Moves an element, snapping its center to the center lines of the badge.
  *
  * @param {Object} start     Element when the drag started.

@@ -252,8 +252,9 @@ function App() {
 		} );
 	}
 
-	// Keyboard: undo and redo; with an element selected, arrows move it
-	// (Shift for bigger steps), Delete removes it and Escape deselects it.
+	// Keyboard: undo and redo; Page Up and Page Down change the attendee;
+	// with an element selected, arrows move it (Shift for bigger steps),
+	// Delete removes it and Escape deselects it.
 	useEffect( () => {
 		function onKeyDown( event ) {
 			if ( isTyping( event.target ) ) {
@@ -273,6 +274,18 @@ function App() {
 			if ( mod && key === 'y' ) {
 				event.preventDefault();
 				redo();
+				return;
+			}
+			// Page Up and Page Down: previous and next attendee.
+			if ( key === 'pageup' || key === 'pagedown' ) {
+				event.preventDefault();
+				const step = key === 'pageup' ? -1 : 1;
+				setAttendeeIndex(
+					Math.min(
+						Math.max( index + step, 0 ),
+						attendees.list.length - 1
+					)
+				);
 				return;
 			}
 			if ( ! selectedElement ) {
@@ -484,6 +497,7 @@ function App() {
 					backgroundFile={ backgroundFile }
 					images={ images }
 					attendees={ attendees.list }
+					flags={ ( attendees.data && attendees.data.flags ) || [] }
 					overflows={ overflows }
 					onClose={ () => setPdfDialog( null ) }
 				/>

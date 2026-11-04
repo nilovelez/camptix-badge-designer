@@ -462,7 +462,8 @@ $min-height: 560px;
 		z-index: 2;
 	}
 
-	&.is-overflow {
+	&.is-overflow,
+	&.is-past-trim {
 		outline: 2px dashed #cc1818;
 	}
 
@@ -581,6 +582,18 @@ $min-height: 560px;
 			cursor: nwse-resize;
 		}
 	}
+}
+
+// The lanyard hole mark, as the PDF draws it: a black cross on a white edge.
+.ctbd-canvas__hole {
+	position: absolute;
+	z-index: 3;
+	pointer-events: auto;
+	background:
+		linear-gradient(#000, #000) center / 100% 1px no-repeat,
+		linear-gradient(#000, #000) center / 1px 100% no-repeat,
+		linear-gradient(#fff, #fff) center / 100% 3px no-repeat,
+		linear-gradient(#fff, #fff) center / 3px 100% no-repeat;
 }
 
 // Center lines shown while an element snaps to them.
