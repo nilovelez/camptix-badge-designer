@@ -92,7 +92,7 @@ Gravatar sizes with the real test export (aggregate only): 78 of 174 addresses h
 
 178 badges from the test CSV (69 without QR code), with real Gravatars where they exist (78 people) and identicons for the rest: 11.3 s, 18.6 MB. Gravatars: 145 PNG and 29 JPEG, none failed.
 
-## Gravatar from the WordPress.org username (planned for milestone 11, decided by Nilo)
+## Gravatar from the WordPress.org username (in the backlog)
 
 When the CampTix email address has no Gravatar, use the Gravatar of the attendee's WordPress.org account. It recovers the photo of people who bought their ticket with an address other than their WordPress.org one. Left out of milestone 5 because no API was known; researched in November 2026:
 
