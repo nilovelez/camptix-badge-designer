@@ -65,15 +65,15 @@ The variables a text box can insert:
 
 - First name, last name, and full name (first name + last name).
 - The WordPress.org username, printed as `@username` like the HTML badges of WordCamp.org, and nothing for attendees without one (asked for by Nilo, for WordPress/wordcamp.org#1701).
-- The questions defined by the event (one variable per custom column), plus the common "First Time Attending" question.
+- The questions defined by the event, plus the common "First Time Attending" question. Live from CampTix, only the event's own questions (`tix_question`) count: other columns that add-ons put in the export, such as a phone number from a payment add-on or the admin flags, never become variables (bor0's review, milestone 11). A CSV export does not say which columns are questions, so there every column CampTix does not always export counts as one (test sites only).
 
-Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("McDonald") stay as typed. Particles such as "de" or "del" stay in lowercase. The organizer can still turn a text box to uppercase as a style.
+Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("DeLuca") stay as typed. Each part after a hyphen or an apostrophe starts with a capital, and so does the letter after "Mc": "O'BRIEN" becomes "O'Brien" and "MCDONALD" becomes "McDonald" ("Mac" is left alone: Macías is not a Mac-name). Particles such as "de", "van" or "le" stay in lowercase only when a word that is not a particle comes after them ("de la Fuente", "van der Berg"); otherwise they are the name ("LE VAN" becomes "Le Van"). Rules based on patterns, with tests, rather than an option (decided by Nilo, milestone 11). The organizer can still turn a text box to uppercase as a style.
 
 Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). Every question the event adds stays available, whatever it asks (decided by Nilo); a site can still exclude one with the `ctbd_excluded_questions` filter.
 
 ### What reaches the browser
 
-The server (`includes/attendees.php`, REST route `ctbd/v1/attendees`, administrators only) sends, per attendee: page number, Attendee ID, normalized first and last name, the validated username (empty when missing), the Gravatar hash, and the answers to the allowed questions.
+The server (`includes/attendees.php`, REST route `ctbd/v1/attendees`, administrators only) sends, per attendee: page number, Attendee ID, normalized first and last name, the validated username (empty when missing), the Gravatar hash, the answers to the allowed questions, and the CampTix admin flags the attendee has (only live from CampTix, with the Admin Flags plugin).
 
 - Email addresses never reach the browser: the server sends the SHA-256 Gravatar hash of the trimmed, lowercase address.
 - Only tickets with status `Publish` get a badge; the others are counted and left out.
@@ -91,6 +91,8 @@ The server (`includes/attendees.php`, REST route `ctbd/v1/attendees`, administra
 - The editor shows the trim line and the safe area as guides, with the bleed dimmed; they are not printed and can be hidden.
 
 - Crop marks: optional, drawn in the PDF the way print shops expect them, as short corner marks outside the bleed area, not as guide lines over the design. With crop marks on, each page grows to make room for them.
+- Mark for the lanyard hole (asked for by Nilo, milestone 11): optional, off by default. A small cross (3 mm, black on a thin white outline, so it shows on any background) centered 6 mm below the top edge of the trim, on every badge, so the hole is punched in the same place. On a folded badge each face has it below the fold, so both marks meet when it is folded. Shown on the canvas too, and saved with the design (`holeMark`) and in the exported JSON.
+- Elements that go past the trim, for example after the print size is made smaller, are marked in red on the canvas and listed in the Print size and Elements panels, with a button that moves them back inside (and shrinks them only if they are bigger than the badge). Half a millimeter is allowed, for rounding (bor0's review, milestone 11).
 - Badge type (decided by Nilo, milestone 10): **single**, one face per page, printed on one side or both (the default); or **folded**, printed on a sheet twice as tall and folded in half. Either way only one face is designed. For a folded badge, each PDF page holds the face twice, joined at the fold: the bottom one upright and the top one turned 180°, each cut at its top edge so there is no bleed at the fold. The page is the trim width plus the bleed, by twice the trim height plus the bleed at the top and the bottom. With crop marks on, dashed fold marks are drawn on both sides at the fold, outside the bleed. The type is asked whenever a background is chosen, can be changed in the Print size panel, and is saved with the design (`folded`) and in the exported JSON.
 
 ## Elements
@@ -104,15 +106,15 @@ Every element:
 - When selected, opens its properties in the Element tab, including its exact position and size in millimeters from the top-left corner of the trim.
 - Is listed in the Elements panel of the Document tab, where it can be selected, deleted and moved up or down a layer.
 
-New elements are added with the + button. Every change can be undone and redone (Ctrl+Z, Ctrl+Shift+Z); a whole drag is one step. The pagination in the toolbar steps through the attendees, and the canvas shows each one's data.
+New elements are added with the + button. Every change can be undone and redone (Ctrl+Z, Ctrl+Shift+Z); a whole drag is one step. The pagination in the toolbar steps through the attendees, and so do Page Up and Page Down, except while typing in a field (asked for by Nilo, milestone 11); the canvas shows each one's data.
 
 ### Text box
 
 - Holds text with variables, which are replaced with each attendee's data (for example the first name or the last name).
-- Variables are written in braces: `{first_name}`, `{last_name}`, `{full_name}`, `{username}` and `{question:<key>}` for each event question. A selector inserts them. Unknown variables are printed as typed, so a typo is visible. Stray spaces left by an empty variable are removed.
-- Always one line: text never wraps to a second line.
-- Properties (decided by Nilo): font family, weight, size, color, alignment and uppercase. No shrink to fit, line height or letter spacing.
-- Text that does not fit (decided by Nilo): it is never resized; it is cut at the edge of the box (starting from the left edge, so its beginning stays readable whatever the alignment) and the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing.
+- Variables are written in braces: `{first_name}`, `{last_name}`, `{full_name}`, `{username}` and `{question:<key>}` for each event question. A selector inserts them. Unknown variables are printed as typed, so a typo is visible. Stray spaces left by an empty variable are removed, and so is one separator next to it (`·`, `•`, `|`, `/`, `,`, `;`, `:` or a dash): the one before it when there is text before, otherwise the one after, so "{job} · {country}" gives "Italy", not "· Italy". No separator setting in the interface (decided by Nilo, milestone 11, after bor0's review).
+- Always one line: text never wraps to a second line (decided by Nilo: very long texts are usually people adding their company, job title or handle to the name).
+- Properties (decided by Nilo): font family, weight, size, color, alignment and uppercase. No line height or letter spacing.
+- Text that does not fit (decided by Nilo, changed in milestone 11 after bor0's review): it shrinks, down to 80% of its size. If it still does not fit, it is cut after the last whole character that fits, never in the middle of a letter, starting from the left so its beginning stays readable, and the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing. In the demo, the attendees with cut text went from 14 to 2.
 - Color: picked from the site's color palette (the theme's `theme.json` palette and the custom colors; the WordPress default palette when the theme has none). The design stores the hex value, so the color survives an import on a site with another palette.
 - Font families offered:
   - Inter, shipped with the plugin so it works out of the box, in weights 400, 600 and 700 (SIL Open Font License, accepted on WordPress.org). Chosen over Montserrat because it is narrower (long names fit), very legible at a distance, neutral over any background, and covers Latin Extended, Cyrillic, Greek and Vietnamese.
@@ -147,6 +149,7 @@ The model is data merge, as in Adobe InDesign: the design holds fields that act 
 - **Preview:** a button that generates a one-page PDF with the attendee currently shown in the editor, to check the result before generating everything.
 - **Generate:** one page per attendee (300 tickets sold, 300 pages). Like a print dialog, the organizer chooses the range: all pages by default (1 to the last), or a range such as 1-100 or 250-300. Typical use: send the first 100 badges to the print shop, and generate 101 onwards later, when more tickets have been sold.
 - **Before generating**, the dialog shows how many badges the range has, the page size, and how many of them have no QR code or have text that is cut. Generation shows its progress, can be cancelled, and downloads `badges-<first>-<last>.pdf`.
+- **Admin flags** (milestone 11, after bor0's review): when the site uses CampTix admin flags, the dialog can print only the attendees with one flag, for example only the volunteers, within the range chosen; the file name ends with the flag. There is no filter by ticket type (decided by Nilo).
 - **Preview** shows the one-page PDF itself in the editor, rendered with PDF.js, with buttons to download it or open it in a new tab.
 - **Stable order.** Attendees are numbered in purchase order, never alphabetically, so a new ticket never shifts existing ones: page 101 of a later batch is never someone already printed.
 
@@ -155,7 +158,7 @@ The model is data merge, as in Adobe InDesign: the design holds fields that act 
 - The editor and almost all the work run in the browser, in JavaScript, fed with the attendee data.
 - Everything that can be generated in the browser is generated there, with browser resources (QR codes, Gravatar hashes, layout, ideally the PDF). Earlier attempts at this tool generated and stored images on the server, and with large events the files and the memory and CPU needed became too big. Generated images are not stored.
 - QR codes: the encoder from LadyQR (https://github.com/nilovelez/ladyqr, `assets/qr.js`): no dependencies, GPLv2, compatible with this plugin's GPL-2.0-or-later license.
-- The PDF is generated in the browser with pdf-lib, and PDF.js shows PDF pages in the editor (decided in milestone 1, built in milestone 6; see `docs/decisions.md`). The server only sends the design and the attendee data.
+- The PDF is generated in the browser with pdf-lib, and PDF.js shows PDF pages in the editor (decided in milestone 1, built in milestone 6; see `docs/decisions.md`). The server only sends the design and the attendee data. pdf-lib is loaded the first time a PDF is made, not with the editor (milestone 11).
 - The editor is built with the WordPress packages (`@wordpress/element`, `@wordpress/components`) and `@wordpress/scripts`. It fills the admin content area, fixed to the window like the block editor, and shows a loading bar while its script downloads. Below 960 × 560 pixels it shows a notice instead, printed by PHP and switched by CSS (asked for by Nilo): the badge and its settings do not fit side by side.
 - Every string is translatable: PHP with `__()` and the editor with `@wordpress/i18n`, loaded with `wp_set_script_translations()` (milestone 10, asked for by Nilo before anything goes public).
 - Distribution: `build/` is not in Git. A GitHub Action builds the plugin on every push to `main` and publishes it, ready to install, to the `dist` branch (milestone 9).

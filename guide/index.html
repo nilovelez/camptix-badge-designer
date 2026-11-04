@@ -277,7 +277,11 @@ th { background: var(--soft); }
 <p>Your work is saved automatically a second after each change, and the toolbar says so ("Saved"). Close the page and come back later: everything is as you left it.</p>
 
 <h3 id="print-size">Print size</h3>
-<p>Width, height and bleed in millimeters of one side, the badge type (single or folded), the safe area, crop marks (on by default) and whether the guides are shown.</p>
+<p>Width, height and bleed in millimeters of one side, the badge type (single or folded), the safe area, crop marks (on by default), a mark for the lanyard hole and whether the guides are shown.</p>
+<ul>
+	<li><strong>Mark for the lanyard hole:</strong> a small cross at the top center of every badge, 6 mm below the edge (on a folded badge, below the fold), so the hole is punched in the same place on all of them. Leave it off if your artwork already marks the hole.</li>
+	<li>If you make the badge smaller and some elements end up past its edge, they are marked in red and listed in the <strong>Print size</strong> and <strong>Elements</strong> panels. <strong>Move them inside</strong> brings them back within the trim.</li>
+</ul>
 <figure class="is-narrow">
 	<a href="images/panel-print-size.webp"><img src="images/panel-print-size.webp" alt="The Print size panel: width 102.5, height 149.2, bleed 5, the badge type Single or Folded, safe area 8.5, and the toggles Crop marks in the PDF and Show trim and safe area." loading="lazy"></a>
 </figure>
@@ -310,7 +314,7 @@ th { background: var(--soft); }
 		<tr><td><code>{question:job-title}</code></td><td>The answer to a ticket question, here "Job title". Every question of your event is in the list, with its own name.</td></tr>
 	</tbody>
 </table>
-<p>Mix them with your own text, for example <code>{question:job-title} · {question:country}</code>. When an attendee left a question empty, the spare spaces are removed. A variable with a typo is printed as typed, so you notice it.</p>
+<p>Mix them with your own text, for example <code>{question:job-title} · {question:country}</code>. When an attendee left a question empty, its separator goes too: the badge says "Italy", not "· Italy". Separators are <code>·</code>, <code>•</code>, <code>|</code>, <code>/</code>, <code>,</code>, <code>;</code>, <code>:</code> and dashes. A variable with a typo is printed as typed, so you notice it.</p>
 <figure>
 	<a href="images/text-selected.webp"><img src="images/text-selected.webp" alt="The first name text box selected on the badge, and its settings in the Element tab: the text {first_name}, Insert variable, font Inter, size 26, weight Bold, alignment, uppercase and color." loading="lazy"></a>
 </figure>
@@ -320,15 +324,15 @@ th { background: var(--soft); }
 	<li><strong>Size</strong> in points, <strong>weight</strong>, <strong>alignment</strong> and <strong>uppercase</strong>.</li>
 	<li><strong>Color</strong> from the site's color palette.</li>
 </ul>
-<p>Names are tidied up before they are printed: a name typed all in capitals or all in lowercase ("MARÍA", "garcía") gets normal capitals ("María", "García"). Names typed with mixed case, such as "McDonald", are left as they are, and particles such as "de" or "del" stay in lowercase.</p>
+<p>Names are tidied up before they are printed: a name typed all in capitals or all in lowercase ("MARÍA", "garcía", "O'BRIEN", "MCDONALD") gets normal capitals ("María", "García", "O'Brien", "McDonald"). Names typed with mixed case, such as "DeLuca", are left as they are. Particles such as "de", "van" or "le" stay in lowercase before a surname ("de la Fuente", "van der Berg"), but not when they are the name itself ("Le Van").</p>
 
 <h3 id="text-cut">Text that does not fit</h3>
-<p>A text box is always one line, and its text is never shrunk to fit. This is on purpose, and it is what print designers usually do:</p>
+<p>A text box is always one line. When an attendee's text is longer than the box, it is made a little smaller, down to 80% of its size. That is enough for most long names, and the badges still look even on a lanyard.</p>
+<p>If it still does not fit, it is cut after the last whole letter that fits, and the editor warns you so you can check it before printing: make the box wider, the text smaller, use a shorter variable, or fix the attendee's data in CampTix. There is never a second line, on purpose:</p>
 <ul>
-	<li>Every badge keeps the same layout and the same type sizes, so names do not look uneven on a lanyard, and text never grows into the photo or the QR code.</li>
-	<li>Attendees type their own data. A very long answer, by mistake or on purpose to fill a badge with spam, cannot take over the design: whatever does not fit is left out.</li>
+	<li>Text never grows into the photo or the QR code, and every badge keeps the same layout.</li>
+	<li>Attendees type their own data. Very long names are usually a company, a job title or a handle added to the name, by mistake or to fill the badge with spam: whatever does not fit is left out.</li>
 </ul>
-<p>When an attendee's text is longer than the box, it is cut at the edge, and the editor warns you so you can check it before printing: make the box wider, the text smaller, use a shorter variable, or fix the attendee's data in CampTix.</p>
 <figure>
 	<a href="images/text-cut.webp"><img src="images/text-cut.webp" alt="A badge where the job title Head of Engineering and Developer Experience does not fit: the box has a red dashed border and a warning icon, and the Attendees panel lists the 14 attendees with text that is cut." loading="lazy"></a>
 	<figcaption>The box is marked in red on the canvas, and the Attendees panel lists every attendee affected. Click a name to jump to that badge.</figcaption>
@@ -359,7 +363,7 @@ th { background: var(--soft); }
 </figure>
 
 <h2 id="check">Check every badge</h2>
-<p>The canvas shows one attendee at a time. Use the arrows in the toolbar, or type a number, to go through them: very long names, attendees without a Gravatar or without a username, empty answers.</p>
+<p>The canvas shows one attendee at a time. Use the arrows in the toolbar, <kbd>Page Up</kbd> and <kbd>Page Down</kbd>, or type a number, to go through them: very long names, attendees without a Gravatar or without a username, empty answers.</p>
 <p>The <strong>Attendees</strong> panel sums it up: how many attendees there are, how many have no WordPress.org username, and which ones have text that is cut. <strong>View list</strong> shows them all in a table.</p>
 <figure class="is-narrow">
 	<a href="images/panel-attendees.webp"><img src="images/panel-attendees.webp" alt="The Attendees panel: 140 attendees in purchase order, 55 without a WordPress.org username, source CampTix, a warning listing 14 attendees with text that is cut, and the View list button." loading="lazy"></a>
@@ -381,8 +385,11 @@ th { background: var(--soft); }
 </figure>
 <ul>
 	<li>It runs in your browser and shows its progress; you can cancel it. The demo's 140 badges take a few seconds and make an 11 MB file. Most of the time goes into downloading the Gravatars, so a big event with a slow connection may take a minute.</li>
+	<li>Each Gravatar adds its photo to the file, about 70 KB. With a thousand attendees, all with a photo, the PDF is about 70 MB; with three thousand, over 200 MB. For big events, print in batches (below).</li>
 	<li>The file downloads as <code>badges-1-140.pdf</code>, after the pages it holds.</li>
 </ul>
+<h3 id="flags">Print only some attendees</h3>
+<p>If your site uses CampTix admin flags (Tickets › Setup › Admin Flags), <strong>Attendees</strong> in the Generate PDF dialog prints only the attendees with one flag: for example only the volunteers, or only the organizers. Set the flags on each attendee in CampTix. This also keeps a person with an extra ticket, such as an activity, from getting a second badge.</p>
 
 <h3 id="batches">Print in batches</h3>
 <p>Badges are numbered in purchase order, never alphabetically, so new tickets are always added at the end and never shift the ones you already printed. Choose <strong>A range</strong> to print in batches: send badges 1 to 250 to the print shop a few weeks before the event, and 251 onwards when ticket sales close.</p>
@@ -394,6 +401,7 @@ th { background: var(--soft); }
 <ul>
 	<li>Each page is one badge: the trim size plus the bleed, plus room for the crop marks when they are on. Tell the print shop the trim size and the bleed, and that the file has crop marks.</li>
 	<li>For folded badges, each page is a sheet to fold in half, with dashed fold marks on both sides at the fold. Tell the print shop it is to be cut and folded.</li>
+	<li>With the mark for the lanyard hole on, tell them to punch the hole on the cross. On a folded badge, punch through both halves.</li>
 	<li>Ask them for a test print of one badge first, check the colors and the cut, and scan a QR code with your phone.</li>
 	<li>If the print shop prefers several smaller files, generate the badges in ranges.</li>
 </ul>

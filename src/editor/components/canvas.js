@@ -208,7 +208,7 @@ function ElementBox( {
 				<span
 					className="ctbd-element__warning"
 					title={ __(
-						'This text does not fit for this attendee: it is cut.',
+						'This text does not fit for this attendee, even made smaller: it is cut.',
 						'camptix-badge-designer'
 					) }
 				>

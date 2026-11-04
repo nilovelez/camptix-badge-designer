@@ -41,7 +41,8 @@ The milestone 1 spike used this stack for its admin page, and it worked. The edi
 - The milestone 1 spike stayed under Badges › Technical test until real generation replaced it in milestone 6; its code was removed then (it is in the Git history).
 - One Media Library frame is created and reused: a new frame each time adds another modal to the page.
 - The editor is fixed to the window, like the block editor, from the admin bar down and from the admin menu to the right edge (milestone 9, asked for by Nilo): on sites with a long admin menu, the page scrolled and took the editor with it.
-- PHP prints a loading bar in the editor's container, so it shows while the script downloads (about 1.6 MB, slow on a mobile connection); the editor takes it over, without starting again, while it loads the design. The progress is not real (milestone 9, asked for by Nilo). Making the script smaller is in `docs/backlog.md`.
+- PHP prints a loading bar in the editor's container, so it shows while the script downloads (slow on a mobile connection); the editor takes it over, without starting again, while it loads the design. The progress is not real (milestone 9, asked for by Nilo).
+- Since milestone 11, pdf-lib is not in the editor script: `src/editor/components/pdf-dialogs.js` loads `build-pdf.js` with a dynamic `import()` the first time a PDF is made, and webpack puts it, with pdf-lib, in its own files in `build/`. `editor.js` went from 1.66 MB to 1.28 MB. PDF.js and fontkit stay in it, because the editor uses them from the start to draw a PDF background and to measure text (decided by Nilo). `pageGeometry()` moved to `geometry.js` so the dialogs can show the page size before pdf-lib loads.
 - `Notice` from `@wordpress/components` renders its children to a string for screen readers when it has no `spokenMessage`. With buttons inside, their hooks then count as the notice's own, and React crashes when the number of buttons changes (the editor went blank). Every notice with buttons gets a plain-text `spokenMessage`.
 
 ## Screen and paper match (milestone 4)
@@ -128,7 +129,21 @@ The PDF needs the font files, not only CSS.
 - Each page is the trim size plus the bleed, plus 6 mm on every side for crop marks when they are on (118 × 168 mm by default).
 - Folded badges (milestone 10): the page drawing is one function that draws a face with its trim box at a fixed spot. The bottom face is drawn as is, clipped at the fold; the top one is drawn inside a 180° turn about the middle of its trim box (a `cm` operator), clipped at the fold in page space first, so its top bleed, which ends up below the fold, is cut away too. The background and the Gravatars stay embedded once.
 - Embedded once and reused on every page: the background (a PDF stays vector), the fonts (subset to the glyphs in use), each distinct Gravatar and the fixed fallback image.
-- Text boxes are clipped to their box, so text that does not fit is cut exactly as in the editor.
+- Text boxes are clipped to their box. Since milestone 11 the layout already cuts the text after the last whole character that fits (after shrinking it to 80% at most), so the clip only guards against rounding.
+- Lanyard hole mark (milestone 11): drawn inside the face, so on a folded badge the turned face gets its own mark and both meet at the fold.
 - Gravatars are requested at the element size at 300 dpi. Formats other than PNG and JPEG are converted to PNG in the browser. A failed download is counted and reported; it never stops the build.
 - The build reports progress and can be cancelled. The file downloads as `badges-<first>-<last>.pdf`.
 - Checked with invented attendees: every page has the right real text and a QR code that decodes to the right profile, or none without a username. With the real test export: 178 badges, 16.5 MB, 8.6 s, about 180 MB of JavaScript memory.
+
+### Stress test (milestone 11)
+
+Asked for in bor0's review: does it hold at flagship size? Headless Chrome on the development computer, the sandbox design (vector PDF background, three text boxes, a Gravatar and a QR code), the sandbox attendees repeated with new Gravatar hashes, and every Gravatar answered with the same real 72 KB JPEG photo, so each attendee embeds its own image: the worst case, as if everyone had a Gravatar.
+
+| Badges | Time | PDF | JS heap peak |
+|---|---|---|---|
+| 1,000 | 7.6 s | 71 MB | about 355 MB |
+| 3,000 | 22.3 s | 214 MB | about 895 MB |
+
+- It works and grows in a straight line: the background, the fonts and the QR codes cost almost nothing per page; the Gravatars are nearly all of it, about 70 KB each in the file and in memory, plus the PDF being saved.
+- At 3,000 badges the file is too big to send comfortably, and a computer with little memory may struggle. A real event has photos for about half of its attendees (78 of 174 in the test export), so about half of this. The answer for now is the range: generate in batches of 500 to 1,000. The guide says so.
+- If it is ever needed: re-encode the Gravatars as JPEG at the printed size before embedding them, or build each batch as its own PDF automatically.
