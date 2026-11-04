@@ -63,7 +63,7 @@ Measured: 140 badges with Gravatars, 11 MB, in 6 to 8 seconds; 300 badges in abo
 | `src/editor/`, `src/shared/` | The editor and the PDF generator. Built into `build/`, which is not in Git. |
 | `src/vendor/ladyqr/` | QR encoder from [LadyQR](https://github.com/nilovelez/ladyqr). |
 | `fonts/inter/` | Inter 4.1, static TTF, with its license. |
-| `sandbox/` | WordCamp sandbox for Playground: the real CampTix from `WordPress/wordcamp.org`, invented attendees and a sample design. Locally it also installs CampTix Admin Flags, with Volunteer and Organizer flags on some attendees. `demo-blueprint.json` is the public demo. |
+| `sandbox/` | WordCamp sandbox for Playground: the real CampTix from `WordPress/wordcamp.org`, invented attendees and a sample design. It also installs CampTix Admin Flags, with Volunteer and Organizer flags on some attendees. `demo-blueprint.json` is the public demo. |
 | `guide/` | The user guide, published to GitHub Pages. |
 | `docs/` | Specification, decisions, milestones and backlog. |
 | `tests/` | PHP tests and invented fixtures. |

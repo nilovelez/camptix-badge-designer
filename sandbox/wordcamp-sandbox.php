@@ -166,9 +166,8 @@ function ctbd_sandbox_maybe_seed() {
 add_action( 'init', 'ctbd_sandbox_maybe_seed', 100 );
 
 /**
- * Admin flags, when the CampTix Admin Flags plugin is active, as in the local
- * sandbox (sandbox/blueprint.json). The public demo does not install it, so
- * this does nothing there. Two flags: Volunteer, on the attendees with a
+ * Admin flags, when the CampTix Admin Flags plugin is active, as both
+ * blueprints install it. Two flags: Volunteer, on the attendees with a
  * Volunteer ticket, and Organizer, on every 12th attendee.
  */
 function ctbd_sandbox_maybe_flag() {

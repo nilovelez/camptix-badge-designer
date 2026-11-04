@@ -3,7 +3,7 @@
 	"meta": {
 		"title": "CampTix Badge Designer demo",
 		"author": "nilovelez",
-		"description": "Public demo: the WordCamp sandbox (the real CampTix from WordPress/wordcamp.org, with invented tickets, questions and attendees) and the built plugin from the dist branch, with a sample badge design. Everything is downloaded from GitHub; nothing is mounted."
+		"description": "Public demo: the WordCamp sandbox (the real CampTix and CampTix Admin Flags from WordPress/wordcamp.org, with invented tickets, questions, attendees and flags) and the built plugin from the dist branch, with a sample badge design. Everything is downloaded from GitHub; nothing is mounted."
 	},
 	"landingPage": "/wp-admin/edit.php?post_type=tix_ticket&page=ctbd-badges",
 	"preferredVersions": {
@@ -48,6 +48,20 @@
 			"options": {
 				"activate": true,
 				"targetFolderName": "camptix"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "git:directory",
+				"url": "https://github.com/WordPress/wordcamp.org",
+				"ref": "89f80bcbb2c6c1e40397317dc47a942332d427e4",
+				"refType": "commit",
+				"path": "public_html/wp-content/plugins/camptix-admin-flags"
+			},
+			"options": {
+				"activate": true,
+				"targetFolderName": "camptix-admin-flags"
 			}
 		},
 		{
