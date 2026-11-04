@@ -45,6 +45,8 @@ function ctbd_default_design() {
 		'guides'     => true,
 		// Folded: the face is printed twice on a taller page, to fold in half.
 		'folded'     => false,
+		// A small line at the top center, to help punch the lanyard hole.
+		'holeMark'   => false,
 		'background' => null,
 		'elements'   => null,
 	);
@@ -104,6 +106,7 @@ function ctbd_sanitize_design( $input ) {
 		'cropMarks'  => ! empty( $input['cropMarks'] ),
 		'guides'     => ! empty( $input['guides'] ),
 		'folded'     => ! empty( $input['folded'] ),
+		'holeMark'   => ! empty( $input['holeMark'] ),
 		'background' => null,
 		'elements'   => array(),
 	);

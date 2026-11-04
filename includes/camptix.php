@@ -63,7 +63,9 @@ function ctbd_camptix_column_labels() {
  * status, the answers to the event's questions and the columns added by
  * CampTix add-ons, such as the WordPress.org username.
  *
- * @return array {header: string[], rows: string[][], malformed: int}, like ctbd_read_csv().
+ * @return array {header: string[], rows: string[][], malformed: int}, like ctbd_read_csv(),
+ *               plus question_columns (the event's questions) and
+ *               flag_columns (admin flag labels by flag key).
  */
 function ctbd_read_camptix() {
 	global $camptix;
@@ -150,9 +152,25 @@ function ctbd_read_camptix() {
 		}
 	} while ( ! empty( $attendees ) );
 
+	// Which columns are the event's questions, and which are admin flags, so
+	// that no other add-on column (a phone number from a payment add-on, for
+	// example) is ever offered as a variable.
+	$question_columns = array();
+	foreach ( $questions as $question ) {
+		$question_columns[] = (string) $columns[ 'tix_q_' . $question->ID ];
+	}
+	$flag_columns = array();
+	foreach ( $extra_columns as $key => $label ) {
+		if ( 0 === strpos( $key, 'camptix-admin-flags-' ) ) {
+			$flag_columns[ substr( $key, strlen( 'camptix-admin-flags-' ) ) ] = (string) $label;
+		}
+	}
+
 	return array(
-		'header'    => array_values( array_map( 'strval', $columns ) ),
-		'rows'      => $rows,
-		'malformed' => 0,
+		'header'           => array_values( array_map( 'strval', $columns ) ),
+		'rows'             => $rows,
+		'malformed'        => 0,
+		'question_columns' => $question_columns,
+		'flag_columns'     => $flag_columns,
 	);
 }

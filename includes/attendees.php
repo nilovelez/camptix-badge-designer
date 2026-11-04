@@ -146,12 +146,41 @@ function ctbd_name_particles() {
 }
 
 /**
+ * Capitalizes one word of a name, given in lowercase.
+ *
+ * Every part after a hyphen or an apostrophe starts with a capital
+ * ("Fernández-Villaverde", "O'Brien", "D'Angelo"), and so does the letter
+ * after "Mc" ("McDonald"). "Mac" is left alone: Macías or Mackay are not
+ * Mac-names.
+ *
+ * @param string $word Word in lowercase.
+ * @return string Capitalized word.
+ */
+function ctbd_capitalize_name_word( $word ) {
+	$parts = preg_split( "/([-'’])/u", $word, -1, PREG_SPLIT_DELIM_CAPTURE );
+	foreach ( $parts as $index => $part ) {
+		if ( '' === $part || in_array( $part, array( '-', "'", '’' ), true ) ) {
+			continue;
+		}
+		$part = mb_strtoupper( mb_substr( $part, 0, 1, 'UTF-8' ), 'UTF-8' ) . mb_substr( $part, 1, null, 'UTF-8' );
+		if ( preg_match( '/^Mc(\p{Ll})(.+)$/u', $part, $match ) ) {
+			$part = 'Mc' . mb_strtoupper( $match[1], 'UTF-8' ) . $match[2];
+		}
+		$parts[ $index ] = $part;
+	}
+	return implode( '', $parts );
+}
+
+/**
  * Normalizes the case of a name.
  *
  * Only words written all in uppercase or all in lowercase are changed:
  * "maría" becomes "María" and "GARCÍA" becomes "García", while a word with
  * mixed case ("McDonald", "DeLuca") is kept as the attendee wrote it.
- * Particles stay in lowercase when the name has more than one word.
+ * Words are capitalized by ctbd_capitalize_name_word() (O'BRIEN becomes
+ * O'Brien, MCDONALD becomes McDonald). A particle ("de", "van", "le") stays
+ * in lowercase only when a word that is not a particle comes after it, as
+ * in "de la Fuente"; otherwise it is part of the name ("Le Van").
  *
  * @param string $name Name as typed.
  * @return string Normalized name.
@@ -165,6 +194,16 @@ function ctbd_normalize_name( $name ) {
 	$words     = explode( ' ', $name );
 	$particles = ctbd_name_particles();
 
+	// Whether a word that is not a particle comes after each position.
+	$name_follows = array();
+	$seen_name    = false;
+	for ( $index = count( $words ) - 1; $index >= 0; $index-- ) {
+		$name_follows[ $index ] = $seen_name;
+		if ( ! in_array( mb_strtolower( $words[ $index ], 'UTF-8' ), $particles, true ) ) {
+			$seen_name = true;
+		}
+	}
+
 	foreach ( $words as $index => $word ) {
 		$lower = mb_strtolower( $word, 'UTF-8' );
 		$upper = mb_strtoupper( $word, 'UTF-8' );
@@ -173,10 +212,10 @@ function ctbd_normalize_name( $name ) {
 			continue;
 		}
 
-		if ( count( $words ) > 1 && in_array( $lower, $particles, true ) ) {
+		if ( $name_follows[ $index ] && in_array( $lower, $particles, true ) ) {
 			$words[ $index ] = $lower;
 		} else {
-			$words[ $index ] = mb_convert_case( $lower, MB_CASE_TITLE, 'UTF-8' );
+			$words[ $index ] = ctbd_capitalize_name_word( $lower );
 		}
 	}
 
@@ -204,7 +243,7 @@ function ctbd_sanitize_wporg_username( $username ) {
  * Turns a CampTix export into the attendee list for badges.
  *
  * @param array $csv Result of ctbd_read_csv().
- * @return array|WP_Error {attendees, questions, stats}.
+ * @return array|WP_Error {attendees, questions, flags, stats}.
  */
 function ctbd_parse_attendees( $csv ) {
 	$header = $csv['header'];
@@ -219,13 +258,20 @@ function ctbd_parse_attendees( $csv ) {
 		}
 	}
 
-	// Question columns that may become variables.
+	// Question columns that may become variables. Live from CampTix, the
+	// event's questions are known; a CSV export does not say which columns
+	// are questions, so there every column CampTix does not always export
+	// counts as one (test sites only).
 	$standard  = ctbd_camptix_standard_columns();
 	$allowed   = ctbd_allowed_standard_questions();
 	$excluded  = ctbd_excluded_questions();
 	$questions = array();
 	foreach ( $header as $column ) {
-		$is_event_question = ! in_array( $column, $standard, true );
+		if ( isset( $csv['question_columns'] ) ) {
+			$is_event_question = in_array( $column, $csv['question_columns'], true );
+		} else {
+			$is_event_question = ! in_array( $column, $standard, true );
+		}
 		if ( ( $is_event_question || in_array( $column, $allowed, true ) ) && ! in_array( $column, $excluded, true ) && '' !== $column ) {
 			$questions[] = array(
 				'key'   => sanitize_title( $column ),
@@ -244,6 +290,16 @@ function ctbd_parse_attendees( $csv ) {
 		'placeholders'    => 0,
 	);
 	$unknown_email = ctbd_unknown_attendee_email();
+
+	// CampTix admin flags (camptix-admin-flags), only known live from CampTix.
+	$flag_columns = isset( $csv['flag_columns'] ) ? $csv['flag_columns'] : array();
+	$flags        = array();
+	foreach ( $flag_columns as $flag_key => $flag_label ) {
+		$flags[] = array(
+			'key'   => (string) $flag_key,
+			'label' => $flag_label,
+		);
+	}
 
 	$attendees = array();
 	foreach ( $csv['rows'] as $row ) {
@@ -290,6 +346,14 @@ function ctbd_parse_attendees( $csv ) {
 			$answers[ $question['key'] ] = trim( $data[ $question['label'] ] );
 		}
 
+		// Admin flags the attendee has: the export writes "Yes" or "No".
+		$attendee_flags = array();
+		foreach ( $flag_columns as $flag_key => $flag_label ) {
+			if ( isset( $data[ $flag_label ] ) && 'Yes' === trim( $data[ $flag_label ] ) ) {
+				$attendee_flags[] = $flag_key;
+			}
+		}
+
 		$attendees[] = array(
 			'attendeeId'   => absint( $data['Attendee ID'] ),
 			'firstName'    => $first_name,
@@ -297,6 +361,7 @@ function ctbd_parse_attendees( $csv ) {
 			'username'     => $username,
 			'gravatarHash' => $gravatar_hash,
 			'answers'      => $answers,
+			'flags'        => $attendee_flags,
 		);
 	}
 
@@ -316,6 +381,7 @@ function ctbd_parse_attendees( $csv ) {
 	return array(
 		'attendees' => $attendees,
 		'questions' => $questions,
+		'flags'     => $flags,
 		'stats'     => $stats,
 	);
 }
