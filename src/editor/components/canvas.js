@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { Button, Spinner } from '@wordpress/components';
 import { loadPdf } from '../pdf';
-import { HOLE_MARK_ARM, HOLE_MARK_OFFSET, pageSize } from '../geometry';
+import { HOLE_MARK_LENGTH, pageSize } from '../geometry';
 import { isPastTrim, moveElement, resizeElement } from '../elements';
 import { ElementView } from './element-view';
 
@@ -406,10 +406,9 @@ export function Canvas( {
 									'camptix-badge-designer'
 								) }
 								style={ {
-									left: mm( size.width / 2 - HOLE_MARK_ARM ),
-									top: mm( HOLE_MARK_OFFSET - HOLE_MARK_ARM ),
-									width: mm( 2 * HOLE_MARK_ARM ),
-									height: mm( 2 * HOLE_MARK_ARM ),
+									left: mm( size.width / 2 ),
+									top: mm( -size.bleed ),
+									height: mm( HOLE_MARK_LENGTH + size.bleed ),
 								} }
 							/>
 						) }

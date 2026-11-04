@@ -24,12 +24,7 @@ import { layoutText } from '../shared/text-layout';
 import { profileQr } from '../shared/qr';
 import { gravatarUrl } from '../shared/gravatar';
 import { faceKey, loadFace, resolveFace } from './fonts';
-import {
-	CROP_MARK_LENGTH,
-	HOLE_MARK_ARM,
-	HOLE_MARK_OFFSET,
-	pageGeometry,
-} from './geometry';
+import { CROP_MARK_LENGTH, HOLE_MARK_LENGTH, pageGeometry } from './geometry';
 
 const PT_PER_MM = 72 / 25.4;
 const pt = ( mm ) => mm * PT_PER_MM;
@@ -180,28 +175,23 @@ function drawCropMarks( page, left, bottom, right, top, offset ) {
 }
 
 /**
- * Hole mark: a small cross where the lanyard hole is punched, black on a
- * thin white outline so it shows on light and dark backgrounds.
+ * Hole mark: a short vertical line at the top center, to find the center
+ * when punching the lanyard hole. Black on a thin white outline, so it
+ * shows on light and dark backgrounds.
  *
- * @param {Object} page PDF page.
- * @param {number} x    Center, in points.
- * @param {number} y    Center, in points.
+ * @param {Object} page   PDF page.
+ * @param {number} x      Center of the badge, in points.
+ * @param {number} top    Top edge of the bleed, in points.
+ * @param {number} bottom Where the line ends inside the trim, in points.
  */
-function drawHoleMark( page, x, y ) {
-	const arm = pt( HOLE_MARK_ARM );
+function drawHoleMark( page, x, top, bottom ) {
 	for ( const [ color, thickness ] of [
 		[ WHITE, 1.2 ],
 		[ BLACK, 0.4 ],
 	] ) {
 		page.drawLine( {
-			start: { x: x - arm, y },
-			end: { x: x + arm, y },
-			thickness,
-			color,
-		} );
-		page.drawLine( {
-			start: { x, y: y - arm },
-			end: { x, y: y + arm },
+			start: { x, y: top },
+			end: { x, y: bottom },
 			thickness,
 			color,
 		} );
@@ -493,7 +483,8 @@ export async function buildBadgesPdf( {
 			drawHoleMark(
 				page,
 				( trimLeft + trimRight ) / 2,
-				fromTop( HOLE_MARK_OFFSET )
+				trimTop + bleed,
+				fromTop( HOLE_MARK_LENGTH )
 			);
 		}
 	}

@@ -295,7 +295,7 @@ function PrintSizePanel( { design, updateDesign } ) {
 						'camptix-badge-designer'
 					) }
 					help={ __(
-						'A small cross at the top center, to punch the hole.',
+						'Small line at the top center to help punch the hole.',
 						'camptix-badge-designer'
 					) }
 					checked={ !! design.holeMark }

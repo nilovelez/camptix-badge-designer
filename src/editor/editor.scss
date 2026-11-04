@@ -584,16 +584,14 @@ $min-height: 560px;
 	}
 }
 
-// The lanyard hole mark, as the PDF draws it: a black cross on a white edge.
+// The lanyard hole mark, as the PDF draws it: a black line on a white edge.
 .ctbd-canvas__hole {
 	position: absolute;
 	z-index: 3;
-	pointer-events: auto;
-	background:
-		linear-gradient(#000, #000) center / 100% 1px no-repeat,
-		linear-gradient(#000, #000) center / 1px 100% no-repeat,
-		linear-gradient(#fff, #fff) center / 100% 3px no-repeat,
-		linear-gradient(#fff, #fff) center / 3px 100% no-repeat;
+	width: 1px;
+	margin-left: -0.5px;
+	background: #000;
+	box-shadow: 0 0 0 1px #fff;
 }
 
 // Center lines shown while an element snaps to them.

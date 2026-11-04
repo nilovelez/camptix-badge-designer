@@ -51,10 +51,10 @@ export function printedPageSize( size, folded ) {
 export const CROP_MARK_LENGTH = 5;
 export const CROP_MARK_SPARE = 1;
 
-// Hole mark: a cross centered this far below the top edge of the trim (on a
-// folded badge, below the fold), with arms this long, in mm.
-export const HOLE_MARK_OFFSET = 6;
-export const HOLE_MARK_ARM = 1.5;
+// Hole mark: a vertical line at the top center, this long inside the trim,
+// in mm, that marks the center for punching the lanyard hole. It starts in
+// the bleed, so it still reaches the edge if the cut is slightly off.
+export const HOLE_MARK_LENGTH = 15;
 
 /**
  * Size of each PDF page. Here and not in build-pdf.js, so the PDF dialogs
