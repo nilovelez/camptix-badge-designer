@@ -58,14 +58,16 @@ function ctbd_camptix_column_labels() {
  * Reads the CampTix attendees as the table of its CSV export.
  *
  * Like the export (CampTix_Plugin::generate_attendee_report()), it covers
- * published and pending tickets, in Attendee ID order. Only the columns a
+ * published and pending tickets, in Attendee ID order, except the seats of
+ * activity tickets, which belong to a main ticket. Only the columns a
  * badge can use are filled: the ticket, the name, the email address, the
  * status, the answers to the event's questions and the columns added by
  * CampTix add-ons, such as the WordPress.org username.
  *
  * @return array {header: string[], rows: string[][], malformed: int}, like ctbd_read_csv(),
  *               plus question_columns (the event's questions) and
- *               flag_columns (admin flag labels by flag key).
+ *               flag_columns (admin flag labels by flag key) and
+ *               companions (activity ticket seats left out).
  */
 function ctbd_read_camptix() {
 	global $camptix;
@@ -101,8 +103,9 @@ function ctbd_read_camptix() {
 	}
 	$columns = array_merge( $columns, $extra_columns );
 
-	$rows  = array();
-	$paged = 1;
+	$rows       = array();
+	$companions = 0;
+	$paged      = 1;
 	do {
 		$attendees = get_posts(
 			array(
@@ -117,6 +120,14 @@ function ctbd_read_camptix() {
 		++$paged;
 
 		foreach ( $attendees as $attendee ) {
+			// Activity tickets (Contributor Day, a social dinner) from the
+			// camptix-companion-tickets add-on are seats linked to the
+			// attendee's main ticket: the main ticket already has the badge.
+			if ( get_post_meta( $attendee->ID, 'tix_companion_primary_attendee_id', true ) ) {
+				++$companions;
+				continue;
+			}
+
 			$line = array(
 				'id'         => $attendee->ID,
 				'ticket'     => $camptix->get_ticket_title( intval( get_post_meta( $attendee->ID, 'tix_ticket_id', true ) ) ),
@@ -172,5 +183,6 @@ function ctbd_read_camptix() {
 		'malformed'        => 0,
 		'question_columns' => $question_columns,
 		'flag_columns'     => $flag_columns,
+		'companions'       => $companions,
 	);
 }

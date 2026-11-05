@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version of the sandbox data. Raising it makes the next request delete the
  * sandbox attendees, tickets and questions and create them again.
  */
-const CTBD_SANDBOX_VERSION = 4;
+const CTBD_SANDBOX_VERSION = 5;
 
 /*
  * Stand-ins for the WordCamp.org functions CampTix calls. On WordCamp.org
@@ -359,12 +359,59 @@ function ctbd_sandbox_seed() {
 		);
 	}
 
-	foreach ( ctbd_sandbox_attendees( $questions, $tickets ) as $attendee ) {
+	$seat_holders = array();
+	foreach ( ctbd_sandbox_attendees( $questions, $tickets ) as $position => $attendee ) {
 		$attendee_id = ctbd_sandbox_insert( 'tix_attendee', $attendee['title'], $attendee['meta'], $attendee['post'] );
 
 		// Like CampTix at checkout: saving the post again, now that the meta
 		// is there, lets CampTix build the title and the search content.
 		wp_update_post( array( 'ID' => $attendee_id ) );
+
+		// Every 10th confirmed attendee also signs up for Contributor Day.
+		if ( 0 === ( $position + 1 ) % 10 && 'publish' === $attendee['post']['post_status'] && 'Unknown' !== $attendee['meta']['tix_first_name'] ) {
+			$seat_holders[ $attendee_id ] = $attendee;
+		}
+	}
+
+	ctbd_sandbox_activity_seats( $seat_holders );
+}
+
+/**
+ * An activity ticket, Contributor Day, with seats for some attendees, as the
+ * camptix-companion-tickets add-on of WordCamp.org creates them: a free
+ * attendee record for the same person, linked to their main ticket with
+ * `tix_companion_primary_attendee_id`. The add-on itself is not installed;
+ * only the data matters here. Seats get no badge of their own.
+ *
+ * @param array[] $holders Main attendees, by attendee ID.
+ */
+function ctbd_sandbox_activity_seats( $holders ) {
+	$ticket_id = ctbd_sandbox_insert(
+		'tix_ticket',
+		'Contributor Day',
+		array(
+			'tix_price'    => 0,
+			'tix_quantity' => 50,
+			'tix_start'    => '2026-09-01',
+			'tix_end'      => '2026-11-30',
+		)
+	);
+
+	foreach ( $holders as $main_id => $main ) {
+		$meta    = array(
+			'tix_first_name'                    => $main['meta']['tix_first_name'],
+			'tix_last_name'                     => $main['meta']['tix_last_name'],
+			'tix_email'                         => $main['meta']['tix_email'],
+			'tix_ticket_id'                     => $ticket_id,
+			'tix_timestamp'                     => $main['meta']['tix_timestamp'] + 86400,
+			'tix_access_token'                  => md5( 'ctbd-sandbox-seat-' . $main_id ),
+			'tix_payment_method'                => 'none',
+			'tix_username'                      => $main['meta']['tix_username'],
+			'tix_questions'                     => array(),
+			'tix_companion_primary_attendee_id' => $main_id,
+		);
+		$seat_id = ctbd_sandbox_insert( 'tix_attendee', $main['title'], $meta, array( 'post_date' => $main['post']['post_date'] ) );
+		wp_update_post( array( 'ID' => $seat_id ) );
 	}
 }
 

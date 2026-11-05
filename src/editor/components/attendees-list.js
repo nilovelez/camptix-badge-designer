@@ -80,6 +80,18 @@ function Summary( { data } ) {
 					) }
 				</li>
 			) }
+			{ stats.activitySeats > 0 && (
+				<li>
+					{ sprintf(
+						/* translators: %d: number of tickets. */
+						__(
+							'Activity tickets, left out because they belong to a main ticket: %d.',
+							'camptix-badge-designer'
+						),
+						stats.activitySeats
+					) }
+				</li>
+			) }
 			{ stats.malformed > 0 && (
 				<li>
 					{ sprintf(
@@ -116,7 +128,7 @@ function Summary( { data } ) {
 				{ sprintf(
 					/* translators: %d: number of names. */
 					__(
-						'Names with their case normalized: %d.',
+						'Names written in all caps or all lowercase: %d.',
 						'camptix-badge-designer'
 					),
 					stats.namesNormalized

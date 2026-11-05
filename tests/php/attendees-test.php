@@ -126,5 +126,67 @@ check( 'live: only questions and allowed columns', array_column( $result['questi
 check( 'live: flags listed', $result['flags'], array( array( 'key' => 'volunteer', 'label' => 'Volunteer' ) ) );
 check( 'live: attendee flags', array_column( $result['attendees'], 'flags' ), array( array( 'volunteer' ), array() ) );
 
+// Names as typed, sent only when fixing them changed them.
+$typed = ctbd_parse_attendees(
+	array(
+		'header'    => array( 'Attendee ID', 'First Name', 'Last Name', 'Status' ),
+		'rows'      => array(
+			array( '1', 'bell', 'hooks', 'Publish' ),
+			array( '2', 'Ana', 'DI  MARIA', 'Publish' ),
+			array( '3', 'Eva', 'Vidal', 'Publish' ),
+		),
+		'malformed' => 0,
+	)
+)['attendees'];
+check( 'names as typed: both', array( $typed[0]['firstName'], $typed[0]['firstNameAsTyped'], $typed[0]['lastNameAsTyped'] ), array( 'Bell', 'bell', 'hooks' ) );
+check( 'names as typed: spaces collapsed, first name unchanged', array( isset( $typed[1]['firstNameAsTyped'] ), $typed[1]['lastNameAsTyped'] ), array( false, 'DI MARIA' ) );
+check( 'names as typed: none when unchanged', isset( $typed[2]['firstNameAsTyped'] ) || isset( $typed[2]['lastNameAsTyped'] ), false );
+
+// Activity ticket seats left out by ctbd_read_camptix() are counted.
+check( 'activity seats counted', ctbd_parse_attendees( array_merge( $live, array( 'companions' => 2 ) ) )['stats']['activitySeats'], 2 );
+
+// Profile URLs for the QR code, without WordCamp.org.
+check( 'profile URL from the login', $result['attendees'][0]['profileUrl'], 'https://profiles.wordpress.org/eva/' );
+check( 'profile URL from the export column', ctbd_profile_url( 'https://wordpress.org/@jane-doe', false, 'jane.doe' ), 'https://wordpress.org/@jane-doe' );
+check( 'profile URL column that is not a profile', ctbd_profile_url( 'https://example.com/@jane', false, 'jane' ), 'https://profiles.wordpress.org/jane/' );
+check( 'no profile URL without a username', ctbd_profile_url( '', false, '' ), '' );
+check( 'no account without WordCamp.org', ctbd_wporg_account( 'eva' ), false );
+
+// On WordCamp.org: wcorg_get_user_by_canonical_names() finds the account.
+// Declared here, inside a block, so the tests above run without it.
+class WP_User {
+	public $user_email;
+	public $user_nicename;
+	public function __construct( $email, $nicename ) {
+		$this->user_email    = $email;
+		$this->user_nicename = $nicename;
+	}
+}
+if ( true ) {
+	function wcorg_get_user_by_canonical_names( $name ) {
+		$users = array(
+			'jane.doe' => new WP_User( 'Jane@Example.net', 'jane-doe' ),
+			'eva'      => new WP_User( 'eva@example.com', 'eva' ),
+		);
+		return isset( $users[ $name ] ) ? $users[ $name ] : false;
+	}
+}
+$wcorg = ctbd_parse_attendees(
+	array(
+		'header'    => array( 'Attendee ID', 'First Name', 'Last Name', 'E-mail Address', 'Status', 'Username' ),
+		'rows'      => array(
+			array( '1', 'Jane', 'Doe', 'jane@example.com', 'Publish', 'jane.doe' ),
+			array( '2', 'Eva', 'Vidal', 'eva@example.com', 'Publish', 'eva' ),
+			array( '3', 'Jon', 'Sanz', 'jon@example.com', 'Publish', 'jon' ),
+		),
+		'malformed' => 0,
+	)
+)['attendees'];
+check( 'wcorg: account Gravatar hash', $wcorg[0]['accountGravatarHash'], hash( 'sha256', 'jane@example.net' ) );
+check( 'wcorg: profile URL from the nicename', $wcorg[0]['profileUrl'], 'https://wordpress.org/@jane-doe' );
+check( 'wcorg: no account hash when it is the ticket email', isset( $wcorg[1]['accountGravatarHash'] ), false );
+check( 'wcorg: unknown account falls back to the login', array( isset( $wcorg[2]['accountGravatarHash'] ), $wcorg[2]['profileUrl'] ), array( false, 'https://profiles.wordpress.org/jon/' ) );
+check( 'wcorg: no email in the output', false !== strpos( json_encode( $wcorg ), 'example' ), false );
+
 echo $failures ? "\n$failures failed\n" : "\nAll passed\n";
 exit( $failures ? 1 : 0 );
