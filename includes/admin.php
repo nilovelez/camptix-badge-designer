@@ -45,6 +45,52 @@ function ctbd_register_admin_page() {
 add_action( 'admin_menu', 'ctbd_register_admin_page' );
 
 /**
+ * Moves Tickets > Badge Designer right after CampTix's Setup, so it sits
+ * between Setup and the other badge tools (Profile Badges on WordCamp.org).
+ * Runs after every plugin has added its items. Without Setup in the menu
+ * nothing moves.
+ */
+function ctbd_move_submenu_item() {
+	global $submenu;
+
+	$parent = 'edit.php?post_type=tix_ticket';
+	if ( empty( $submenu[ $parent ] ) || ! is_array( $submenu[ $parent ] ) ) {
+		return;
+	}
+
+	$ours  = null;
+	$items = array();
+	foreach ( $submenu[ $parent ] as $item ) {
+		if ( isset( $item[2] ) && 'ctbd-badges' === $item[2] ) {
+			$ours = $item;
+		} else {
+			$items[] = $item;
+		}
+	}
+	if ( null === $ours ) {
+		return;
+	}
+
+	$sorted = array();
+	$placed = false;
+	foreach ( $items as $item ) {
+		$sorted[] = $item;
+		if ( isset( $item[2] ) && 'camptix_options' === $item[2] ) {
+			$sorted[] = $ours;
+			$placed   = true;
+		}
+	}
+	if ( ! $placed ) {
+		return;
+	}
+
+	// The keys set the order WordPress prints the items in.
+	// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Reordering the menu is the point.
+	$submenu[ $parent ] = $sorted;
+}
+add_action( 'admin_menu', 'ctbd_move_submenu_item', PHP_INT_MAX );
+
+/**
  * Whether an admin page is the editor.
  *
  * @param string $hook_suffix The admin page.

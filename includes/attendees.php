@@ -240,6 +240,52 @@ function ctbd_sanitize_wporg_username( $username ) {
 }
 
 /**
+ * The WordPress.org account of a username, on WordCamp.org.
+ *
+ * WordCamp.org shares its users with WordPress.org, and its
+ * wcorg_get_user_by_canonical_names() finds an account by its login or its
+ * nicename. Elsewhere that function does not exist, and there is no account.
+ *
+ * @param string $username Valid WordPress.org username, or ''.
+ * @return WP_User|false The account, or false.
+ */
+function ctbd_wporg_account( $username ) {
+	if ( '' === $username || ! function_exists( 'wcorg_get_user_by_canonical_names' ) ) {
+		return false;
+	}
+	$user = wcorg_get_user_by_canonical_names( $username );
+	return $user instanceof WP_User ? $user : false;
+}
+
+/**
+ * The WordPress.org profile URL for the QR code.
+ *
+ * Profile URLs are keyed on the nicename, not the login, which can differ
+ * (a login with a dot or an @). In order: the export's "WordPress.org
+ * Profile URL" column, which WordCamp.org fills in; the account's nicename,
+ * when the account is known; the login, which is right for most people.
+ *
+ * @param string        $column   Value of the "WordPress.org Profile URL" column.
+ * @param WP_User|false $account  WordPress.org account, or false.
+ * @param string        $username Valid WordPress.org username, or ''.
+ * @return string Profile URL, or '' when there is no username.
+ */
+function ctbd_profile_url( $column, $account, $username ) {
+	$column = trim( (string) $column );
+	// phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText -- A domain name.
+	if ( preg_match( '#^https://(profiles\.)?wordpress\.org/[A-Za-z0-9._@%-]+/?$#', $column ) ) {
+		return $column;
+	}
+	if ( $account && '' !== $account->user_nicename ) {
+		return 'https://wordpress.org/@' . strtolower( $account->user_nicename );
+	}
+	if ( '' !== $username ) {
+		return 'https://profiles.wordpress.org/' . rawurlencode( $username ) . '/';
+	}
+	return '';
+}
+
+/**
  * Turns a CampTix export into the attendee list for badges.
  *
  * @param array $csv Result of ctbd_read_csv().
@@ -288,6 +334,7 @@ function ctbd_parse_attendees( $csv ) {
 		'withoutEmail'    => 0,
 		'namesNormalized' => 0,
 		'placeholders'    => 0,
+		'activitySeats'   => isset( $csv['companions'] ) ? (int) $csv['companions'] : 0,
 	);
 	$unknown_email = ctbd_unknown_attendee_email();
 
@@ -322,9 +369,13 @@ function ctbd_parse_attendees( $csv ) {
 			continue;
 		}
 
-		$first_name = ctbd_normalize_name( $data['First Name'] );
-		$last_name  = ctbd_normalize_name( $data['Last Name'] );
-		if ( trim( preg_replace( '/\s+/u', ' ', $data['First Name'] ) ) !== $first_name || trim( preg_replace( '/\s+/u', ' ', $data['Last Name'] ) ) !== $last_name ) {
+		// Names with their case fixed; the editor uses the names as typed
+		// when the design's "Fix names" option is off.
+		$first_typed = trim( preg_replace( '/\s+/u', ' ', $data['First Name'] ) );
+		$last_typed  = trim( preg_replace( '/\s+/u', ' ', $data['Last Name'] ) );
+		$first_name  = ctbd_normalize_name( $first_typed );
+		$last_name   = ctbd_normalize_name( $last_typed );
+		if ( $first_typed !== $first_name || $last_typed !== $last_name ) {
 			++$stats['namesNormalized'];
 		}
 
@@ -341,6 +392,20 @@ function ctbd_parse_attendees( $csv ) {
 			++$stats['withoutEmail'];
 		}
 
+		// On WordCamp.org, the attendee's WordPress.org account.
+		$account = ctbd_wporg_account( $username );
+
+		// The account's Gravatar, used when the ticket email has none.
+		$account_hash = '';
+		if ( $account && is_email( $account->user_email ) ) {
+			$account_hash = hash( 'sha256', strtolower( trim( $account->user_email ) ) );
+			if ( $account_hash === $gravatar_hash ) {
+				$account_hash = '';
+			}
+		}
+
+		$profile_url = ctbd_profile_url( isset( $data['WordPress.org Profile URL'] ) ? $data['WordPress.org Profile URL'] : '', $account, $username );
+
 		$answers = array();
 		foreach ( $questions as $question ) {
 			$answers[ $question['key'] ] = trim( $data[ $question['label'] ] );
@@ -354,15 +419,26 @@ function ctbd_parse_attendees( $csv ) {
 			}
 		}
 
-		$attendees[] = array(
+		$attendee = array(
 			'attendeeId'   => absint( $data['Attendee ID'] ),
 			'firstName'    => $first_name,
 			'lastName'     => $last_name,
 			'username'     => $username,
+			'profileUrl'   => $profile_url,
 			'gravatarHash' => $gravatar_hash,
 			'answers'      => $answers,
 			'flags'        => $attendee_flags,
 		);
+		if ( $first_typed !== $first_name ) {
+			$attendee['firstNameAsTyped'] = $first_typed;
+		}
+		if ( $last_typed !== $last_name ) {
+			$attendee['lastNameAsTyped'] = $last_typed;
+		}
+		if ( '' !== $account_hash ) {
+			$attendee['accountGravatarHash'] = $account_hash;
+		}
+		$attendees[] = $attendee;
 	}
 
 	// Purchase order: Attendee ID grows with every ticket sold, so new
