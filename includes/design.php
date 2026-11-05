@@ -46,7 +46,7 @@ function ctbd_default_design() {
 		// Folded: the face is printed twice on a taller page, to fold in half.
 		'folded'     => false,
 		// A small line at the top center, to help punch the lanyard hole.
-		'holeMark'   => false,
+		'holeMark'   => true,
 		// Names written in all caps or all lowercase get their case fixed.
 		'fixNames'   => true,
 		'background' => null,
@@ -108,8 +108,8 @@ function ctbd_sanitize_design( $input ) {
 		'cropMarks'  => ! empty( $input['cropMarks'] ),
 		'guides'     => ! empty( $input['guides'] ),
 		'folded'     => ! empty( $input['folded'] ),
-		'holeMark'   => ! empty( $input['holeMark'] ),
-		// On unless turned off, also for designs saved before the option.
+		// On unless turned off, also for designs saved before these options.
+		'holeMark'   => ! isset( $input['holeMark'] ) || ! empty( $input['holeMark'] ),
 		'fixNames'   => ! isset( $input['fixNames'] ) || ! empty( $input['fixNames'] ),
 		'background' => null,
 		'elements'   => array(),

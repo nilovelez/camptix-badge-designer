@@ -148,7 +148,7 @@ function readDesignFile( text ) {
 		cropMarks: !! source.cropMarks,
 		guides: source.guides !== false,
 		folded: !! source.folded,
-		holeMark: !! source.holeMark,
+		holeMark: source.holeMark !== false,
 		fixNames: source.fixNames !== false,
 		elements,
 	};
