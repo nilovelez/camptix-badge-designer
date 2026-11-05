@@ -55,7 +55,7 @@ Checked against a real export of 178 tickets (kept in `test-data/`, never commit
 - Questions common to WordCamp sites, in English: `Severe allergy`, `Accessibility needs`, `First Time Attending`.
 - Questions defined by each event, in its own language (for example "will you come on Sunday?" or dietary requirements). They change from one event to another, so columns are always read by header name, never by position.
 - `Username` is often missing: about 39% of the tickets in the sample. It is either empty or holds the placeholder `Awaiting attendee ([[ unconfirmed ]])` (a ticket bought for someone who has not confirmed it yet). Anything with spaces is not a valid username and counts as missing.
-- `WordPress.org Profile URL`, when present, is `https://wordpress.org/@<username>` and always matches `Username`.
+- `WordPress.org Profile URL`, when present, is `https://wordpress.org/@<nicename>`. It usually matches `Username`, but profile URLs are keyed on the account's nicename, which differs from the login for logins with a dot or an `@`.
 - Names: many with accents and ñ, compound first names, last names of up to three words (29 characters in the sample), some written all in uppercase or all in lowercase.
 - The same email address can appear on more than one ticket.
 
@@ -67,16 +67,16 @@ The variables a text box can insert:
 - The WordPress.org username, printed as `@username` like the HTML badges of WordCamp.org, and nothing for attendees without one (asked for by Nilo, for WordPress/wordcamp.org#1701).
 - The questions defined by the event, plus the common "First Time Attending" question. Live from CampTix, only the event's own questions (`tix_question`) count: other columns that add-ons put in the export, such as a phone number from a payment add-on or the admin flags, never become variables (bor0's review, milestone 11). A CSV export does not say which columns are questions, so there every column CampTix does not always export counts as one (test sites only).
 
-Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("DeLuca") stay as typed. Each part after a hyphen or an apostrophe starts with a capital, and so does the letter after "Mc": "O'BRIEN" becomes "O'Brien" and "MCDONALD" becomes "McDonald" ("Mac" is left alone: Macías is not a Mac-name). Particles such as "de", "van" or "le" stay in lowercase only when a word that is not a particle comes after them ("de la Fuente", "van der Berg"); otherwise they are the name ("LE VAN" becomes "Le Van"). Rules based on patterns, with tests, rather than an option (decided by Nilo, milestone 11). The organizer can still turn a text box to uppercase as a style.
+Names are normalized before they are shown: only words written all in uppercase or all in lowercase change, so "maría" and "GARCÍA" become "María" and "García", while mixed-case words ("DeLuca") stay as typed. Each part after a hyphen or an apostrophe starts with a capital, and so does the letter after "Mc": "O'BRIEN" becomes "O'Brien" and "MCDONALD" becomes "McDonald" ("Mac" is left alone: Macías is not a Mac-name). Particles such as "de", "van" or "le" stay in lowercase only when a word that is not a particle comes after them ("de la Fuente", "van der Berg"); otherwise they are the name ("LE VAN" becomes "Le Van"). Rules based on patterns, with tests (decided by Nilo, milestone 11). Since milestone 12 it is a design option, "Fix names written in all caps or all lowercase", on by default: turned off, names print exactly as typed, for names that are written that way on purpose ("bell hooks"). The Attendees panel says how many attendees have a name written that way. The organizer can still turn a text box to uppercase as a style.
 
 Never offered as variables: email addresses, buyer and payment data, and the sensitive common questions (severe allergy, accessibility needs). Every question the event adds stays available, whatever it asks (decided by Nilo); a site can still exclude one with the `ctbd_excluded_questions` filter.
 
 ### What reaches the browser
 
-The server (`includes/attendees.php`, REST route `ctbd/v1/attendees`, administrators only) sends, per attendee: page number, Attendee ID, normalized first and last name, the validated username (empty when missing), the Gravatar hash, the answers to the allowed questions, and the CampTix admin flags the attendee has (only live from CampTix, with the Admin Flags plugin).
+The server (`includes/attendees.php`, REST route `ctbd/v1/attendees`, administrators only) sends, per attendee: page number, Attendee ID, normalized first and last name (and the names as typed, when they differ), the validated username (empty when missing), the profile URL for the QR code, the Gravatar hash (and, on WordCamp.org, the hash of the WordPress.org account's email when it differs), the answers to the allowed questions, and the CampTix admin flags the attendee has (only live from CampTix, with the Admin Flags plugin).
 
 - Email addresses never reach the browser: the server sends the SHA-256 Gravatar hash of the trimmed, lowercase address.
-- Only tickets with status `Publish` get a badge; the others are counted and left out.
+- Only tickets with status `Publish` get a badge; the others are counted and left out. Activity tickets (Contributor Day, a social dinner) from the camptix-companion-tickets add-on, which carry `tix_companion_primary_attendee_id`, get no badge either: they belong to the attendee's main ticket (bor0's review, milestone 12).
 - Badges are numbered from 1 in `Attendee ID` order.
 
 ## Badge size
@@ -114,7 +114,7 @@ New elements are added with the + button. Every change can be undone and redone 
 - Variables are written in braces: `{first_name}`, `{last_name}`, `{full_name}`, `{username}` and `{question:<key>}` for each event question. A selector inserts them. Unknown variables are printed as typed, so a typo is visible. Stray spaces left by an empty variable are removed, and so is one separator next to it (`·`, `•`, `|`, `/`, `,`, `;`, `:` or a dash): the one before it when there is text before, otherwise the one after, so "{job} · {country}" gives "Italy", not "· Italy". No separator setting in the interface (decided by Nilo, milestone 11, after bor0's review).
 - Always one line: text never wraps to a second line (decided by Nilo: very long texts are usually people adding their company, job title or handle to the name).
 - Properties (decided by Nilo): font family, weight, size, color, alignment and uppercase. No line height or letter spacing.
-- Text that does not fit (decided by Nilo, changed in milestone 11 after bor0's review): it shrinks, down to 80% of its size. If it still does not fit, it is cut after the last whole character that fits, never in the middle of a letter, starting from the left so its beginning stays readable, and the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing. In the demo, the attendees with cut text went from 14 to 2.
+- Text that does not fit (decided by Nilo, changed in milestone 11 after bor0's review): it shrinks, down to 80% of its size. If it still does not fit, it is cut after the last whole character that fits, never in the middle of a letter, starting from the left so its beginning stays readable, and ends with an ellipsis, the "…" character (milestone 12); the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing. In the demo, the attendees with cut text went from 14 to 2.
 - Color: picked from the site's color palette (the theme's `theme.json` palette and the custom colors; the WordPress default palette when the theme has none). The design stores the hex value, so the color survives an import on a site with another palette.
 - Font families offered:
   - Inter, shipped with the plugin so it works out of the box, in weights 400, 600 and 700 (SIL Open Font License, accepted on WordPress.org). Chosen over Montserrat because it is narrower (long names fit), very legible at a distance, neutral over any background, and covers Latin Extended, Cyrillic, Greek and Vietnamese.
@@ -122,7 +122,7 @@ New elements are added with the + button. Every change can be undone and redone 
 
 ### QR code
 
-- Points to the attendee's WordPress.org profile: `https://profiles.wordpress.org/<username>/`, built from the `Username` column (not from the export's `wordpress.org/@<username>` URL).
+- Points to the attendee's WordPress.org profile (milestone 12, after bor0's review): the export's "WordPress.org Profile URL" when it has one; otherwise, on WordCamp.org, `https://wordpress.org/@<nicename>` from the account; otherwise `https://profiles.wordpress.org/<username>/`. `{username}` prints the login.
 - When the attendee has no valid username, the QR code is not drawn: its space stays empty, showing the background, and generation goes on.
 - Black on a white square by default. The only option is a transparent background, with no white square (asked for by Nilo, November 2026, for backgrounds that are light but not white; simpler than picking a background color). The editor warns that phones only read it on a light, plain background.
 - At least 20 × 20 mm (decided by Nilo): smaller codes may not scan once printed. The editor does not let it get smaller, and the server enforces it too.
@@ -131,7 +131,7 @@ New elements are added with the + button. Every change can be undone and redone 
 ### Gravatar
 
 - Loaded by URL from Gravatar, never generated or stored by the plugin.
-- The URL comes from the attendee's email address. Using the WordPress.org username instead is in `docs/backlog.md`.
+- The URL comes from the attendee's email address. On WordCamp.org, when that address has no Gravatar, the one of the attendee's WordPress.org account is used (milestone 12): the ticket's is asked first with `d=404`, then the account's with the element's fallback.
 - Gravatar returns each image in the format it was uploaded in (PNG or JPEG), whatever extension is requested. PNG images keep their transparency. The size requested is the element size at 300 dpi.
 - Options, all simple:
   - Shape: round or square.

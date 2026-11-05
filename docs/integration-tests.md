@@ -1,0 +1,30 @@
+# Tests for the integration into WordCamp.org
+
+Some parts of the plugin only run on WordCamp.org, because they use functions or add-ons the sandbox does not have. The PHP tests (`tests/php/attendees-test.php`) cover their logic with stand-ins; this list is what to check on a real WordCamp.org site (a local copy of the network, or a staging site) before the integration pull request is merged. See "The WordPress.org account: Gravatar and profile URL" and "Activity tickets" in `docs/decisions.md`.
+
+Use attendees whose accounts you control, or ask the WordCamp.org team for test accounts. Never commit real attendee data.
+
+## Gravatar from the WordPress.org account
+
+Runs when `wcorg_get_user_by_canonical_names()` exists.
+
+1. An attendee whose ticket email has a Gravatar: the badge shows the ticket's Gravatar, and the browser asks Gravatar only once for that badge.
+2. An attendee whose ticket email has no Gravatar, but whose WordPress.org account email has one: the badge shows the account's Gravatar, on the canvas, in Preview badge and in the generated PDF.
+3. The same attendee with the Gravatar fallback set to a generated image (identicon) and to the fixed image: the account's Gravatar still wins over the fallback; with neither Gravatar, the fallback is used.
+4. An attendee whose ticket email is the same as the account's: no `accountGravatarHash` in `/wp-json/ctbd/v1/attendees`.
+5. A username that matches no account, and a ticket still at `[[ unconfirmed ]]`: no `accountGravatarHash`, no errors in the PHP log.
+6. The REST response has no email address anywhere, only hashes.
+7. A big event (a few thousand attendees): time `/wp-json/ctbd/v1/attendees` before and after, since it now looks up one account per attendee with a username.
+
+## Profile URL in the QR code
+
+1. The export has a "WordPress.org Profile URL" column (from `camptix-tweaks/addons/wporg-profile-url.php`): every QR code with a username decodes to that column's URL.
+2. A login with a dot or an `@`, whose nicename differs: the QR code opens the right profile, `https://wordpress.org/@<nicename>`.
+3. Without that column (the add-on turned off), the QR code uses the account's nicename; for a username with no account, `https://profiles.wordpress.org/<login>/`.
+4. `{username}` still prints `@<login>`.
+
+## Activity tickets
+
+1. With camptix-companion-tickets active, an attendee with a main ticket and a Contributor Day seat gets one badge, and the attendee list counts the seat as an activity ticket left out.
+2. The admin flag the add-on sets for the activity is offered in the Generate PDF dialog, and filtering by it prints the main attendees who signed up.
+3. A seat whose main ticket was refunded or cancelled gives no badge.
