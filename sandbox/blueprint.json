@@ -39,7 +39,7 @@
 			"pluginData": {
 				"resource": "git:directory",
 				"url": "https://github.com/WordPress/wordcamp.org",
-				"ref": "89f80bcbb2c6c1e40397317dc47a942332d427e4",
+				"ref": "254bad3b93a2ef491eb1a6dfd14dd9a836319770",
 				"refType": "commit",
 				"path": "public_html/wp-content/plugins/camptix"
 			},
@@ -53,7 +53,7 @@
 			"pluginData": {
 				"resource": "git:directory",
 				"url": "https://github.com/WordPress/wordcamp.org",
-				"ref": "89f80bcbb2c6c1e40397317dc47a942332d427e4",
+				"ref": "254bad3b93a2ef491eb1a6dfd14dd9a836319770",
 				"refType": "commit",
 				"path": "public_html/wp-content/plugins/camptix-admin-flags"
 			},
