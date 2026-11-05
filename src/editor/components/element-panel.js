@@ -214,22 +214,15 @@ function TypographyPanel( { element, change } ) {
 			<p className="ctbd-label">
 				{ __( 'Color', 'camptix-badge-designer' ) }
 			</p>
-			{ palette.length ? (
-				<ColorPalette
-					colors={ palette }
-					value={ element.color }
-					onChange={ ( color ) => color && change( { color } ) }
-					disableCustomColors
-					clearable={ false }
-				/>
-			) : (
-				<p className="ctbd-help">
-					{ __(
-						'This site has no color palette.',
-						'camptix-badge-designer'
-					) }
-				</p>
-			) }
+			{ /* The site palette plus a custom color, solid: the PDF draws
+			     text without transparency. */ }
+			<ColorPalette
+				colors={ palette }
+				value={ element.color }
+				onChange={ ( color ) => color && change( { color } ) }
+				enableAlpha={ false }
+				clearable={ false }
+			/>
 		</PanelBody>
 	);
 }

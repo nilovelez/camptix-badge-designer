@@ -115,10 +115,10 @@ New elements are added with the + button. Every change can be undone and redone 
 - Always one line: text never wraps to a second line (decided by Nilo: very long texts are usually people adding their company, job title or handle to the name).
 - Properties (decided by Nilo): font family, weight, size, color, alignment and uppercase. No line height or letter spacing.
 - Text that does not fit (decided by Nilo, changed in milestone 11 after bor0's review): it shrinks, down to 80% of its size. If it still does not fit, it is cut after the last whole character that fits, never in the middle of a letter, starting from the left so its beginning stays readable, and ends with an ellipsis, the "…" character (milestone 12); the editor warns. The warning shows on the canvas for the attendee on screen, and the Attendees panel counts and lists the attendees affected, so they can be checked before printing. In the demo, the attendees with cut text went from 14 to 2.
-- Color: picked from the site's color palette (the theme's `theme.json` palette and the custom colors; the WordPress default palette when the theme has none). The design stores the hex value, so the color survives an import on a site with another palette.
+- Color: picked from the site's color palette (the theme's `theme.json` palette and the custom colors; the WordPress default palette when the theme has none), or any custom color with the picker (asked for by Nilo after milestone 12), always solid: no transparency, since the PDF draws text without it. The design stores the hex value, so the color survives an import on a site with another palette.
 - Font families offered:
   - Inter, shipped with the plugin so it works out of the box, in weights 400, 600 and 700 (SIL Open Font License, accepted on WordPress.org). Chosen over Montserrat because it is narrower (long names fit), very legible at a distance, neutral over any background, and covers Latin Extended, Cyrillic, Greek and Vietnamese.
-  - Every font installed on the site through the WordPress Font Library (Appearance > Fonts), including Google Fonts installed there.
+  - Every font installed on the site through the WordPress Font Library (Appearance > Fonts), including Google Fonts installed there, active or not. Deactivating a font in the Font Library only takes it out of the site's styles: its files stay installed and the editor still offers it. So a font meant only for the badges can stay inactive and add nothing to the event website's load (checked by Nilo with Montserrat 600, November 2026).
 
 ### QR code
 

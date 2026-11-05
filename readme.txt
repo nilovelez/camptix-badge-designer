@@ -25,7 +25,7 @@ Features:
 * Any print size; 100 × 150 mm with 3 mm bleed by default.
 * Single badges, or badges to fold in half: you design one side, and each page gets it twice, the top one upside down.
 * A vector PDF background stays vector in the final PDF.
-* Text in Inter, included, or any font installed with the WordPress Font Library, in the colors of your site's palette.
+* Text in Inter, included, or any font installed with the WordPress Font Library (it can stay inactive on the site), in the colors of your site's palette or any custom color.
 * Text that does not fit shrinks a little; if it still does not fit, it is cut with an ellipsis and listed, so it can be checked before printing.
 * A mark for the lanyard hole, on by default: a small line at the top center to help punch the hole.
 * Print only the attendees with a CampTix admin flag, for example the volunteers.

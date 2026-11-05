@@ -41,7 +41,18 @@ const WHITE = rgb( 1, 1, 1 );
  * @return {Object} pdf-lib color.
  */
 function hexToRgb( hex ) {
-	const value = String( hex ).replace( '#', '' ).padEnd( 6, '0' );
+	let value = String( hex ).replace( '#', '' );
+	// Short form: #f80 is #ff8800.
+	if ( value.length === 3 ) {
+		value =
+			value[ 0 ] +
+			value[ 0 ] +
+			value[ 1 ] +
+			value[ 1 ] +
+			value[ 2 ] +
+			value[ 2 ];
+	}
+	value = value.padEnd( 6, '0' );
 	const channel = ( start ) =>
 		( parseInt( value.slice( start, start + 2 ), 16 ) || 0 ) / 255;
 	return rgb( channel( 0 ), channel( 2 ), channel( 4 ) );

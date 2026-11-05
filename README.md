@@ -44,7 +44,7 @@ flowchart LR
 - **Attendees** (`includes/camptix.php`, `includes/attendees.php`): with CampTix active, read live from its `tix_attendee` posts and built as the same table CampTix's own CSV export produces, with the same functions and filters, so both sources go through one reader. Without CampTix (development only), read from a CampTix CSV export in `test-data/`. Only paid tickets get a badge, numbered in `Attendee ID` order so new tickets never shift printed ones; activity tickets (Contributor Day) belong to the main ticket and get none. Names written all in capitals or all in lowercase are normalized, unless the design turns it off.
 - **What reaches the browser** (REST route `ctbd/v1/attendees`, `manage_options` only): the badge number, the attendee ID, the normalized names (and the names as typed), the validated WordPress.org username and profile URL, the SHA-256 Gravatar hash (on WordCamp.org, also the WordPress.org account's), the answers to the event's own questions (no other export column becomes a variable) and the CampTix admin flags. Never email addresses, buyer or payment data, or the sensitive common questions (allergies, accessibility needs).
 - **Design** (`includes/design.php`, REST route `ctbd/v1/design`): one design per site in the `ctbd_design` option, saved automatically by the editor and checked field by field on the server.
-- **Fonts and colors** (`includes/fonts.php`): Inter, shipped in `fonts/inter/`, plus every font installed with the Font Library, and the site's color palette.
+- **Fonts and colors** (`includes/fonts.php`): Inter, shipped in `fonts/inter/`, plus every font installed with the Font Library, active or not, and the site's color palette (any custom color can be picked too).
 
 ### Browser
 
