@@ -280,7 +280,7 @@ th { background: var(--soft); }
 <p>Width, height and bleed in millimeters of one side, the badge type (single or folded), the safe area, crop marks (on by default), a mark for the lanyard hole and whether the guides are shown.</p>
 <ul>
 	<li><strong>Mark for the lanyard hole:</strong> a small line at the top center of every badge, about 15 mm long, to help punch the hole in the center. On a folded badge it starts at the fold. Leave it off if your artwork already marks the hole.</li>
-	<li>If you make the badge smaller and some elements end up past its edge, they are marked in red and listed in the <strong>Print size</strong> and <strong>Elements</strong> panels. <strong>Move them inside</strong> brings them back within the trim.</li>
+	<li>If you make the badge smaller and some elements end up past its edge, they are marked in red and listed in the <strong>Print size</strong> and <strong>Elements</strong> panels. <strong>Move them inside</strong> brings them back within the safe area; an element wider than the safe area is centered on the badge.</li>
 </ul>
 <figure class="is-narrow">
 	<a href="images/panel-print-size.webp"><img src="images/panel-print-size.webp" alt="The Print size panel: width 102.5, height 149.2, bleed 5, the badge type Single or Folded, safe area 8.5, and the toggles Crop marks in the PDF and Show trim and safe area." loading="lazy"></a>
@@ -328,13 +328,13 @@ th { background: var(--soft); }
 
 <h3 id="text-cut">Text that does not fit</h3>
 <p>A text box is always one line. When an attendee's text is longer than the box, it is made a little smaller, down to 80% of its size. That is enough for most long names, and the badges still look even on a lanyard.</p>
-<p>If it still does not fit, it is cut after the last whole letter that fits, and the editor warns you so you can check it before printing: make the box wider, the text smaller, use a shorter variable, or fix the attendee's data in CampTix. There is never a second line, on purpose:</p>
+<p>If it still does not fit, it is cut after the last whole letter that fits and ends with an ellipsis (…), and the editor warns you so you can check it before printing: make the box wider, the text smaller, use a shorter variable, or fix the attendee's data in CampTix. There is never a second line, on purpose:</p>
 <ul>
 	<li>Text never grows into the photo or the QR code, and every badge keeps the same layout.</li>
 	<li>Attendees type their own data. Very long names are usually a company, a job title or a handle added to the name, by mistake or to fill the badge with spam: whatever does not fit is left out.</li>
 </ul>
 <figure>
-	<a href="images/text-cut.webp"><img src="images/text-cut.webp" alt="A badge where the job title Head of Engineering and Developer Experience does not fit: the box has a red dashed border and a warning icon, and the Attendees panel lists the 14 attendees with text that is cut." loading="lazy"></a>
+	<a href="images/text-cut.webp"><img src="images/text-cut.webp" alt="A badge where the long last name Rodríguez de Castro y Montenegro Fernández does not fit: it is cut with an ellipsis, the box has a red dashed border and a warning icon, and the Attendees panel lists the 2 attendees with text that is cut." loading="lazy"></a>
 	<figcaption>The box is marked in red on the canvas, and the Attendees panel lists every attendee affected. Click a name to jump to that badge.</figcaption>
 </figure>
 
@@ -364,9 +364,9 @@ th { background: var(--soft); }
 
 <h2 id="check">Check every badge</h2>
 <p>The canvas shows one attendee at a time. Use the arrows in the toolbar, <kbd>Page Up</kbd> and <kbd>Page Down</kbd>, or type a number, to go through them: very long names, attendees without a Gravatar or without a username, empty answers.</p>
-<p>The <strong>Attendees</strong> panel sums it up: how many attendees there are, how many have no WordPress.org username, and which ones have text that is cut. <strong>View list</strong> shows them all in a table.</p>
+<p>The <strong>Attendees</strong> panel sums it up: how many attendees there are, the option to fix names written in all caps or all lowercase, how many have no WordPress.org username, and which ones have text that is cut. <strong>View list</strong> shows them all in a table.</p>
 <figure class="is-narrow">
-	<a href="images/panel-attendees.webp"><img src="images/panel-attendees.webp" alt="The Attendees panel: 140 attendees in purchase order, 55 without a WordPress.org username, source CampTix, a warning listing 14 attendees with text that is cut, and the View list button." loading="lazy"></a>
+	<a href="images/panel-attendees.webp"><img src="images/panel-attendees.webp" alt="The Attendees panel: 140 attendees in purchase order, the Fix names written in all caps or all lowercase toggle with 23 attendees written that way, 55 without a WordPress.org username, source CampTix, a warning listing the 2 attendees with text that is cut, and the View list button." loading="lazy"></a>
 </figure>
 <p>Only paid tickets get a badge. Tickets bought for someone who has not filled in their details yet are left out until they do.</p>
 
@@ -381,7 +381,7 @@ th { background: var(--soft); }
 <h3 id="generate">Generate all the badges</h3>
 <p><strong>Generate PDF</strong> makes one PDF with one page per attendee. Before you start, it tells you how many badges there are, the page size, and how many have no QR code or have text that is cut.</p>
 <figure class="is-dialog">
-	<a href="images/generate.webp"><img src="images/generate.webp" alt="The Generate PDF dialog: pages All (1–140) or A range, and the summary: 140 badges, 124.5 × 171.2 mm pages with crop marks, 55 without a QR code, 14 with text that is cut." loading="lazy"></a>
+	<a href="images/generate.webp"><img src="images/generate.webp" alt="The Generate PDF dialog: pages All (1–140) or A range, Attendees Everyone, and the summary: 140 badges, 124.5 × 171.2 mm pages with crop marks, 55 without a QR code, 2 with text that is cut." loading="lazy"></a>
 </figure>
 <ul>
 	<li>It runs in your browser and shows its progress; you can cancel it. The demo's 140 badges take a few seconds and make an 11 MB file. Most of the time goes into downloading the Gravatars, so a big event with a slow connection may take a minute.</li>
@@ -389,7 +389,7 @@ th { background: var(--soft); }
 	<li>The file downloads as <code>badges-1-140.pdf</code>, after the pages it holds.</li>
 </ul>
 <h3 id="flags">Print only some attendees</h3>
-<p>If your site uses CampTix admin flags (Tickets › Setup › Admin Flags), <strong>Attendees</strong> in the Generate PDF dialog prints only the attendees with one flag: for example only the volunteers, or only the organizers. Set the flags on each attendee in CampTix. This also keeps a person with an extra ticket, such as an activity, from getting a second badge.</p>
+<p>If your site uses CampTix admin flags (Tickets › Setup › Admin Flags), <strong>Attendees</strong> in the Generate PDF dialog prints only the attendees with one flag: for example only the volunteers, or only the organizers. Set the flags on each attendee in CampTix.</p>
 
 <h3 id="batches">Print in batches</h3>
 <p>Badges are numbered in purchase order, never alphabetically, so new tickets are always added at the end and never shift the ones you already printed. Choose <strong>A range</strong> to print in batches: send badges 1 to 250 to the print shop a few weeks before the event, and 251 onwards when ticket sales close.</p>
