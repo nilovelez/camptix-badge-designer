@@ -32,7 +32,7 @@ Long-term goal: run on every WordCamp site, as part of WordCamp.org's badge plug
 
 ## Attendee data
 
-- When CampTix is active, as on WordCamp sites, the attendee list is read live from its `tix_attendee` posts (`includes/camptix.php`, milestone 8). It is built as the same table CampTix's own CSV export produces, with the same functions and hooks (`get_all_questions()`, `get_attendee_answers()`, the `camptix_attendee_report_*` filters), so both sources go through the same reader and a design works with either. The add-on columns (Username, Severe allergy…) get their English names by internal key, because the export translates its headers into the user's language. The editor is then under Tickets › Badge Designer.
+- When CampTix is active, as on WordCamp sites, the attendee list is read live from its `tix_attendee` posts (`includes/camptix.php`, milestone 8). It is built as the same table CampTix's own CSV export produces, with the same functions and hooks (`get_all_questions()`, `get_attendee_answers()`, the `camptix_attendee_report_*` filters), so both sources go through the same reader and a design works with either. The add-on columns (Username, Severe allergy…) get their English names by internal key, because the export translates its headers into the user's language. The editor is then under Tickets › Badge Designer, right after Setup, so it sits before Profile Badges on WordCamp.org (asked for by Nilo).
 - Without CampTix, on test sites, the list is read from the newest CampTix CSV export in the plugin's `test-data/` folder, and the editor is Badges in the main menu. No CSV upload is planned for production.
 - Attendee data is not part of the saved design.
 
