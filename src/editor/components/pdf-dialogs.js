@@ -457,6 +457,7 @@ export function GenerateDialog( {
 						<SelectControl
 							__next40pxDefaultSize
 							__nextHasNoMarginBottom
+							className="ctbd-generate-dialog__flag"
 							label={ __(
 								'Attendees',
 								'camptix-badge-designer'

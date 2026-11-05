@@ -47,6 +47,8 @@ function ctbd_default_design() {
 		'folded'     => false,
 		// A small line at the top center, to help punch the lanyard hole.
 		'holeMark'   => false,
+		// Names written in all caps or all lowercase get their case fixed.
+		'fixNames'   => true,
 		'background' => null,
 		'elements'   => null,
 	);
@@ -107,6 +109,8 @@ function ctbd_sanitize_design( $input ) {
 		'guides'     => ! empty( $input['guides'] ),
 		'folded'     => ! empty( $input['folded'] ),
 		'holeMark'   => ! empty( $input['holeMark'] ),
+		// On unless turned off, also for designs saved before the option.
+		'fixNames'   => ! isset( $input['fixNames'] ) || ! empty( $input['fixNames'] ),
 		'background' => null,
 		'elements'   => array(),
 	);

@@ -184,6 +184,34 @@ const SAMPLE_ATTENDEE = {
 };
 
 /**
+ * Attendees with their names as the design asks for them. The server sends
+ * the names with their case fixed, plus firstNameAsTyped and lastNameAsTyped
+ * when they differ, used when the "Fix names" option is off.
+ *
+ * @param {Array}   list     Attendees.
+ * @param {boolean} fixNames Whether names written in all caps or all lowercase are fixed.
+ * @return {Array} Attendees.
+ */
+export function withNameOption( list, fixNames ) {
+	if ( fixNames ) {
+		return list;
+	}
+	return list.map( ( attendee ) => {
+		if (
+			attendee.firstNameAsTyped === undefined &&
+			attendee.lastNameAsTyped === undefined
+		) {
+			return attendee;
+		}
+		return {
+			...attendee,
+			firstName: attendee.firstNameAsTyped ?? attendee.firstName,
+			lastName: attendee.lastNameAsTyped ?? attendee.lastName,
+		};
+	} );
+}
+
+/**
  * The attendee list from the server.
  *
  * @return {{data: Object|null, error: string|null, list: Array}} Attendees; list falls back to a sample attendee.

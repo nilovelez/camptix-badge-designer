@@ -5,8 +5,9 @@
  *
  * Text boxes hold one line, never two (decided by Nilo). Text that does not
  * fit at the size chosen shrinks, down to SHRINK_LIMIT of that size. If it
- * still does not fit, it is cut after the last whole character that fits,
- * so its beginning stays readable, and the editor warns.
+ * still does not fit, it is cut after the last whole character that fits
+ * and ends with an ellipsis, so its beginning stays readable, and the
+ * editor warns.
  *
  * Box positions are in millimeters; font sizes in points.
  */
@@ -17,6 +18,9 @@ const MM_PER_PT = 25.4 / 72;
 
 // Text may shrink to 80% of its size to fit its box.
 export const SHRINK_LIMIT = 0.8;
+
+// Cut text ends with the ellipsis character (U+2026), not three periods.
+const ELLIPSIS = '…';
 
 // Characters that separate two variables, as in "{job} · {country}".
 const SEPARATOR = '[·•|/,;:\\u2013\\u2014-]';
@@ -192,21 +196,22 @@ export function layoutText( font, element, attendee ) {
 		size = Math.max( fitting, smallest );
 		width = textWidth( font, text, size );
 		if ( width > element.width + 0.01 ) {
-			// Cut after the last whole character that fits.
+			// Cut after the last whole character that fits with an ellipsis.
 			overflow = true;
 			const chars = Array.from( text );
+			const cut = ( count ) =>
+				chars.slice( 0, count ).join( '' ).trimEnd() + ELLIPSIS;
 			let low = 0;
 			let high = chars.length;
 			while ( low < high ) {
 				const middle = Math.ceil( ( low + high ) / 2 );
-				const candidate = chars.slice( 0, middle ).join( '' );
-				if ( textWidth( font, candidate, size ) <= element.width ) {
+				if ( textWidth( font, cut( middle ), size ) <= element.width ) {
 					low = middle;
 				} else {
 					high = middle - 1;
 				}
 			}
-			text = chars.slice( 0, low ).join( '' ).trimEnd();
+			text = low > 0 ? cut( low ) : '';
 			width = textWidth( font, text, size );
 		}
 	}

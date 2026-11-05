@@ -24,7 +24,7 @@ import { AttendeesList } from './attendees-list';
 import { ElementPanel } from './element-panel';
 import { DesignPanel } from './design-panel';
 import { BadgeTypeControl } from './badge-type';
-import { elementLabel, isPastTrim, moveInsideTrim } from '../elements';
+import { elementLabel, isPastTrim, moveInsideSafeArea } from '../elements';
 import {
 	LIMITS,
 	RECOMMENDED_DPI,
@@ -206,7 +206,7 @@ function PastTrimNotice( { design, updateDesign } ) {
 						...current,
 						elements: current.elements.map( ( element ) =>
 							isPastTrim( element, current.size )
-								? moveInsideTrim( element, current.size )
+								? moveInsideSafeArea( element, current.size )
 								: element
 						),
 					} ) )
@@ -444,7 +444,13 @@ function OverflowList( { overflows, onGoTo } ) {
 	);
 }
 
-function AttendeesPanel( { attendees, overflows, onGoTo } ) {
+function AttendeesPanel( {
+	attendees,
+	overflows,
+	onGoTo,
+	design,
+	updateDesign,
+} ) {
 	const [ open, setOpen ] = useState( false );
 	const { data, error } = attendees;
 
@@ -472,6 +478,30 @@ function AttendeesPanel( { attendees, overflows, onGoTo } ) {
 						data.attendees.length
 					) }
 				</p>
+				<ToggleControl
+					__nextHasNoMarginBottom
+					label={ __(
+						'Fix names written in all caps or all lowercase',
+						'camptix-badge-designer'
+					) }
+					help={ sprintf(
+						/* translators: %d: number of attendees. */
+						_n(
+							'%d attendee has a name written that way.',
+							'%d attendees have a name written that way.',
+							data.stats.namesNormalized,
+							'camptix-badge-designer'
+						),
+						data.stats.namesNormalized
+					) }
+					checked={ design.fixNames !== false }
+					onChange={ ( value ) =>
+						updateDesign( ( current ) => ( {
+							...current,
+							fixNames: value,
+						} ) )
+					}
+				/>
 				<p className="ctbd-help">
 					{ sprintf(
 						/* translators: %d: number of attendees. */
@@ -525,6 +555,8 @@ function DocumentTab( props ) {
 				attendees={ props.attendees }
 				overflows={ props.overflows }
 				onGoTo={ props.onGoTo }
+				design={ props.design }
+				updateDesign={ props.updateDesign }
 			/>
 			<DesignPanel
 				design={ props.design }

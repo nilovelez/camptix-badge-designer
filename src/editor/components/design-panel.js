@@ -41,6 +41,7 @@ function exportDesign( design ) {
 			guides: design.guides,
 			folded: !! design.folded,
 			holeMark: !! design.holeMark,
+			fixNames: design.fixNames !== false,
 			elements,
 		},
 	};
@@ -148,6 +149,7 @@ function readDesignFile( text ) {
 		guides: source.guides !== false,
 		folded: !! source.folded,
 		holeMark: !! source.holeMark,
+		fixNames: source.fixNames !== false,
 		elements,
 	};
 	return { imported, notes };

@@ -207,14 +207,32 @@ export function isPastTrim( element, size ) {
 }
 
 /**
- * Brings an element back inside the trim: it moves in, and only shrinks if
- * it is bigger than the badge.
+ * Position along one axis that keeps an element inside the safe area, or
+ * centered on the badge when it is bigger than the safe area.
+ *
+ * @param {number} position Position in mm.
+ * @param {number} length   Element length in mm.
+ * @param {number} total    Badge length in mm.
+ * @param {number} safe     Safe area margin in mm.
+ * @return {number} New position in mm.
+ */
+function placeInsideSafeArea( position, length, total, safe ) {
+	if ( length > total - 2 * safe ) {
+		return ( total - length ) / 2;
+	}
+	return Math.min( Math.max( position, safe ), total - safe - length );
+}
+
+/**
+ * Brings an element back inside the safe area: it moves in, is centered
+ * when it is bigger than the safe area, and only shrinks if it is bigger
+ * than the badge.
  *
  * @param {Object} element Element.
  * @param {Object} size    Print size.
- * @return {Object} Element inside the trim.
+ * @return {Object} Element inside the safe area.
  */
-export function moveInsideTrim( element, size ) {
+export function moveInsideSafeArea( element, size ) {
 	let width = Math.min( element.width, size.width );
 	let height = Math.min( element.height, size.height );
 	if ( isSquare( element ) ) {
@@ -222,8 +240,9 @@ export function moveInsideTrim( element, size ) {
 		width = side;
 		height = side;
 	}
-	const x = Math.min( Math.max( element.x, 0 ), size.width - width );
-	const y = Math.min( Math.max( element.y, 0 ), size.height - height );
+	const safe = size.safe || 0;
+	const x = placeInsideSafeArea( element.x, width, size.width, safe );
+	const y = placeInsideSafeArea( element.y, height, size.height, safe );
 	return {
 		...element,
 		x: round1( x ),

@@ -9,7 +9,7 @@ import { Canvas } from './components/canvas';
 import { Sidebar } from './components/sidebar';
 import { BackgroundSizeDialog } from './components/background-size-dialog';
 import { GenerateDialog, PreviewDialog } from './components/pdf-dialogs';
-import { useAttendees, useDesign } from './use-design';
+import { useAttendees, useDesign, withNameOption } from './use-design';
 import { faceKey, resolveFace, useFonts } from './fonts';
 import { newElement } from './elements';
 import { readPdfPageSize } from './pdf';
@@ -167,8 +167,14 @@ function App() {
 
 	const elements = design ? design.elements || [] : [];
 	const fonts = useFonts( elements );
-	const index = Math.min( attendeeIndex, attendees.list.length - 1 );
-	const attendee = attendees.list[ index ];
+	const fixNames = ! design || design.fixNames !== false;
+	// The attendees with their names as the design asks for them.
+	const people = useMemo(
+		() => withNameOption( attendees.list, fixNames ),
+		[ attendees.list, fixNames ]
+	);
+	const index = Math.min( attendeeIndex, people.length - 1 );
+	const attendee = people[ index ];
 	const selectedElement =
 		elements.find( ( element ) => element.id === selectedId ) || null;
 
@@ -183,7 +189,7 @@ function App() {
 		if ( ! attendees.data ) {
 			return result;
 		}
-		for ( const person of attendees.data.attendees ) {
+		for ( const person of people ) {
 			const personLayouts = layoutAll( elements, fonts, person );
 			if (
 				Object.values( personLayouts ).some(
@@ -197,7 +203,7 @@ function App() {
 			}
 		}
 		return result;
-	}, [ elements, fonts, attendees.data ] );
+	}, [ elements, fonts, attendees.data, people ] );
 
 	function changeElement( next, group ) {
 		updateDesign(
@@ -281,10 +287,7 @@ function App() {
 				event.preventDefault();
 				const step = key === 'pageup' ? -1 : 1;
 				setAttendeeIndex(
-					Math.min(
-						Math.max( index + step, 0 ),
-						attendees.list.length - 1
-					)
+					Math.min( Math.max( index + step, 0 ), people.length - 1 )
 				);
 				return;
 			}
@@ -424,7 +427,7 @@ function App() {
 	return (
 		<>
 			<Toolbar
-				attendees={ attendees.list }
+				attendees={ people }
 				attendeeIndex={ index }
 				onAttendee={ setAttendeeIndex }
 				onAdd={ addElement }
@@ -496,7 +499,7 @@ function App() {
 					design={ design }
 					backgroundFile={ backgroundFile }
 					images={ images }
-					attendees={ attendees.list }
+					attendees={ people }
 					flags={ ( attendees.data && attendees.data.flags ) || [] }
 					overflows={ overflows }
 					onClose={ () => setPdfDialog( null ) }

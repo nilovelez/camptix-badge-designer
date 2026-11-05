@@ -3,9 +3,9 @@
  */
 import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { profileQr } from '../../shared/qr';
+import { profileQr, profileUrl } from '../../shared/qr';
 import { faceKey, resolveFace } from '../fonts';
-import { gravatarUrl } from '../../shared/gravatar';
+import { gravatarUrls } from '../../shared/gravatar';
 
 const PT_TO_MM = 25.4 / 72;
 
@@ -36,7 +36,8 @@ function TextView( { element, layout, fonts, scale } ) {
 }
 
 function QrView( { element, attendee } ) {
-	if ( ! attendee.username ) {
+	const url = profileUrl( attendee );
+	if ( ! url ) {
 		// Nothing is printed; the editor shows where the code would go.
 		return (
 			<span className="ctbd-element__placeholder">
@@ -44,7 +45,7 @@ function QrView( { element, attendee } ) {
 			</span>
 		);
 	}
-	const qr = profileQr( attendee.username );
+	const qr = profileQr( url );
 	return (
 		<svg
 			className="ctbd-element__qr"
@@ -61,7 +62,8 @@ function QrView( { element, attendee } ) {
 }
 
 function GravatarView( { element, attendee, scale, images } ) {
-	const [ failed, setFailed ] = useState( '' );
+	// URLs that failed to load, so the next one is tried.
+	const [ failed, setFailed ] = useState( [] );
 	// Ask for about the size on screen, in steps, so zooming reuses images.
 	const px = Math.min(
 		2048,
@@ -69,12 +71,14 @@ function GravatarView( { element, attendee, scale, images } ) {
 			( element.width * scale * ( window.devicePixelRatio || 1 ) ) / 64
 		) * 64
 	);
-	const url = gravatarUrl( attendee.gravatarHash, px, element.fallback );
+	const url = gravatarUrls( attendee, px, element.fallback ).find(
+		( candidate ) => ! failed.includes( candidate )
+	);
 	const className =
 		'ctbd-element__gravatar' +
 		( element.shape === 'round' ? ' is-round' : '' );
 
-	if ( ! url || failed === url ) {
+	if ( ! url ) {
 		// No Gravatar: the fixed fallback image, if there is one.
 		const fallbackUrl =
 			element.fallback === 'image' && images[ element.fallbackImage ];
@@ -110,7 +114,7 @@ function GravatarView( { element, attendee, scale, images } ) {
 			src={ url }
 			alt=""
 			draggable="false"
-			onError={ () => setFailed( url ) }
+			onError={ () => setFailed( ( current ) => [ ...current, url ] ) }
 		/>
 	);
 }

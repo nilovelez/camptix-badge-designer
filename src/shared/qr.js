@@ -9,12 +9,23 @@ import { encode } from '../vendor/ladyqr/qr.js';
 export const QR_QUIET_ZONE = 2;
 
 /**
- * @param {string} username WordPress.org username.
- * @return {string} Profile URL.
+ * The WordPress.org profile URL of an attendee. The server sends the right
+ * one (profileUrl); the login is the fallback, for the sample attendee.
+ *
+ * @param {Object} attendee Attendee.
+ * @return {string} Profile URL, or '' without a username.
  */
-export function profileUrl( username ) {
+export function profileUrl( attendee ) {
+	if ( attendee.profileUrl ) {
+		return attendee.profileUrl;
+	}
+	if ( ! attendee.username ) {
+		return '';
+	}
 	return (
-		'https://profiles.wordpress.org/' + encodeURIComponent( username ) + '/'
+		'https://profiles.wordpress.org/' +
+		encodeURIComponent( attendee.username ) +
+		'/'
 	);
 }
 
@@ -23,11 +34,11 @@ export function profileUrl( username ) {
  * quiet zone, so it is filled in a single operation with no hairlines
  * between modules.
  *
- * @param {string} username WordPress.org username.
+ * @param {string} url Profile URL.
  * @return {{size: number, path: string}} Total size in modules and path data.
  */
-export function profileQr( username ) {
-	const { modules } = encode( profileUrl( username ), 'M' );
+export function profileQr( url ) {
+	const { modules } = encode( url, 'M' );
 	let path = '';
 	for ( let y = 0; y < modules.length; y++ ) {
 		let x = 0;

@@ -21,8 +21,8 @@ import {
 } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { layoutText } from '../shared/text-layout';
-import { profileQr } from '../shared/qr';
-import { gravatarUrl } from '../shared/gravatar';
+import { profileQr, profileUrl } from '../shared/qr';
+import { gravatarUrls } from '../shared/gravatar';
 import { faceKey, loadFace, resolveFace } from './fonts';
 import { CROP_MARK_LENGTH, HOLE_MARK_LENGTH, pageGeometry } from './geometry';
 
@@ -318,53 +318,68 @@ export async function buildBadgesPdf( {
 	checkCancelled();
 
 	// Gravatars: one request per distinct image, a few at a time, at print
-	// resolution. A missing or failed one never stops the build.
-	const gravatarUrls = new Set();
+	// resolution. An attendee may have more than one URL to try in order
+	// (the ticket email's, then the WordPress.org account's): the first that
+	// loads is used. A missing or failed one never stops the build.
+	const gravatarChains = new Map();
 	for ( const element of elements ) {
 		if ( element.type !== 'gravatar' ) {
 			continue;
 		}
 		for ( const attendee of attendees ) {
-			const url = gravatarUrl(
-				attendee.gravatarHash,
+			const urls = gravatarUrls(
+				attendee,
 				gravatarPixels( element ),
 				element.fallback
 			);
-			if ( url ) {
-				gravatarUrls.add( url );
+			if ( urls.length ) {
+				gravatarChains.set( urls.join( ' ' ), urls );
 			}
 		}
 	}
 	const gravatars = new Map();
 	let fetched = 0;
-	await runPool( [ ...gravatarUrls ], GRAVATAR_LANES, async ( url ) => {
-		checkCancelled();
-		try {
-			const bytes = await fetchBytes( url, {
-				mode: 'cors',
-				credentials: 'omit',
-				signal,
-			} );
-			gravatars.set( url, await embedImage( doc, bytes ) );
-			stats.gravatars++;
-		} catch ( error ) {
-			if ( error.name === 'AbortError' ) {
-				throw error;
+	await runPool(
+		[ ...gravatarChains ],
+		GRAVATAR_LANES,
+		async ( [ key, urls ] ) => {
+			let image = null;
+			let failed = false;
+			for ( const url of urls ) {
+				checkCancelled();
+				try {
+					const bytes = await fetchBytes( url, {
+						mode: 'cors',
+						credentials: 'omit',
+						signal,
+					} );
+					image = await embedImage( doc, bytes );
+					break;
+				} catch ( error ) {
+					if ( error.name === 'AbortError' ) {
+						throw error;
+					}
+					if ( error.status !== 404 ) {
+						failed = true;
+					}
+				}
 			}
-			gravatars.set( url, null );
-			if ( error.status === 404 ) {
-				stats.gravatarsMissing++;
-			} else {
+			gravatars.set( key, image );
+			if ( image ) {
+				stats.gravatars++;
+			} else if ( failed ) {
 				stats.gravatarsFailed++;
+			} else {
+				stats.gravatarsMissing++;
 			}
+			fetched++;
+			onProgress( {
+				step: 'gravatars',
+				done: fetched,
+				total: gravatarChains.size,
+			} );
 		}
-		fetched++;
-		onProgress( {
-			step: 'gravatars',
-			done: fetched,
-			total: gravatarUrls.size,
-		} );
-	} );
+	);
 
 	// Pages. A single badge has one face per page. A folded badge has the
 	// face twice, joined at the fold: the bottom one upright and the top one
@@ -429,10 +444,11 @@ export async function buildBadgesPdf( {
 				} );
 				page.pushOperators( popGraphicsState() );
 			} else if ( element.type === 'qr' ) {
-				if ( ! attendee.username ) {
+				const url = profileUrl( attendee );
+				if ( ! url ) {
 					continue;
 				}
-				const qr = profileQr( attendee.username );
+				const qr = profileQr( url );
 				const side = pt( element.width );
 				const x = fromLeft( element.x );
 				const top = fromTop( element.y );
@@ -455,12 +471,14 @@ export async function buildBadgesPdf( {
 					borderWidth: 0,
 				} );
 			} else if ( element.type === 'gravatar' ) {
-				const url = gravatarUrl(
-					attendee.gravatarHash,
+				const urls = gravatarUrls(
+					attendee,
 					gravatarPixels( element ),
 					element.fallback
 				);
-				let image = url ? gravatars.get( url ) : null;
+				let image = urls.length
+					? gravatars.get( urls.join( ' ' ) )
+					: null;
 				if ( ! image && element.fallback === 'image' ) {
 					image = fallbackImages[ element.fallbackImage ] || null;
 				}

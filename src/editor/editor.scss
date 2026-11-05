@@ -751,6 +751,11 @@ $min-height: 560px;
 	}
 }
 
+// The admin flag filter, below the page range.
+.ctbd-generate-dialog__flag {
+	margin-top: 16px;
+}
+
 .ctbd-summary {
 	display: flex;
 	flex-direction: column;

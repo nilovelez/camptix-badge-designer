@@ -5,6 +5,11 @@
  * with `d`. "None" and the fixed image both ask with `d=404`: an attendee
  * without a Gravatar gets a 404, and the plugin draws nothing or its own
  * fixed image.
+ *
+ * On WordCamp.org an attendee may also have the Gravatar of their
+ * WordPress.org account (accountGravatarHash), used only when the ticket
+ * email has none: the ticket's is then asked with d=404, and the
+ * element's fallback goes to the account's.
  */
 
 const GENERATED = [ 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash' ];
@@ -29,4 +34,26 @@ export function gravatarUrl( hash, pixels, fallback ) {
 		d +
 		'&r=g'
 	);
+}
+
+/**
+ * Gravatar URLs to try for an attendee, in order: the first one that loads
+ * is used.
+ *
+ * @param {Object} attendee Attendee, with gravatarHash and, sometimes, accountGravatarHash.
+ * @param {number} pixels   Size in pixels.
+ * @param {string} fallback Element fallback: '404', 'image' or a generated one.
+ * @return {string[]} URLs, maybe none.
+ */
+export function gravatarUrls( attendee, pixels, fallback ) {
+	if ( ! attendee.accountGravatarHash ) {
+		const url = gravatarUrl( attendee.gravatarHash, pixels, fallback );
+		return url ? [ url ] : [];
+	}
+	const urls = [];
+	if ( attendee.gravatarHash ) {
+		urls.push( gravatarUrl( attendee.gravatarHash, pixels, '404' ) );
+	}
+	urls.push( gravatarUrl( attendee.accountGravatarHash, pixels, fallback ) );
+	return urls;
 }
