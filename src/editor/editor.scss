@@ -855,6 +855,11 @@ $min-height: 560px;
 		color: #757575;
 	}
 
+	// The font on one line; the script name wraps if it must.
+	td:last-child {
+		white-space: nowrap;
+	}
+
 	.is-done {
 		color: #007017;
 	}

@@ -470,7 +470,6 @@ function ScriptTable( { scripts } ) {
 				<thead>
 					<tr>
 						<th>{ __( 'Script', 'camptix-badge-designer' ) }</th>
-						<th>{ __( 'Attendees', 'camptix-badge-designer' ) }</th>
 						<th>{ __( 'Font', 'camptix-badge-designer' ) }</th>
 					</tr>
 				</thead>
@@ -521,8 +520,17 @@ function ScriptTable( { scripts } ) {
 						);
 						return (
 							<tr key={ id }>
-								<td>{ script.label }</td>
-								<td>{ entry.count }</td>
+								<td>
+									{ sprintf(
+										/* translators: 1: a script, such as Japanese, 2: number of attendees. */
+										__(
+											'%1$s (%2$d)',
+											'camptix-badge-designer'
+										),
+										script.label,
+										entry.count
+									) }
+								</td>
 								<td>{ status }</td>
 							</tr>
 						);
