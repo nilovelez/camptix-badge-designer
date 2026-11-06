@@ -316,7 +316,7 @@ th { background: var(--soft); }
 </table>
 <p>Mix them with your own text, for example <code>{question:job-title} · {question:country}</code>. When an attendee left a question empty, its separator goes too: the badge says "Italy", not "· Italy". Separators are <code>·</code>, <code>•</code>, <code>|</code>, <code>/</code>, <code>,</code>, <code>;</code>, <code>:</code> and dashes. A variable with a typo is printed as typed, so you notice it.</p>
 <figure>
-	<a href="images/text-selected.webp"><img src="images/text-selected.webp" alt="The first name text box selected on the badge, and its settings in the Element tab: the text {first_name}, Insert variable, font Inter, size 26, weight Bold, alignment, uppercase and color." loading="lazy"></a>
+	<a href="images/text-selected.webp"><img src="images/text-selected.webp" alt="The first name text box selected on the badge, and its settings in the Element tab: the text {first_name}, Insert variable, font Inter, and under it the warning that the font cannot print the characters of 7 attendees, with the Noto font to install for each script (Chinese, Korean, Devanagari, Tamil, Arabic, Hebrew, Thai) and Japanese in green, already printed with Noto Sans JP." loading="lazy"></a>
 </figure>
 <p>Each text box has:</p>
 <ul>
@@ -345,7 +345,7 @@ th { background: var(--soft); }
 	<li>The Noto font of the script, if it is installed: Noto Sans JP for Japanese, Noto Sans KR for Korean, and so on (see the table below).</li>
 </ol>
 <p>You do not choose the fallback fonts: you only install them. Install them from Appearance › Fonts (the font names in the editor's warnings link there), in the Install Fonts tab, then reload the badge editor so it sees them. Leave them inactive if the event's website does not use them: they do not load on the site, and the badge editor still uses them. The weight closest to the box's is used.</p>
-<p>When no installed font can print an attendee's text, the box is marked in red and you see exactly what would print: empty boxes where the characters should be. The warning under the font selector is your checklist: it lists, by script, the font to install, with the scripts already solved in green. Once everything is solved, the warning goes. The Attendees panel shows a table of the scripts your badges need and the font that prints each, lists the attendees still left, and Generate PDF counts them.</p>
+<p>When no installed font can print an attendee's text, the box is marked in red and you see exactly what would print: empty boxes where the characters should be. The warning under the font selector is your checklist: it lists, by script, the font to install, with the scripts already solved in green. Once everything is solved, the warning goes. The Attendees panel shows a table of the scripts your badges need, with the number of attendees and the font that prints each or the one to install, lists the attendees still left, and Generate PDF counts them. Kanji count as Japanese when the attendee also writes kana or Noto Sans JP prints them, and as Chinese otherwise.</p>
 <p>For an event where most attendees write their names in another script, also pick a font that has it as the font of your text boxes. These Noto fonts also have the common Latin letters, so names in Latin print with them too:</p>
 <table>
 	<thead>
@@ -392,7 +392,7 @@ th { background: var(--soft); }
 <p>The canvas shows one attendee at a time. Use the arrows in the toolbar, <kbd>Page Up</kbd> and <kbd>Page Down</kbd>, or type a number, to go through them: very long names, attendees without a Gravatar or without a username, empty answers.</p>
 <p>The <strong>Attendees</strong> panel sums it up: how many attendees there are, the option to fix names written in all caps or all lowercase, how many have no WordPress.org username, and which ones have text that is cut. <strong>View list</strong> shows them all in a table.</p>
 <figure class="is-narrow">
-	<a href="images/panel-attendees.webp"><img src="images/panel-attendees.webp" alt="The Attendees panel: 140 attendees in purchase order, the Fix names written in all caps or all lowercase toggle with 23 attendees written that way, 55 without a WordPress.org username, source CampTix, a warning listing the 2 attendees with text that is cut, and the View list button." loading="lazy"></a>
+	<a href="images/panel-attendees.webp"><img src="images/panel-attendees.webp" alt="The Attendees panel: 140 attendees in purchase order, the Fix names written in all caps or all lowercase toggle with 19 attendees written that way, 55 without a WordPress.org username, source CampTix, a warning listing the 2 attendees with text that is cut, the Other scripts table (Japanese printed with Noto Sans JP in green; Chinese, Korean, Devanagari, Tamil, Arabic, Hebrew and Thai with the font to install), a warning listing the 7 attendees whose characters no installed font can print, and the View list button." loading="lazy"></a>
 </figure>
 <p>Only paid tickets get a badge. Tickets bought for someone who has not filled in their details yet are left out until they do.</p>
 
@@ -407,7 +407,7 @@ th { background: var(--soft); }
 <h3 id="generate">Generate all the badges</h3>
 <p><strong>Generate PDF</strong> makes one PDF with one page per attendee. Before you start, it tells you how many badges there are, the page size, and how many have no QR code or have text that is cut.</p>
 <figure class="is-dialog">
-	<a href="images/generate.webp"><img src="images/generate.webp" alt="The Generate PDF dialog: pages All (1–140) or A range, Attendees Everyone, and the summary: 140 badges, 124.5 × 171.2 mm pages with crop marks, 55 without a QR code, 2 with text that is cut." loading="lazy"></a>
+	<a href="images/generate.webp"><img src="images/generate.webp" alt="The Generate PDF dialog: pages All (1–140) or A range, Attendees Everyone, and the summary: 140 badges, 124.5 × 171.2 mm pages with crop marks, 55 without a QR code, 2 with text that is cut, 7 with characters the font cannot print." loading="lazy"></a>
 </figure>
 <ul>
 	<li>It runs in your browser and shows its progress; you can cancel it. The demo's 140 badges take a few seconds and make an 11 MB file. Most of the time goes into downloading the Gravatars, so a big event with a slow connection may take a minute.</li>
