@@ -1,8 +1,13 @@
 # Tests for the integration into WordCamp.org
 
-Some parts of the plugin only run on WordCamp.org, because they use functions or add-ons the sandbox does not have. The PHP tests (`tests/php/attendees-test.php`) cover their logic with stand-ins; this list is what to check on a real WordCamp.org site (a local copy of the network, or a staging site) before the integration pull request is merged. See "The WordPress.org account: Gravatar and profile URL" and "Activity tickets" in `docs/decisions.md`.
+Some parts of the plugin only run on WordCamp.org, because they use functions or add-ons the sandbox does not have. The PHP tests (`tests/php/attendees-test.php`) cover their logic with stand-ins; this list is what to check on WordCamp.org's own code before the integration pull request is merged. See "The WordPress.org account: Gravatar and profile URL" and "Activity tickets" in `docs/decisions.md`.
 
-Use attendees whose accounts you control, or ask the WordCamp.org team for test accounts. Never commit real attendee data.
+There is no staging copy of the network, so run it on the local Docker setup of `WordPress/wordcamp.org` (suggested by bor0 in #2286):
+
+1. Clone the fork of `WordPress/wordcamp.org` with the integration branch, and start the environment as its `.docker/readme.md` says (`docker compose up`; on Windows, Docker Desktop or Rancher Desktop; on macOS, Colima). Its sites are `*.wordcamp.test`, with `admin` / `password`.
+2. It has the real mu-plugins (`wcorg_get_user_by_canonical_names()`, the "WordPress.org Profile URL" export column) and `camptix-companion-tickets`, which the sandbox does not.
+3. Create test users there: in this environment the WordPress.org accounts are local users. Use email addresses you control, one with a Gravatar on the account's email only, and give the attendees those usernames. Never use or commit real attendee data.
+4. Go through the lists below.
 
 ## Gravatar from the WordPress.org account
 

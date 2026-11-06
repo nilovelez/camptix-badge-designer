@@ -28,7 +28,7 @@ This file is the single source of working rules for any agent or person picking 
 | `src/editor/` | The badge editor (Badges admin page). |
 | `src/shared/` | Code shared by the editor and the PDF generator: text layout, QR codes, Gravatar URLs. |
 | `tools/` | Build helpers, and `make-fixtures.mjs` for the test backgrounds. |
-| `tests/` | Test fixtures, all invented (backgrounds, a WOFF2 font), and PHP tests. |
+| `tests/` | Test fixtures, all invented (backgrounds, a WOFF2 font), PHP tests (`php tests/php/attendees-test.php`) and JavaScript tests (`npm run test:js`, after `npm run fetch-test-fonts` downloads the Noto fonts into the ignored `tests/fonts/`). |
 | `test-data/` | Real CampTix exports for testing. Ignored by Git: never commit them. |
 
 Everything an agent needs to resume the work lives in this repository. Do not rely on local memory, chat history or files outside the repo: if something matters, write it here.

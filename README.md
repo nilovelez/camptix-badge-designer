@@ -44,7 +44,7 @@ flowchart LR
 - **Attendees** (`includes/camptix.php`, `includes/attendees.php`): with CampTix active, read live from its `tix_attendee` posts and built as the same table CampTix's own CSV export produces, with the same functions and filters, so both sources go through one reader. Without CampTix (development only), read from a CampTix CSV export in `test-data/`. Only paid tickets get a badge, numbered in `Attendee ID` order so new tickets never shift printed ones; activity tickets (Contributor Day) belong to the main ticket and get none. Names written all in capitals or all in lowercase are normalized, unless the design turns it off.
 - **What reaches the browser** (REST route `ctbd/v1/attendees`, `manage_options` only): the badge number, the attendee ID, the normalized names (and the names as typed), the validated WordPress.org username and profile URL, the SHA-256 Gravatar hash (on WordCamp.org, also the WordPress.org account's), the answers to the event's own questions (no other export column becomes a variable) and the CampTix admin flags. Never email addresses, buyer or payment data, or the sensitive common questions (allergies, accessibility needs).
 - **Design** (`includes/design.php`, REST route `ctbd/v1/design`): one design per site in the `ctbd_design` option, saved automatically by the editor and checked field by field on the server.
-- **Fonts and colors** (`includes/fonts.php`): Inter, shipped in `fonts/inter/`, plus every font installed with the Font Library, active or not, and the site's color palette (any custom color can be picked too).
+- **Fonts and colors** (`includes/fonts.php`): Inter, shipped in `fonts/inter/`, plus every font installed with the Font Library, active or not, and the site's color palette (any custom color can be picked too). Every attendee's text is checked against the box's font (`src/shared/scripts.js`): when the font lacks characters Inter has, that text prints in Inter; otherwise the editor warns by script and suggests the Noto font to install. The editor loads WordPress's `regenerator-runtime`, which fontkit's Indic shaper needs.
 
 ### Browser
 
@@ -66,7 +66,7 @@ Measured: 140 badges with Gravatars, 11 MB, in 6 to 8 seconds; 300 badges in abo
 | `sandbox/` | WordCamp sandbox for Playground: the real CampTix from `WordPress/wordcamp.org`, invented attendees and a sample design. It also installs CampTix Admin Flags, with Volunteer and Organizer flags on some attendees. `demo-blueprint.json` is the public demo. |
 | `guide/` | The user guide, published to GitHub Pages. |
 | `docs/` | Specification, decisions, milestones and backlog. |
-| `tests/` | PHP tests and invented fixtures. |
+| `tests/` | PHP and JavaScript tests and invented fixtures. |
 | `AGENTS.md`, `HANDOFF.md` | Working rules and current state, for anyone picking up the work (people or AI agents). |
 
 ## Development
@@ -100,6 +100,7 @@ Then open http://127.0.0.1:9400/. The sandbox creates the same data every time; 
 - `composer lint`: WordPress Coding Standards for the PHP.
 - `npm run lint:js`: ESLint, including the i18n rules.
 - `php tests/php/attendees-test.php`: the attendee reader, without WordPress.
+- `npm run test:js`: the scripts check and the Inter fallback, with the Noto fonts the Font Library installs. Run `npm run fetch-test-fonts` once first: it downloads them (about 9 MB) into `tests/fonts/`, ignored by Git.
 - Plugin Check passes on a release-like copy (`git archive` plus `build/`).
 
 ### Builds and publishing

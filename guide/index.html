@@ -338,6 +338,30 @@ th { background: var(--soft); }
 	<figcaption>The box is marked in red on the canvas, and the Attendees panel lists every attendee affected. Click a name to jump to that badge.</figcaption>
 </figure>
 
+<h3 id="other-scripts">Names in other scripts</h3>
+<p>Inter, the font included with the plugin, covers Latin (Vietnamese included), Greek and Cyrillic. It has no Japanese, Chinese, Korean, Indic scripts, Arabic, Hebrew or Thai. A font can only print the characters it has, so the editor checks every attendee's text against the font of each text box:</p>
+<ul>
+	<li>When the box's font lacks some letters and Inter has them, that attendee's text prints in Inter. For example, Noto Sans JP lacks some Central European letters, so "Łukasz" prints in Inter at an event that uses Noto Sans JP. The Element tab tells you how many attendees print in Inter.</li>
+	<li>Otherwise, a warning under the font selector tells you which script is missing and which font to install. The Attendees panel lists those attendees, and Generate PDF counts them. Their characters would print as empty boxes.</li>
+</ul>
+<p>For an event where many attendees write their names in another script, pick a font that has it for your text boxes. Install it from Appearance › Fonts, in the Google Fonts tab, and leave it inactive if the event's website does not use it. These Noto fonts also have the common Latin letters, so names in Latin print with them too:</p>
+<table>
+	<thead>
+		<tr><th>Script</th><th>Font to install</th></tr>
+	</thead>
+	<tbody>
+		<tr><td>Japanese</td><td>Noto Sans JP</td></tr>
+		<tr><td>Chinese</td><td>Noto Sans SC (simplified) or Noto Sans TC (traditional)</td></tr>
+		<tr><td>Korean</td><td>Noto Sans KR</td></tr>
+		<tr><td>Devanagari (Hindi, Marathi, Nepali)</td><td>Noto Sans Devanagari</td></tr>
+		<tr><td>Bengali, Tamil, Telugu, Kannada, Malayalam, Gujarati, Gurmukhi</td><td>Noto Sans Bengali, Noto Sans Tamil, and so on</td></tr>
+		<tr><td>Hebrew</td><td>Noto Sans Hebrew</td></tr>
+		<tr><td>Thai</td><td>Noto Sans Thai</td></tr>
+		<tr><td>Arabic</td><td>Noto Sans Arabic</td></tr>
+	</tbody>
+</table>
+<p>Noto Sans Arabic has no Latin letters. A box that mixes Arabic and Latin, such as a name and a country in one line, cannot print in any single font: split it into two boxes.</p>
+
 <h2 id="gravatar">Gravatar</h2>
 <p>The attendee's <a href="https://gravatar.com/">Gravatar</a>, from the email address they bought the ticket with.</p>
 <ul>
