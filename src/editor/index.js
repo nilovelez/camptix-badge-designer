@@ -121,10 +121,29 @@ function checkText( elements, fonts, people ) {
 	const wanted = {};
 	for ( const person of people ) {
 		const layouts = layoutAll( elements, fonts, person );
+		// Kanji count as Japanese when the attendee writes kana somewhere, or
+		// when Noto Sans JP prints all of their kanji, in every box; otherwise
+		// as Chinese. Each person then counts once, under one script.
+		const all = Object.values( layouts );
+		const japanese =
+			all.some( ( layout ) => layout.scripts.includes( 'japanese' ) ) ||
+			all
+				.filter( ( layout ) => layout.scripts.includes( 'han' ) )
+				.every(
+					( layout ) => layout.fallbackFamily === 'Noto Sans JP'
+				);
+		const scriptsFor = ( layout ) => [
+			...new Set(
+				layout.scripts.map( ( script ) =>
+					script === 'han' && japanese ? 'japanese' : script
+				)
+			),
+		];
 		let cut = false;
 		const chars = [];
 		const unprintable = [];
 		for ( const [ id, layout ] of Object.entries( layouts ) ) {
+			const layoutScripts = scriptsFor( layout );
 			if ( ! byElement[ id ] ) {
 				byElement[ id ] = {
 					fallback: 0,
@@ -139,7 +158,7 @@ function checkText( elements, fonts, people ) {
 			for ( const face of layout.wanted ) {
 				wanted[ face.family + '|' + face.weight ] = face;
 			}
-			for ( const script of layout.scripts ) {
+			for ( const script of layoutScripts ) {
 				if ( ! scripts[ script ] ) {
 					scripts[ script ] = {
 						people: new Set(),
@@ -154,7 +173,7 @@ function checkText( elements, fonts, people ) {
 				if ( ! stats.families.includes( layout.fallbackFamily ) ) {
 					stats.families.push( layout.fallbackFamily );
 				}
-				for ( const script of layout.scripts ) {
+				for ( const script of layoutScripts ) {
 					scripts[ script ].families.add( layout.fallbackFamily );
 					if ( layout.fallbackFamily !== 'Inter' ) {
 						const resolved = stats.resolved[ script ] || {
@@ -168,13 +187,13 @@ function checkText( elements, fonts, people ) {
 			}
 			if ( layout.missing.length ) {
 				stats.missing++;
-				for ( const script of layout.scripts ) {
+				for ( const script of layoutScripts ) {
 					stats.unresolved[ script ] =
 						( stats.unresolved[ script ] || 0 ) + 1;
 					scripts[ script ].unresolved.add( person.number );
 				}
 				chars.push( ...layout.missing );
-				unprintable.push( ...layout.scripts );
+				unprintable.push( ...layoutScripts );
 			}
 		}
 		const name = person.firstName + ' ' + person.lastName;

@@ -5,8 +5,27 @@
  */
 import { createInterpolateElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { ExternalLink } from '@wordpress/components';
+import { VisuallyHidden } from '@wordpress/components';
 import { fontLibraryUrl } from '../fonts';
+
+/**
+ * A link that opens in a new tab, without the arrow ExternalLink adds.
+ *
+ * @param {Object}  props          Props.
+ * @param {string}  props.href     URL.
+ * @param {Element} props.children Link text.
+ * @return {Element} Link.
+ */
+function NewTabLink( { href, children } ) {
+	return (
+		<a href={ href } target="_blank" rel="noopener noreferrer">
+			{ children }
+			<VisuallyHidden>
+				{ __( '(opens in a new tab)', 'camptix-badge-designer' ) }
+			</VisuallyHidden>
+		</a>
+	);
+}
 
 /**
  * A font name, linked to the Font Library screen when there is one.
@@ -17,7 +36,7 @@ import { fontLibraryUrl } from '../fonts';
  */
 export function FontLink( { name } ) {
 	const url = fontLibraryUrl();
-	return url ? <ExternalLink href={ url }>{ name }</ExternalLink> : name;
+	return url ? <NewTabLink href={ url }>{ name }</NewTabLink> : name;
 }
 
 /**
@@ -39,6 +58,6 @@ export function InstallFontsHelp() {
 			'Install a font that has them from <a>Appearance › Fonts</a>, to be used as a fallback for those attendees. It can stay inactive on the site. Reload this page after installing it.',
 			'camptix-badge-designer'
 		),
-		{ a: <ExternalLink href={ url } /> }
+		{ a: <NewTabLink href={ url } /> }
 	);
 }

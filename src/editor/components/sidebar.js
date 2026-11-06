@@ -1,7 +1,7 @@
 /**
  * The fixed right sidebar, with the Document and Element tabs.
  */
-import { createInterpolateElement, useState } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	Button,
@@ -471,7 +471,9 @@ function ScriptTable( { scripts } ) {
 				<thead>
 					<tr>
 						<th>{ __( 'Script', 'camptix-badge-designer' ) }</th>
-						<th>{ __( 'Font', 'camptix-badge-designer' ) }</th>
+						<th>
+							{ __( 'Install font', 'camptix-badge-designer' ) }
+						</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -498,17 +500,7 @@ function ScriptTable( { scripts } ) {
 								'camptix-badge-designer'
 							);
 						} else {
-							pending = createInterpolateElement(
-								sprintf(
-									/* translators: %s: a font name. */
-									__(
-										'Install %s',
-										'camptix-badge-designer'
-									),
-									'<font />'
-								),
-								{ font: <FontLink name={ script.font } /> }
-							);
+							pending = <FontLink name={ script.font } />;
 						}
 						const both = printed > 0 && entry.unresolved > 0;
 						const status = (

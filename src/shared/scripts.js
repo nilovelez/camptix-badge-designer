@@ -27,7 +27,7 @@ const SCRIPTS = [
 	{
 		id: 'han',
 		pattern: 'Han',
-		label: __( 'Chinese or Japanese kanji', 'camptix-badge-designer' ),
+		label: __( 'Chinese', 'camptix-badge-designer' ),
 		font: 'Noto Sans SC',
 		fallbacks: [ 'Noto Sans SC', 'Noto Sans TC', 'Noto Sans JP' ],
 	},
