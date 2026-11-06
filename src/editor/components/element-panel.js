@@ -15,7 +15,7 @@ import {
 import { alignCenter, alignLeft, alignRight } from '@wordpress/icons';
 import { MmField } from './mm-field';
 import { textVariables } from '../../shared/text-layout';
-import { familyWeights, fontFamilies } from '../fonts';
+import { familyWeights, fontFamilies, isInstalled } from '../fonts';
 import { scriptById, sortScripts } from '../../shared/scripts';
 import { isSquare, QR_MIN_SIZE } from '../elements';
 
@@ -129,100 +129,127 @@ function ContentPanel( { element, change, questions } ) {
 }
 
 /**
- * What the font of a text box cannot print, for all attendees: those printed
- * in Inter instead, and, by script, those no font here can print, with the
- * font to install (milestone 13).
+ * What the font of a text box cannot print, as a checklist of the fonts to
+ * install (milestone 13). Attendees whose text the box's font lacks print in
+ * a fallback font: Inter, then the Noto font of the script when it is
+ * installed. The warning lists, by script, the font to install for those no
+ * font can print yet, and in green the scripts already printed with an
+ * installed fallback. With nothing left to install, only a note remains.
  *
  * @param {Object} props       Props.
- * @param {Object} props.stats {fallback, missing, scripts} from the editor.
+ * @param {Object} props.stats {fallback, families, missing, unresolved,
+ *                             resolved} from the editor.
  * @return {Element|null} Notices.
  */
 function FontNotice( { stats } ) {
 	if ( ! stats || ( ! stats.fallback && ! stats.missing ) ) {
 		return null;
 	}
-	// One line per script, in a fixed order: the script, how many attendees,
-	// and the font to install. The explanation goes once, above them.
-	const lines = sortScripts( Object.keys( stats.scripts ) ).map( ( id ) => {
-		const script = scriptById( id );
-		const count = stats.scripts[ id ];
-		if ( ! script.font ) {
-			return sprintf(
-				/* translators: %d: number of attendees. */
-				__(
-					'Emoji, symbols or other characters (%d)',
-					'camptix-badge-designer'
-				),
-				count
-			);
-		}
-		if ( script.font === 'Inter' ) {
-			// Only when the text mixes it with a script Inter lacks.
-			return sprintf(
-				/* translators: 1: a script, such as Latin, 2: number of attendees. */
-				__(
-					'%1$s mixed with another script (%2$d): no single font has both; split the box in two',
-					'camptix-badge-designer'
-				),
-				script.label,
-				count
-			);
-		}
-		return sprintf(
-			/* translators: 1: a script, such as Japanese, 2: number of attendees, 3: font names. */
-			__( '%1$s (%2$d): %3$s', 'camptix-badge-designer' ),
-			script.label,
-			count,
-			script.font
+	if ( ! stats.missing ) {
+		return (
+			<p className="ctbd-help ctbd-font-notice">
+				{ sprintf(
+					/* translators: 1: number of attendees, 2: font names. */
+					_n(
+						'%1$d attendee prints in a fallback font, because this font lacks some of the letters: %2$s.',
+						'%1$d attendees print in a fallback font, because this font lacks some of their letters: %2$s.',
+						stats.fallback,
+						'camptix-badge-designer'
+					),
+					stats.fallback,
+					stats.families.join( ', ' )
+				) }
+			</p>
 		);
-	} );
+	}
+
+	const pending = sortScripts( Object.keys( stats.unresolved ) ).map(
+		( id ) => {
+			const script = scriptById( id );
+			const count = stats.unresolved[ id ];
+			if ( ! script.font ) {
+				return sprintf(
+					/* translators: %d: number of attendees. */
+					__(
+						'Emoji, symbols or other characters (%d)',
+						'camptix-badge-designer'
+					),
+					count
+				);
+			}
+			// Inter, or the suggested font, is there: the text mixes scripts
+			// no single font has.
+			if ( script.font === 'Inter' || isInstalled( script.font ) ) {
+				return sprintf(
+					/* translators: 1: a script, such as Latin, 2: number of attendees. */
+					__(
+						'%1$s mixed with another script (%2$d): no single font has both; split the box in two',
+						'camptix-badge-designer'
+					),
+					script.label,
+					count
+				);
+			}
+			return sprintf(
+				/* translators: 1: a script, such as Japanese, 2: number of attendees, 3: a font name. */
+				__( '%1$s (%2$d): %3$s', 'camptix-badge-designer' ),
+				script.label,
+				count,
+				script.font
+			);
+		}
+	);
+	const done = sortScripts( Object.keys( stats.resolved ) )
+		.filter( ( id ) => ! stats.unresolved[ id ] )
+		.map( ( id ) =>
+			sprintf(
+				/* translators: 1: a script, such as Japanese, 2: number of attendees, 3: a font name. */
+				__( '%1$s (%2$d): %3$s', 'camptix-badge-designer' ),
+				scriptById( id ).label,
+				stats.resolved[ id ].count,
+				stats.resolved[ id ].family
+			)
+		);
+
 	return (
 		<div className="ctbd-font-notice">
-			{ stats.missing > 0 && (
-				<Notice status="warning" isDismissible={ false }>
-					<strong>
-						{ sprintf(
-							/* translators: %d: number of attendees. */
-							_n(
-								'This font cannot print the characters of %d attendee.',
-								'This font cannot print the characters of %d attendees.',
-								stats.missing,
-								'camptix-badge-designer'
-							),
-							stats.missing
-						) }
-					</strong>
-					<p>
-						{ __(
-							'Install a font that has them from Appearance › Fonts; it can stay inactive on the site. Fonts to install, by script:',
-							'camptix-badge-designer'
-						) }
-					</p>
-					<ul className="ctbd-font-notice__scripts">
-						{ lines.map( ( line ) => (
-							<li key={ line }>{ line }</li>
-						) ) }
-					</ul>
-				</Notice>
-			) }
-			{ stats.fallback > 0 && (
-				<p className="ctbd-help">
+			<Notice status="warning" isDismissible={ false }>
+				<strong>
 					{ sprintf(
 						/* translators: %d: number of attendees. */
 						_n(
-							'%d attendee prints in Inter, because this font lacks some of the letters.',
-							'%d attendees print in Inter, because this font lacks some of their letters.',
-							stats.fallback,
+							'The font of this box cannot print the characters of %d attendee.',
+							'The font of this box cannot print the characters of %d attendees.',
+							stats.missing,
 							'camptix-badge-designer'
 						),
-						stats.fallback
+						stats.missing
+					) }
+				</strong>
+				<p>
+					{ __(
+						'Install a font that has them from Appearance › Fonts, to be used as a fallback for those attendees. It can stay inactive on the site.',
+						'camptix-badge-designer'
 					) }
 				</p>
-			) }
+				<ul className="ctbd-font-notice__scripts">
+					{ pending.map( ( line ) => (
+						<li key={ line }>{ line }</li>
+					) ) }
+					{ done.map( ( line ) => (
+						<li key={ line } className="is-done">
+							<span aria-hidden="true">✓ </span>
+							<span className="screen-reader-text">
+								{ __( 'Installed:', 'camptix-badge-designer' ) }
+							</span>
+							{ line }
+						</li>
+					) ) }
+				</ul>
+			</Notice>
 		</div>
 	);
 }
-
 function TypographyPanel( { element, change, stats } ) {
 	const families = fontFamilies();
 	const weights = familyWeights( element.font );

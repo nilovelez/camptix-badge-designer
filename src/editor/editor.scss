@@ -825,3 +825,37 @@ $min-height: 560px;
 		margin: 0;
 	}
 }
+
+// A script already printed with an installed fallback font.
+.ctbd-font-notice__scripts li.is-done {
+	color: #007017;
+	list-style: none;
+	margin-left: -1em;
+}
+
+// The scripts the badges need, in the Attendees panel.
+.ctbd-script-table {
+	margin: 12px 0;
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 12px;
+	}
+
+	th,
+	td {
+		padding: 2px 4px 2px 0;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	th {
+		font-weight: 500;
+		color: #757575;
+	}
+
+	.is-done {
+		color: #007017;
+	}
+}

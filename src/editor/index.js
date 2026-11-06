@@ -14,7 +14,7 @@ import { layoutTextBox, useFonts } from './fonts';
 import { newElement } from './elements';
 import { readPdfPageSize } from './pdf';
 import { round1 } from './geometry';
-import { scriptsOf } from '../shared/scripts';
+import { sortScripts } from '../shared/scripts';
 import './editor.scss';
 
 const BACKGROUND_TYPES = {
@@ -96,42 +96,85 @@ function layoutAll( elements, fonts, attendee ) {
 
 /**
  * Checks every attendee's text against the fonts, to warn before printing:
- * the attendees whose text is cut, and those with characters the box's font
- * cannot print, printed in Inter instead or not printable at all.
+ * the attendees whose text is cut, and those with characters no font can
+ * print, after the fallbacks (Inter, then the Noto font of the script).
  *
  * @param {Array}  elements Design elements.
  * @param {Object} fonts    Loaded faces by key.
  * @param {Array}  people   Attendees.
- * @return {Object} {overflows, missing, byElement}: overflows and missing are
- *   lists of {number, name} (missing also has scripts, an array of script
- *   ids); byElement has, by element id, {fallback, missing, scripts}: the
- *   number of attendees printed in Inter, the number with characters no
- *   font has, and those by script id.
+ * @return {Object} {overflows, missing, byElement, byScript, wanted}:
+ *   overflows and missing are lists of {number, name} (missing also has
+ *   scripts, an array of script ids). byElement has, by element id,
+ *   {fallback, families, missing, unresolved, resolved}: the number of
+ *   attendees printed in a fallback font and those fonts; the number with
+ *   characters no font can print, and by script; and by script, those a
+ *   Noto fallback prints, {count, family}. byScript has, by script id,
+ *   {count, families, unresolved}: attendees whose text needs a fallback
+ *   in some box, the fonts used, and how many no font can print. wanted:
+ *   installed fallback faces to load.
  */
 function checkText( elements, fonts, people ) {
 	const overflows = [];
 	const missing = [];
 	const byElement = {};
+	const scripts = {};
+	const wanted = {};
 	for ( const person of people ) {
 		const layouts = layoutAll( elements, fonts, person );
 		let cut = false;
 		const chars = [];
+		const unprintable = [];
 		for ( const [ id, layout ] of Object.entries( layouts ) ) {
 			if ( ! byElement[ id ] ) {
-				byElement[ id ] = { fallback: 0, missing: 0, scripts: {} };
+				byElement[ id ] = {
+					fallback: 0,
+					families: [],
+					missing: 0,
+					unresolved: {},
+					resolved: {},
+				};
 			}
 			const stats = byElement[ id ];
 			cut = cut || layout.overflow;
-			if ( layout.fallback ) {
+			for ( const face of layout.wanted ) {
+				wanted[ face.family + '|' + face.weight ] = face;
+			}
+			for ( const script of layout.scripts ) {
+				if ( ! scripts[ script ] ) {
+					scripts[ script ] = {
+						people: new Set(),
+						families: new Set(),
+						unresolved: new Set(),
+					};
+				}
+				scripts[ script ].people.add( person.number );
+			}
+			if ( layout.fallbackFamily ) {
 				stats.fallback++;
+				if ( ! stats.families.includes( layout.fallbackFamily ) ) {
+					stats.families.push( layout.fallbackFamily );
+				}
+				for ( const script of layout.scripts ) {
+					scripts[ script ].families.add( layout.fallbackFamily );
+					if ( layout.fallbackFamily !== 'Inter' ) {
+						const resolved = stats.resolved[ script ] || {
+							count: 0,
+							family: layout.fallbackFamily,
+						};
+						resolved.count++;
+						stats.resolved[ script ] = resolved;
+					}
+				}
 			}
 			if ( layout.missing.length ) {
 				stats.missing++;
-				for ( const script of scriptsOf( layout.missing ) ) {
-					stats.scripts[ script ] =
-						( stats.scripts[ script ] || 0 ) + 1;
+				for ( const script of layout.scripts ) {
+					stats.unresolved[ script ] =
+						( stats.unresolved[ script ] || 0 ) + 1;
+					scripts[ script ].unresolved.add( person.number );
 				}
 				chars.push( ...layout.missing );
+				unprintable.push( ...layout.scripts );
 			}
 		}
 		const name = person.firstName + ' ' + person.lastName;
@@ -142,13 +185,26 @@ function checkText( elements, fonts, people ) {
 			missing.push( {
 				number: person.number,
 				name,
-				scripts: scriptsOf( chars ),
+				scripts: sortScripts( [ ...new Set( unprintable ) ] ),
 			} );
 		}
 	}
-	return { overflows, missing, byElement };
+	const byScript = {};
+	for ( const [ id, entry ] of Object.entries( scripts ) ) {
+		byScript[ id ] = {
+			count: entry.people.size,
+			families: [ ...entry.families ],
+			unresolved: entry.unresolved.size,
+		};
+	}
+	return {
+		overflows,
+		missing,
+		byElement,
+		byScript,
+		wanted: Object.values( wanted ),
+	};
 }
-
 // Keys typed in these elements belong to them, not to the canvas.
 function isTyping( target ) {
 	return (
@@ -216,7 +272,9 @@ function App() {
 	const [ pdfDialog, setPdfDialog ] = useState( null );
 
 	const elements = design ? design.elements || [] : [];
-	const fonts = useFonts( elements );
+	// Noto fallback faces some attendee needs, loaded once that is known.
+	const [ extraFaces, setExtraFaces ] = useState( [] );
+	const fonts = useFonts( elements, extraFaces );
 	const fixNames = ! design || design.fixNames !== false;
 	// The attendees with their names as the design asks for them.
 	const people = useMemo(
@@ -239,9 +297,26 @@ function App() {
 		() =>
 			attendees.data
 				? checkText( elements, fonts, people )
-				: { overflows: [], missing: [], byElement: {} },
+				: {
+						overflows: [],
+						missing: [],
+						byElement: {},
+						byScript: {},
+						wanted: [],
+					},
 		[ elements, fonts, attendees.data, people ]
 	);
+	useEffect( () => {
+		const known = new Set(
+			extraFaces.map( ( face ) => face.family + '|' + face.weight )
+		);
+		const more = textCheck.wanted.filter(
+			( face ) => ! known.has( face.family + '|' + face.weight )
+		);
+		if ( more.length ) {
+			setExtraFaces( ( current ) => [ ...current, ...more ] );
+		}
+	}, [ textCheck, extraFaces ] );
 	const overflows = textCheck.overflows;
 
 	function changeElement( next, group ) {
@@ -505,6 +580,7 @@ function App() {
 					attendees={ attendees }
 					overflows={ overflows }
 					missing={ textCheck.missing }
+					scriptStats={ textCheck.byScript }
 					textStats={ textCheck.byElement }
 					onGoTo={ ( number ) => setAttendeeIndex( number - 1 ) }
 					layouts={ layouts }

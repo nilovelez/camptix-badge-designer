@@ -285,21 +285,42 @@ export async function buildBadgesPdf( {
 	for ( const face of neededFaces( elements ) ) {
 		loaded[ faceKey( face ) ] = await loadFace( face );
 	}
-	const textLayouts = new Map();
-	const usedFaces = new Set();
-	for ( const attendee of attendees ) {
-		const layouts = {};
-		for ( const element of elements ) {
-			if ( element.type !== 'text' ) {
-				continue;
+	const layOut = () => {
+		const result = new Map();
+		const wanted = [];
+		for ( const attendee of attendees ) {
+			const layouts = {};
+			for ( const element of elements ) {
+				if ( element.type !== 'text' ) {
+					continue;
+				}
+				const layout = layoutTextBox( element, attendee, loaded );
+				if ( layout ) {
+					layouts[ element.id ] = layout;
+					wanted.push( ...layout.wanted );
+				}
 			}
-			const layout = layoutTextBox( element, attendee, loaded );
-			if ( layout ) {
-				layouts[ element.id ] = layout;
-				usedFaces.add( layout.faceKey );
+			result.set( attendee, layouts );
+		}
+		return { result, wanted };
+	};
+	let pass = layOut();
+	// Noto fallbacks some attendee needs: load them and lay out again.
+	if ( pass.wanted.length ) {
+		for ( const face of pass.wanted ) {
+			const key = faceKey( face );
+			if ( ! loaded[ key ] ) {
+				loaded[ key ] = await loadFace( face );
 			}
 		}
-		textLayouts.set( attendee, layouts );
+		pass = layOut();
+	}
+	const textLayouts = pass.result;
+	const usedFaces = new Set();
+	for ( const layouts of textLayouts.values() ) {
+		for ( const layout of Object.values( layouts ) ) {
+			usedFaces.add( layout.faceKey );
+		}
 	}
 	const pdfFonts = {};
 	for ( const key of usedFaces ) {

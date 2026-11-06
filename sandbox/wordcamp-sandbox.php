@@ -166,6 +166,78 @@ function ctbd_sandbox_maybe_seed() {
 add_action( 'init', 'ctbd_sandbox_maybe_seed', 100 );
 
 /**
+ * Installs Noto Sans JP in the Font Library, inactive, as an organizer
+ * would from Appearance > Fonts (milestone 13): the Japanese names of the
+ * sandbox then print with it as a fallback, and the editor shows Japanese
+ * as solved while the other scripts still ask for a font. Both blueprints
+ * download the file the Font Library's Google Fonts collection installs
+ * into wp-content/ctbd-sandbox-fonts/; this copies it into the fonts
+ * folder and creates the font posts. Nothing happens if the file is not
+ * there or the font is already installed.
+ */
+function ctbd_sandbox_fonts() {
+	if ( get_option( 'ctbd_sandbox_fonts' ) || ! function_exists( 'wp_get_font_dir' ) ) {
+		return;
+	}
+	$source = WP_CONTENT_DIR . '/ctbd-sandbox-fonts/NotoSansJP-400.woff2';
+	if ( ! is_readable( $source ) ) {
+		return;
+	}
+	if ( get_posts(
+		array(
+			'post_type'   => 'wp_font_family',
+			'name'        => 'noto-sans-jp',
+			'post_status' => 'any',
+			'fields'      => 'ids',
+		)
+	) ) {
+		update_option( 'ctbd_sandbox_fonts', 1 );
+		return;
+	}
+
+	$font_dir = wp_get_font_dir();
+	wp_mkdir_p( $font_dir['path'] );
+	$file = 'noto-sans-jp-400-normal.woff2';
+	if ( ! copy( $source, trailingslashit( $font_dir['path'] ) . $file ) ) {
+		return;
+	}
+
+	$family_id = wp_insert_post(
+		array(
+			'post_type'    => 'wp_font_family',
+			'post_status'  => 'publish',
+			'post_title'   => 'Noto Sans JP',
+			'post_name'    => 'noto-sans-jp',
+			'post_content' => wp_json_encode( array( 'fontFamily' => '"Noto Sans JP", sans-serif' ) ),
+		)
+	);
+	if ( ! $family_id || is_wp_error( $family_id ) ) {
+		return;
+	}
+	$face_id = wp_insert_post(
+		array(
+			'post_type'    => 'wp_font_face',
+			'post_status'  => 'publish',
+			'post_parent'  => $family_id,
+			'post_title'   => 'Noto Sans JP;normal;400;100%;U+0-10FFFF',
+			'post_content' => wp_json_encode(
+				array(
+					'fontFamily' => '"Noto Sans JP", sans-serif',
+					'fontStyle'  => 'normal',
+					'fontWeight' => '400',
+					'src'        => trailingslashit( $font_dir['url'] ) . $file,
+				)
+			),
+		)
+	);
+	if ( $face_id && ! is_wp_error( $face_id ) ) {
+		update_post_meta( $face_id, '_wp_font_face_file', $file );
+		update_option( 'ctbd_sandbox_fonts', 1 );
+	}
+}
+add_action( 'init', 'ctbd_sandbox_fonts', 110 );
+
+/**
  * Admin flags, when the CampTix Admin Flags plugin is active, as both
  * blueprints install it. Two flags: Volunteer, on the attendees with a
  * Volunteer ticket, and Organizer, on every 12th attendee.

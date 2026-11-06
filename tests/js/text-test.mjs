@@ -17,13 +17,13 @@ register( './resolve-js.mjs', import.meta.url );
 
 // fontkit's Indic shaper expects this global, as wp-admin provides it
 // (WordPress's regenerator-runtime script, a dependency of the editor).
-globalThis.regeneratorRuntime = ( await import( 'regenerator-runtime' ) ).default;
-const { missingCharacters, scriptOf, scriptsOf } = await import(
-	'../../src/shared/scripts.js'
-);
-const { layoutWithFallback } = await import(
-	'../../src/shared/text-layout.js'
-);
+globalThis.regeneratorRuntime = (
+	await import( 'regenerator-runtime' )
+).default;
+const { missingCharacters, scriptById, scriptOf, scriptsOf } =
+	await import( '../../src/shared/scripts.js' );
+const { layoutWithFallbacks } =
+	await import( '../../src/shared/text-layout.js' );
 
 const root = join( dirname( fileURLToPath( import.meta.url ) ), '..', '..' );
 let failed = 0;
@@ -43,7 +43,9 @@ async function noto( name ) {
 	if ( ! existsSync( file ) ) {
 		return null;
 	}
-	return fontkit.create( Buffer.from( await decompress( readFileSync( file ) ) ) );
+	return fontkit.create(
+		Buffer.from( await decompress( readFileSync( file ) ) )
+	);
 }
 
 const inter = fontkit.create(
@@ -101,10 +103,14 @@ check(
 );
 
 // Inter alone: nothing to fall back to.
-const cjkInInter = layoutWithFallback( inter, null, box( '{first_name}' ), person( '山田' ) );
+const cjkInInter = layoutWithFallbacks(
+	[ inter ],
+	box( '{first_name}' ),
+	person( '山田' )
+);
 check(
 	'Inter with a Japanese name: missing, no fallback',
-	cjkInInter.missing.length === 2 && ! cjkInInter.fallback
+	cjkInInter.missing.length === 2 && cjkInInter.fontIndex === 0
 );
 
 const jp = await noto( 'NotoSansJP' );
@@ -112,33 +118,45 @@ const arabic = await noto( 'NotoSansArabic' );
 const devanagari = await noto( 'NotoSansDevanagari' );
 if ( ! jp || ! arabic || ! devanagari ) {
 	skipped++;
-	console.log( 'skip the Noto tests: run node tools/fetch-test-fonts.mjs first' );
+	console.log(
+		'skip the Noto tests: run node tools/fetch-test-fonts.mjs first'
+	);
 } else {
-	const japanese = layoutWithFallback( jp, inter, box( '{full_name}' ), person( '山田', '太郎' ) );
+	const japanese = layoutWithFallbacks(
+		[ jp, inter ],
+		box( '{full_name}' ),
+		person( '山田', '太郎' )
+	);
 	check(
 		'Noto Sans JP prints a Japanese name itself',
-		! japanese.fallback && japanese.missing.length === 0
+		japanese.fontIndex === 0 && japanese.missing.length === 0
 	);
-	const polish = layoutWithFallback( jp, inter, box( '{full_name}' ), person( 'Łukasz', 'Żółć' ) );
+	const polish = layoutWithFallbacks(
+		[ jp, inter ],
+		box( '{full_name}' ),
+		person( 'Łukasz', 'Żółć' )
+	);
 	check(
 		'Noto Sans JP lacks Ł, so a Polish name prints in Inter',
-		polish.fallback && polish.missing.length === 0
+		polish.fontIndex === 1 && polish.missing.length === 0
 	);
-	const plain = layoutWithFallback( jp, inter, box( '{full_name}' ), person( 'Maria', 'Garcia' ) );
-	check( 'Noto Sans JP keeps a plain Latin name', ! plain.fallback );
-	const mixed = layoutWithFallback(
-		arabic,
-		inter,
+	const plain = layoutWithFallbacks(
+		[ jp, inter ],
+		box( '{full_name}' ),
+		person( 'Maria', 'Garcia' )
+	);
+	check( 'Noto Sans JP keeps a plain Latin name', plain.fontIndex === 0 );
+	const mixed = layoutWithFallbacks(
+		[ arabic, inter ],
 		box( '{first_name} · {last_name}', 200 ),
 		person( 'محمد', 'Egypt' )
 	);
 	check(
 		'Arabic mixed with Latin: no font has both, missing reported',
-		! mixed.fallback && mixed.missing.includes( 'E' )
+		mixed.fontIndex === 0 && mixed.missing.includes( 'E' )
 	);
-	const long = layoutWithFallback(
-		devanagari,
-		inter,
+	const long = layoutWithFallbacks(
+		[ devanagari, inter ],
 		box( '{full_name}', 20 ),
 		person( 'राहुल', 'शर्मा क्षत्रिय चक्रवर्ती' )
 	);
@@ -151,6 +169,51 @@ if ( ! jp || ! arabic || ! devanagari ) {
 		long.text
 	);
 	check( 'Noto Sans Devanagari has the ellipsis', long.missing.length === 0 );
+	// The fallback chain: the box's font, Inter, then the Noto fonts.
+	const chain = [ inter, jp, devanagari ];
+	const hindi = layoutWithFallbacks(
+		chain,
+		box( '{full_name}' ),
+		person( 'राहुल', 'शर्मा' )
+	);
+	check(
+		'Inter box, Hindi name: printed with Noto Sans Devanagari',
+		hindi.fontIndex === 2 && ! hindi.missing.length
+	);
+	const kanji = layoutWithFallbacks(
+		chain,
+		box( '{full_name}' ),
+		person( '健太', '鈴木' )
+	);
+	check(
+		'Inter box, kanji only: printed with Noto Sans JP',
+		kanji.fontIndex === 1 && ! kanji.missing.length
+	);
+	const latin = layoutWithFallbacks(
+		chain,
+		box( '{full_name}' ),
+		person( 'Maria', 'Garcia' )
+	);
+	check( 'Inter box, Latin name: Inter itself', latin.fontIndex === 0 );
+	const korean = layoutWithFallbacks(
+		chain,
+		box( '{full_name}' ),
+		person( '민준', '김' )
+	);
+	check(
+		'Inter box, Korean without Noto Sans KR: missing, own font',
+		korean.fontIndex === 0 && korean.missing.length === 3
+	);
+	check(
+		'Han falls back to the SC, TC and JP fonts, SC suggested',
+		scriptById( 'han' ).font === 'Noto Sans SC' &&
+			scriptById( 'han' ).fallbacks.join() ===
+				'Noto Sans SC,Noto Sans TC,Noto Sans JP'
+	);
+	check(
+		'Latin has no Noto fallback: Inter covers it',
+		scriptById( 'latin' ).fallbacks.length === 0
+	);
 }
 
 console.log( '' );

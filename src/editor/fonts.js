@@ -6,7 +6,8 @@
 import { useEffect, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import fontkit from '@pdf-lib/fontkit';
-import { layoutWithFallback } from '../shared/text-layout';
+import { layoutWithFallbacks } from '../shared/text-layout';
+import { scriptById, scriptsOf } from '../shared/scripts';
 
 const families = window.ctbdSettings.fontFamilies || [];
 const faces = new Map();
@@ -56,12 +57,38 @@ export function faceKey( face ) {
 	return face.family + '|' + face.weight;
 }
 
-// The font shipped with the plugin, used when a box's font lacks characters.
+// The font shipped with the plugin: the first fallback, for Latin, Greek
+// and Cyrillic letters a box's font lacks.
 const FALLBACK_FAMILY = 'Inter';
 
 /**
- * The faces a text box may use: its own, and Inter at the closest weight
- * when its own is another family.
+ * The face of an installed family at the closest weight, or null when the
+ * family is not installed (no fallback to Inter, unlike resolveFace()).
+ *
+ * @param {string} family Family name.
+ * @param {string} weight Weight.
+ * @return {Object|null} Face.
+ */
+function installedFace( family, weight ) {
+	if ( ! families.some( ( f ) => f.family === family ) ) {
+		return null;
+	}
+	return resolveFace( family, weight );
+}
+
+/**
+ * Whether a font family is installed: shipped, or in the Font Library.
+ *
+ * @param {string} family Family name.
+ * @return {boolean} Installed.
+ */
+export function isInstalled( family ) {
+	return families.some( ( f ) => f.family === family );
+}
+
+/**
+ * The faces a text box always needs: its own, and Inter at the closest
+ * weight when its own is another family.
  *
  * @param {Object} element Text element.
  * @return {{primary: Object|null, fallback: Object|null}} Faces.
@@ -76,14 +103,19 @@ export function textFaces( element ) {
 }
 
 /**
- * Lays out a text box for one attendee with the faces loaded so far, Inter
- * included as the fallback (see layoutWithFallback()).
+ * Lays out a text box for one attendee with the faces loaded so far. The
+ * text uses the first font that has all its characters, in a fixed order
+ * (decided by Nilo, milestone 13): the box's font, then Inter, then the Noto
+ * font of each script it still lacks when that font is installed in the
+ * Font Library, active or not. See layoutWithFallbacks().
  *
  * @param {Object} element  Text element.
  * @param {Object} attendee Attendee.
  * @param {Object} loaded   Loaded faces by key ({font, ...}).
- * @return {Object|null} Layout, with faceKey: the face it uses; null until
- *   the box's own face has loaded.
+ * @return {Object|null} Layout, null until the box's own face has loaded,
+ *   plus: faceKey, the face it uses; fallbackFamily, the fallback family it
+ *   uses, or null; scripts, the scripts of the characters the box's font
+ *   lacks; wanted, installed fallback faces not loaded yet.
  */
 export function layoutTextBox( element, attendee, loaded ) {
 	const { primary, fallback } = textFaces( element );
@@ -91,17 +123,65 @@ export function layoutTextBox( element, attendee, loaded ) {
 	if ( ! own ) {
 		return null;
 	}
-	const backup = fallback && loaded[ faceKey( fallback ) ];
-	const layout = layoutWithFallback(
-		own.font,
-		backup ? backup.font : null,
+	const chain = [ { face: primary, font: own.font } ];
+	const inter = fallback && loaded[ faceKey( fallback ) ];
+	if ( inter ) {
+		chain.push( { face: fallback, font: inter.font } );
+	}
+
+	let layout = layoutWithFallbacks(
+		chain.map( ( link ) => link.font ),
 		element,
 		attendee
 	);
-	layout.faceKey = layout.fallback ? faceKey( fallback ) : faceKey( primary );
-	return layout;
-}
+	const lacking = layout.missing;
+	const wanted = [];
+	const tried = chain.length;
+	if ( lacking.length ) {
+		// The Noto fonts of the scripts Inter lacks too, when installed.
+		const hard = inter
+			? lacking.filter(
+					( char ) =>
+						! inter.font.hasGlyphForCodePoint(
+							char.codePointAt( 0 )
+						)
+				)
+			: lacking;
+		for ( const id of scriptsOf( hard.length ? hard : lacking ) ) {
+			for ( const family of scriptById( id ).fallbacks ) {
+				const face = installedFace( family, element.weight );
+				if (
+					! face ||
+					chain.some( ( link ) => link.face.family === family )
+				) {
+					continue;
+				}
+				const found = loaded[ faceKey( face ) ];
+				if ( found ) {
+					chain.push( { face, font: found.font } );
+				} else {
+					wanted.push( face );
+				}
+			}
+		}
+		if ( chain.length > tried ) {
+			layout = layoutWithFallbacks(
+				chain.map( ( link ) => link.font ),
+				element,
+				attendee
+			);
+		}
+	}
 
+	const used = chain[ layout.fontIndex ];
+	return {
+		...layout,
+		faceKey: faceKey( used.face ),
+		fallbackFamily: layout.fontIndex > 0 ? used.face.family : null,
+		scripts: lacking.length ? scriptsOf( lacking ) : [],
+		wanted,
+	};
+}
 async function toTtf( bytes ) {
 	const isWoff2 =
 		bytes[ 0 ] === 0x77 &&
@@ -184,14 +264,21 @@ export function neededFaces( elements ) {
 }
 
 /**
- * Loads the faces the text elements use, and Inter as their fallback.
+ * Loads the faces the text elements use, Inter as their fallback, and the
+ * fallback faces some attendee turned out to need (loaded only then).
  *
- * @param {Array} elements Design elements.
+ * @param {Array}    elements Design elements.
+ * @param {Object[]} extra    More faces to load: Noto fallbacks.
  * @return {Object} Loaded faces by key ({font, css}); missing until loaded.
  */
-export function useFonts( elements ) {
+export function useFonts( elements, extra = [] ) {
 	const [ loaded, setLoaded ] = useState( {} );
 	const needed = neededFaces( elements );
+	for ( const face of extra ) {
+		if ( ! needed.some( ( f ) => faceKey( f ) === faceKey( face ) ) ) {
+			needed.push( face );
+		}
+	}
 	const neededKeys = needed.map( faceKey ).sort().join( ',' );
 
 	useEffect( () => {

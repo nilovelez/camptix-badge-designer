@@ -1,7 +1,10 @@
 /**
  * Characters a font cannot print, grouped by writing system (script), and
- * the font to suggest for each one: the Noto family the WordPress Font
- * Library installs from Google Fonts (milestone 13, after bor0's review).
+ * the fonts used as a fallback for each one: the Noto families the WordPress
+ * Font Library installs from Google Fonts (milestone 13, after bor0's
+ * review). The first one is the one suggested; the others are tried too
+ * when installed (Han characters are also in the Japanese and traditional
+ * Chinese fonts).
  *
  * The scripts are matched with Unicode property escapes built at run time,
  * so the build leaves them as they are instead of expanding them.
@@ -25,7 +28,8 @@ const SCRIPTS = [
 		id: 'han',
 		pattern: 'Han',
 		label: __( 'Chinese or Japanese kanji', 'camptix-badge-designer' ),
-		font: 'Noto Sans SC, Noto Sans TC or Noto Sans JP',
+		font: 'Noto Sans SC',
+		fallbacks: [ 'Noto Sans SC', 'Noto Sans TC', 'Noto Sans JP' ],
 	},
 	{
 		id: 'korean',
@@ -168,6 +172,9 @@ const SCRIPTS = [
 	},
 ].map( ( script ) => ( {
 	...script,
+	// Latin, Greek and Cyrillic fall back to Inter, shipped with the plugin.
+	fallbacks:
+		script.fallbacks || ( script.font === 'Inter' ? [] : [ script.font ] ),
 	regexp: new RegExp(
 		'^(?:' +
 			script.pattern
@@ -184,6 +191,7 @@ const OTHER = {
 	id: 'other',
 	label: __( 'Emoji, symbols or other characters', 'camptix-badge-designer' ),
 	font: '',
+	fallbacks: [],
 };
 
 /*

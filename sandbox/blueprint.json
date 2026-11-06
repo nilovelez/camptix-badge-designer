@@ -35,6 +35,18 @@
 			"data": "<?php\n// Loads the WordCamp sandbox from the mounted plugin repository.\nrequire WP_CONTENT_DIR . '/plugins/camptix-badge-designer/sandbox/wordcamp-sandbox.php';\n"
 		},
 		{
+			"step": "mkdir",
+			"path": "/wordpress/wp-content/ctbd-sandbox-fonts"
+		},
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/ctbd-sandbox-fonts/NotoSansJP-400.woff2",
+			"data": {
+				"resource": "url",
+				"url": "https://fonts.gstatic.com/s/notosansjp/v53/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEj757Y0rw-oME.woff2"
+			}
+		},
+		{
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "git:directory",

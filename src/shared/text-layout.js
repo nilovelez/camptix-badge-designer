@@ -184,34 +184,32 @@ function graphemes( text ) {
 }
 
 /**
- * Lays out the text of a box for one attendee, falling back to Inter when
- * the box's font cannot print every character and Inter can (milestone 13):
- * a CJK Noto font lacks some Central European letters, for example. The
- * whole text uses one font, never a mix, so measuring, shrinking and cutting
- * work as with a single font. The ellipsis of cut text counts too.
+ * Lays out the text of a box for one attendee with the first font, in
+ * order, that can print every character of it (milestone 13): the box's own
+ * font, then the fallbacks (Inter, then the Noto font of the script). The
+ * whole text uses one font, never a mix, so measuring, shrinking and
+ * cutting work as with a single font. The ellipsis of cut text counts too.
  *
- * @param {Object}      font     Fontkit font of the box's family and weight.
- * @param {Object|null} fallback Fontkit font of Inter at the closest weight,
- *                               or null when the box already uses Inter.
- * @param {Object}      element  Text element.
- * @param {Object}      attendee Attendee.
- * @return {Object} The layout of layoutText(), plus fallback (true when it
- *   uses the fallback font) and missing (characters neither font has, in
- *   the text as printed).
+ * @param {Object[]} fonts    Fontkit fonts, the box's own first.
+ * @param {Object}   element  Text element.
+ * @param {Object}   attendee Attendee.
+ * @return {Object} The layout of layoutText(), plus fontIndex (the font it
+ *   uses) and missing: when no font has every character, the characters the
+ *   box's own font lacks, and the layout uses that font.
  */
-export function layoutWithFallback( font, fallback, element, attendee ) {
-	const layout = layoutText( font, element, attendee );
-	const missing = missingCharacters( font, layout.text );
+export function layoutWithFallbacks( fonts, element, attendee ) {
+	const layout = layoutText( fonts[ 0 ], element, attendee );
+	const missing = missingCharacters( fonts[ 0 ], layout.text );
 	if ( ! missing.length ) {
-		return { ...layout, fallback: false, missing };
+		return { ...layout, fontIndex: 0, missing };
 	}
-	if ( fallback && fallback !== font ) {
-		const other = layoutText( fallback, element, attendee );
-		if ( ! missingCharacters( fallback, other.text ).length ) {
-			return { ...other, fallback: true, missing: [] };
+	for ( let index = 1; index < fonts.length; index++ ) {
+		const other = layoutText( fonts[ index ], element, attendee );
+		if ( ! missingCharacters( fonts[ index ], other.text ).length ) {
+			return { ...other, fontIndex: index, missing: [] };
 		}
 	}
-	return { ...layout, fallback: false, missing };
+	return { ...layout, fontIndex: 0, missing };
 }
 
 /**

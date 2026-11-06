@@ -23,7 +23,8 @@ import { MmField } from './mm-field';
 import { AttendeesList } from './attendees-list';
 import { ElementPanel } from './element-panel';
 import { DesignPanel } from './design-panel';
-import { scriptById } from '../../shared/scripts';
+import { scriptById, sortScripts } from '../../shared/scripts';
+import { isInstalled } from '../fonts';
 import { BadgeTypeControl } from './badge-type';
 import { elementLabel, isPastTrim, moveInsideSafeArea } from '../elements';
 import {
@@ -446,10 +447,97 @@ function AttendeeNotice( { items, summary, detail, onGoTo } ) {
 	);
 }
 
+/**
+ * The scripts the badges need beyond the fonts of their text boxes, with how
+ * many attendees use each and the font that prints them, or the one to
+ * install (milestone 13).
+ *
+ * @param {Object} props         Props.
+ * @param {Object} props.scripts By script id: {count, families, unresolved}.
+ * @return {Element|null} Table.
+ */
+function ScriptTable( { scripts } ) {
+	const ids = sortScripts( Object.keys( scripts || {} ) );
+	if ( ! ids.length ) {
+		return null;
+	}
+	return (
+		<div className="ctbd-script-table">
+			<p className="ctbd-label">
+				{ __( 'Other scripts', 'camptix-badge-designer' ) }
+			</p>
+			<table>
+				<thead>
+					<tr>
+						<th>{ __( 'Script', 'camptix-badge-designer' ) }</th>
+						<th>{ __( 'Attendees', 'camptix-badge-designer' ) }</th>
+						<th>{ __( 'Font', 'camptix-badge-designer' ) }</th>
+					</tr>
+				</thead>
+				<tbody>
+					{ ids.map( ( id ) => {
+						const script = scriptById( id );
+						const entry = scripts[ id ];
+						// Those already printed with a fallback, in green, and
+						// those still waiting for a font: a script can have both.
+						const printed = entry.count - entry.unresolved;
+						let pending = null;
+						if ( ! entry.unresolved ) {
+							pending = null;
+						} else if ( ! script.font ) {
+							pending = __(
+								'No font can print them',
+								'camptix-badge-designer'
+							);
+						} else if (
+							script.font === 'Inter' ||
+							isInstalled( script.font )
+						) {
+							pending = __(
+								'Mixed with another script: split the box',
+								'camptix-badge-designer'
+							);
+						} else {
+							pending = sprintf(
+								/* translators: %s: a font name. */
+								__( 'Install %s', 'camptix-badge-designer' ),
+								script.font
+							);
+						}
+						const both = printed > 0 && entry.unresolved > 0;
+						const status = (
+							<>
+								{ printed > 0 && (
+									<span className="is-done">
+										<span aria-hidden="true">✓ </span>
+										{ entry.families.join( ', ' ) }
+										{ both && ' (' + printed + ')' }
+									</span>
+								) }
+								{ both && <br /> }
+								{ pending }
+								{ both && ' (' + entry.unresolved + ')' }
+							</>
+						);
+						return (
+							<tr key={ id }>
+								<td>{ script.label }</td>
+								<td>{ entry.count }</td>
+								<td>{ status }</td>
+							</tr>
+						);
+					} ) }
+				</tbody>
+			</table>
+		</div>
+	);
+}
+
 function AttendeesPanel( {
 	attendees,
 	overflows,
 	missing,
+	scriptStats,
 	onGoTo,
 	design,
 	updateDesign,
@@ -535,6 +623,7 @@ function AttendeesPanel( {
 					) }
 					onGoTo={ onGoTo }
 				/>
+				<ScriptTable scripts={ scriptStats } />
 				<AttendeeNotice
 					items={ missing }
 					summary={ sprintf(
@@ -590,6 +679,7 @@ function DocumentTab( props ) {
 				attendees={ props.attendees }
 				overflows={ props.overflows }
 				missing={ props.missing }
+				scriptStats={ props.scriptStats }
 				onGoTo={ props.onGoTo }
 				design={ props.design }
 				updateDesign={ props.updateDesign }
