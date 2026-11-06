@@ -8,11 +8,88 @@ import { gravatarUrls } from '../../shared/gravatar';
 
 const PT_TO_MM = 25.4 / 72;
 
+/**
+ * Text drawn from the font's own glyphs, as the PDF draws it. Used when the
+ * font lacks some characters: the browser would fill them in from a system
+ * font and the canvas would look right, while the PDF prints the font's
+ * empty box (.notdef). Drawing the same glyphs shows the same boxes.
+ *
+ * @param {Object} props        Props.
+ * @param {Object} props.font   Fontkit font.
+ * @param {Object} props.layout Layout of the text.
+ * @param {string} props.color  Text color.
+ * @param {number} props.scale  Pixels per millimeter.
+ * @return {Element} SVG.
+ */
+function GlyphText( { font, layout, color, scale } ) {
+	const run = font.layout( layout.text );
+	// Font units to pixels; the glyphs are drawn with the y axis up.
+	const units = ( layout.size * PT_TO_MM * scale ) / font.unitsPerEm;
+	const paths = [];
+	let x = 0;
+	let y = 0;
+	run.glyphs.forEach( ( glyph, index ) => {
+		const position = run.positions[ index ];
+		paths.push(
+			<path
+				key={ index }
+				transform={
+					'translate(' +
+					( x + position.xOffset ) +
+					' ' +
+					( y + position.yOffset ) +
+					')'
+				}
+				d={ glyph.path.toSVG() }
+			/>
+		);
+		x += position.xAdvance;
+		y += position.yAdvance;
+	} );
+	return (
+		<div className="ctbd-element__clip">
+			<svg
+				className="ctbd-element__glyphs"
+				role="img"
+				aria-label={ layout.text }
+			>
+				<title>{ layout.text }</title>
+				<g
+					fill={ color }
+					transform={
+						'translate(' +
+						layout.x * scale +
+						' ' +
+						layout.baseline * scale +
+						') scale(' +
+						units +
+						' ' +
+						-units +
+						')'
+					}
+				>
+					{ paths }
+				</g>
+			</svg>
+		</div>
+	);
+}
+
 function TextView( { element, layout, fonts, scale } ) {
 	// The face the layout chose: the box's own, or Inter as its fallback.
 	const loaded = layout && fonts[ layout.faceKey ];
 	if ( ! loaded ) {
 		return null;
+	}
+	if ( layout.missing && layout.missing.length ) {
+		return (
+			<GlyphText
+				font={ loaded.font }
+				layout={ layout }
+				color={ element.color }
+				scale={ scale }
+			/>
+		);
 	}
 	const lineHeight = ( layout.ascent - layout.descent ) * scale;
 	return (

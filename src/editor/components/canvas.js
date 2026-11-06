@@ -181,11 +181,25 @@ function ElementBox( {
 	}
 
 	const overflow = layout && layout.overflow;
+	// Characters the font cannot print, drawn as the PDF will: empty boxes.
+	const missing = layout && layout.missing && layout.missing.length > 0;
+	let warning = '';
+	if ( missing ) {
+		warning = __(
+			'The font cannot print some characters of this attendee: they print as empty boxes.',
+			'camptix-badge-designer'
+		);
+	} else if ( overflow ) {
+		warning = __(
+			'This text does not fit for this attendee, even made smaller: it is cut.',
+			'camptix-badge-designer'
+		);
+	}
 	let className = 'ctbd-element is-' + element.type;
 	if ( selected ) {
 		className += ' is-selected';
 	}
-	if ( overflow ) {
+	if ( warning ) {
 		className += ' is-overflow';
 	}
 	if ( isPastTrim( element, size ) ) {
@@ -204,14 +218,8 @@ function ElementBox( {
 			onPointerDown={ ( event ) => startDrag( event, 'move' ) }
 		>
 			{ children }
-			{ overflow && (
-				<span
-					className="ctbd-element__warning"
-					title={ __(
-						'This text does not fit for this attendee, even made smaller: it is cut.',
-						'camptix-badge-designer'
-					) }
-				>
+			{ warning && (
+				<span className="ctbd-element__warning" title={ warning }>
 					!
 				</span>
 			) }

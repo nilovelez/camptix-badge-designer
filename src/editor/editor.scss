@@ -475,6 +475,15 @@ $min-height: 560px;
 		pointer-events: none;
 	}
 
+	// Text drawn from the font's glyphs, when it lacks some characters.
+	&__glyphs {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+
 	&__text {
 		position: absolute;
 		white-space: pre;

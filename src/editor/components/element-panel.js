@@ -311,19 +311,33 @@ function TypographyPanel( { element, change, stats } ) {
 }
 
 // Text that does not fit shrinks a little; when it still does not fit, it is
-// cut and the editor warns.
+// cut and the editor warns. The same for characters the font cannot print.
 function OverflowNotice( { layout } ) {
-	if ( ! layout || ! layout.overflow ) {
+	if ( ! layout ) {
+		return null;
+	}
+	const missing = layout.missing && layout.missing.length > 0;
+	if ( ! layout.overflow && ! missing ) {
 		return null;
 	}
 	return (
 		<div className="ctbd-element-notice">
-			<Notice status="warning" isDismissible={ false }>
-				{ __(
-					'For this attendee the text does not fit the box, even made smaller: it is cut. Make the box wider or the text smaller.',
-					'camptix-badge-designer'
-				) }
-			</Notice>
+			{ missing && (
+				<Notice status="warning" isDismissible={ false }>
+					{ __(
+						'For this attendee the font cannot print some characters: they print as empty boxes, as shown. Pick a font that has them (see Typography).',
+						'camptix-badge-designer'
+					) }
+				</Notice>
+			) }
+			{ layout.overflow && (
+				<Notice status="warning" isDismissible={ false }>
+					{ __(
+						'For this attendee the text does not fit the box, even made smaller: it is cut. Make the box wider or the text smaller.',
+						'camptix-badge-designer'
+					) }
+				</Notice>
+			) }
 		</div>
 	);
 }
