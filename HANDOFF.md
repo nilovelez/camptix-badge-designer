@@ -20,7 +20,7 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Next steps
 
-1. The call for testing is published on the Make WordPress Community blog (https://make.wordpress.org/community/2026/11/06/call-for-testing-badge-designer-a-simpler-way-to-make-wordcamp-badges/), with feedback by 2026-11-20 in WordPress/wordcamp.org#2286 (Anne gave the go-ahead). It is linked from the guide and the README. Collect the feedback from #2286, discuss it with Nilo before changing anything, and plan the next milestone with him. Nilo's review of milestone 13 is still pending.
+1. The call for testing is published on the Make WordPress Community blog (https://make.wordpress.org/community/2026/11/06/call-for-testing-badge-designer-a-simpler-way-to-make-wordcamp-badges/), with feedback by 2026-11-20 in WordPress/wordcamp.org#2286 (Anne gave the go-ahead). Collect the feedback from #2286, discuss it with Nilo before changing anything, and plan the next milestone with him. Nilo's review of milestone 13 is still pending.
 2. Present milestone 10 for review: the Make post was its last step.
 3. At the start of the next session, tell Nilo what is left to review in milestones 9 and 10.
 4. Nilo's review of milestones 11 and 12.

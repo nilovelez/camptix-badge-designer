@@ -15,7 +15,7 @@ The PDF is built in the organizer's browser. The server only sends the design an
 
 ### Status and plan
 
-This is a standalone plugin, in testing. The goal is WordCamp.org: once it has been tested, it will be integrated into `camptix-badge-generator`, the badge plugin that every WordCamp site already runs (in the [`WordPress/wordcamp.org`](https://github.com/WordPress/wordcamp.org) repo), as a new way to make badges next to the HTML/CSS and InDesign ones. It replaces the server-side Canva export proposed in WordPress/wordcamp.org#2278, which embedded every image on the server. The proposal, with how to test it, is [WordPress/wordcamp.org#2286](https://github.com/WordPress/wordcamp.org/issues/2286): feedback goes there. The [call for testing](https://make.wordpress.org/community/2026/11/06/call-for-testing-badge-designer-a-simpler-way-to-make-wordcamp-badges/) on the Make WordPress Community blog is open until November 20, 2026.
+This is a standalone plugin, in testing. The goal is WordCamp.org: once it has been tested, it will be integrated into `camptix-badge-generator`, the badge plugin that every WordCamp site already runs (in the [`WordPress/wordcamp.org`](https://github.com/WordPress/wordcamp.org) repo), as a new way to make badges next to the HTML/CSS and InDesign ones. It replaces the server-side Canva export proposed in WordPress/wordcamp.org#2278, which embedded every image on the server. The proposal, with how to test it, is [WordPress/wordcamp.org#2286](https://github.com/WordPress/wordcamp.org/issues/2286): feedback goes there.
 
 Background, the name, and the steps to get there: "Name, and the road to WordCamp.org" in [`docs/decisions.md`](docs/decisions.md).
 
