@@ -168,7 +168,12 @@ function ctbd_enqueue_admin_assets( $hook_suffix ) {
 
 	// The Media Library modal, to pick the background and images.
 	wp_enqueue_media();
-	wp_enqueue_script( 'ctbd-editor', CTBD_PLUGIN_URL . 'build/editor.js', $asset['dependencies'], $asset['version'], true );
+	// fontkit shapes Indic scripts with generator code compiled for
+	// regenerator-runtime, which it expects as a global; WordPress ships it
+	// but loads it only when a script asks. Without it, a Devanagari font
+	// stops the editor (milestone 13).
+	$dependencies = array_merge( $asset['dependencies'], array( 'regenerator-runtime' ) );
+	wp_enqueue_script( 'ctbd-editor', CTBD_PLUGIN_URL . 'build/editor.js', $dependencies, $asset['version'], true );
 	// The editor's strings, translated on translate.wordpress.org like the PHP ones.
 	wp_set_script_translations( 'ctbd-editor', 'camptix-badge-designer' );
 	wp_enqueue_style( 'ctbd-editor', CTBD_PLUGIN_URL . 'build/editor.css', array( 'wp-components' ), $asset['version'] );
@@ -177,6 +182,8 @@ function ctbd_enqueue_admin_assets( $hook_suffix ) {
 		'pdfWorkerUrl' => CTBD_PLUGIN_URL . 'build/pdf.worker.min.js',
 		'fontFamilies' => ctbd_get_fonts(),
 		'palette'      => ctbd_get_palette(),
+		// Where to install fonts, or empty when the Font Library is off.
+		'fontLibrary'  => ctbd_font_library_url(),
 	);
 	wp_add_inline_script( 'ctbd-editor', 'window.ctbdSettings = ' . wp_json_encode( $settings ) . ';', 'before' );
 }

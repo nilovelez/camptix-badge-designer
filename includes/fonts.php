@@ -110,6 +110,27 @@ function ctbd_get_fonts() {
 }
 
 /**
+ * The Font Library screen (Appearance › Fonts, WordPress 7.0), where the
+ * fonts the badges need are installed (milestone 13). Empty when the user
+ * cannot manage fonts or the site turns the Font Library off: it does that
+ * with the fontLibraryEnabled editor setting (the block_editor_settings_all
+ * filter), which the 7.0 screen itself does not check yet (Gutenberg issue
+ * #79019), so it is read here.
+ *
+ * @return string URL, or an empty string.
+ */
+function ctbd_font_library_url() {
+	if ( ! current_user_can( 'edit_theme_options' ) || ! file_exists( ABSPATH . 'wp-admin/font-library.php' ) ) {
+		return '';
+	}
+	$settings = get_block_editor_settings( array(), new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) ) );
+	if ( isset( $settings['fontLibraryEnabled'] ) && ! $settings['fontLibraryEnabled'] ) {
+		return '';
+	}
+	return admin_url( 'font-library.php?p=%2Ffont-list' );
+}
+
+/**
  * Colors offered for text: the theme palette and the custom colors, or the
  * WordPress default palette when the theme has none.
  *
