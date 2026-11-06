@@ -20,10 +20,9 @@ import {
 	concatTransformationMatrix,
 } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
-import { layoutText } from '../shared/text-layout';
 import { profileQr, profileUrl } from '../shared/qr';
 import { gravatarUrls } from '../shared/gravatar';
-import { faceKey, loadFace, resolveFace } from './fonts';
+import { faceKey, layoutTextBox, loadFace, neededFaces } from './fonts';
 import { CROP_MARK_LENGTH, HOLE_MARK_LENGTH, pageGeometry } from './geometry';
 
 const PT_PER_MM = 72 / 25.4;
@@ -279,20 +278,34 @@ export async function buildBadgesPdf( {
 
 	// Fonts: the same files the editor measured, subset to the glyphs in use.
 	onProgress( { step: 'fonts' } );
-	const fonts = {};
-	for ( const element of elements ) {
-		if ( element.type !== 'text' ) {
-			continue;
+	// Each text box may fall back to Inter for some attendees (see
+	// layoutTextBox()): the layouts are worked out first, so only the faces
+	// some badge uses are embedded.
+	const loaded = {};
+	for ( const face of neededFaces( elements ) ) {
+		loaded[ faceKey( face ) ] = await loadFace( face );
+	}
+	const textLayouts = new Map();
+	const usedFaces = new Set();
+	for ( const attendee of attendees ) {
+		const layouts = {};
+		for ( const element of elements ) {
+			if ( element.type !== 'text' ) {
+				continue;
+			}
+			const layout = layoutTextBox( element, attendee, loaded );
+			if ( layout ) {
+				layouts[ element.id ] = layout;
+				usedFaces.add( layout.faceKey );
+			}
 		}
-		const face = resolveFace( element.font, element.weight );
-		const key = face && faceKey( face );
-		if ( key && ! fonts[ key ] ) {
-			const loaded = await loadFace( face );
-			fonts[ key ] = {
-				font: loaded.font,
-				pdfFont: await doc.embedFont( loaded.bytes, { subset: true } ),
-			};
-		}
+		textLayouts.set( attendee, layouts );
+	}
+	const pdfFonts = {};
+	for ( const key of usedFaces ) {
+		pdfFonts[ key ] = await doc.embedFont( loaded[ key ].bytes, {
+			subset: true,
+		} );
 	}
 	checkCancelled();
 
@@ -425,13 +438,8 @@ export async function buildBadgesPdf( {
 
 		for ( const element of elements ) {
 			if ( element.type === 'text' ) {
-				const face = resolveFace( element.font, element.weight );
-				const font = face && fonts[ faceKey( face ) ];
-				if ( ! font ) {
-					continue;
-				}
-				const layout = layoutText( font.font, element, attendee );
-				if ( ! layout.text ) {
+				const layout = textLayouts.get( attendee )[ element.id ];
+				if ( ! layout || ! layout.text ) {
 					continue;
 				}
 				// Text that does not fit is cut at the edge of the box.
@@ -450,7 +458,7 @@ export async function buildBadgesPdf( {
 					x: fromLeft( element.x + layout.x ),
 					y: fromTop( element.y + layout.baseline ),
 					size: layout.size,
-					font: font.pdfFont,
+					font: pdfFonts[ layout.faceKey ],
 					color: hexToRgb( element.color ),
 				} );
 				page.pushOperators( popGraphicsState() );

@@ -13,6 +13,7 @@
  */
 
 import { __ } from '@wordpress/i18n';
+import { missingCharacters } from './scripts';
 
 const MM_PER_PT = 25.4 / 72;
 
@@ -162,6 +163,58 @@ export function textWidth( font, text, size ) {
 }
 
 /**
+ * A text split into the characters a reader sees (grapheme clusters), so a
+ * cut never separates a letter from its accent or an Indic consonant from
+ * its vowel sign.
+ *
+ * @param {string} text Text.
+ * @return {string[]} Characters.
+ */
+function graphemes( text ) {
+	if ( typeof Intl !== 'undefined' && Intl.Segmenter ) {
+		const segmenter = new Intl.Segmenter( undefined, {
+			granularity: 'grapheme',
+		} );
+		return Array.from(
+			segmenter.segment( text ),
+			( part ) => part.segment
+		);
+	}
+	return Array.from( text );
+}
+
+/**
+ * Lays out the text of a box for one attendee, falling back to Inter when
+ * the box's font cannot print every character and Inter can (milestone 13):
+ * a CJK Noto font lacks some Central European letters, for example. The
+ * whole text uses one font, never a mix, so measuring, shrinking and cutting
+ * work as with a single font. The ellipsis of cut text counts too.
+ *
+ * @param {Object}      font     Fontkit font of the box's family and weight.
+ * @param {Object|null} fallback Fontkit font of Inter at the closest weight,
+ *                               or null when the box already uses Inter.
+ * @param {Object}      element  Text element.
+ * @param {Object}      attendee Attendee.
+ * @return {Object} The layout of layoutText(), plus fallback (true when it
+ *   uses the fallback font) and missing (characters neither font has, in
+ *   the text as printed).
+ */
+export function layoutWithFallback( font, fallback, element, attendee ) {
+	const layout = layoutText( font, element, attendee );
+	const missing = missingCharacters( font, layout.text );
+	if ( ! missing.length ) {
+		return { ...layout, fallback: false, missing };
+	}
+	if ( fallback && fallback !== font ) {
+		const other = layoutText( fallback, element, attendee );
+		if ( ! missingCharacters( fallback, other.text ).length ) {
+			return { ...other, fallback: true, missing: [] };
+		}
+	}
+	return { ...layout, fallback: false, missing };
+}
+
+/**
  * Lays out the text of a box for one attendee.
  *
  * @param {Object} font     Fontkit font of the box's family and weight.
@@ -198,7 +251,7 @@ export function layoutText( font, element, attendee ) {
 		if ( width > element.width + 0.01 ) {
 			// Cut after the last whole character that fits with an ellipsis.
 			overflow = true;
-			const chars = Array.from( text );
+			const chars = graphemes( text );
 			const cut = ( count ) =>
 				chars.slice( 0, count ).join( '' ).trimEnd() + ELLIPSIS;
 			let low = 0;

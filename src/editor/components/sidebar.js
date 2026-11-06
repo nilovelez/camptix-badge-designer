@@ -23,6 +23,7 @@ import { MmField } from './mm-field';
 import { AttendeesList } from './attendees-list';
 import { ElementPanel } from './element-panel';
 import { DesignPanel } from './design-panel';
+import { scriptById } from '../../shared/scripts';
 import { BadgeTypeControl } from './badge-type';
 import { elementLabel, isPastTrim, moveInsideSafeArea } from '../elements';
 import {
@@ -395,20 +396,20 @@ function ElementsPanel( {
 	);
 }
 
-function OverflowList( { overflows, onGoTo } ) {
-	if ( ! overflows.length ) {
+/**
+ * A warning with a list of attendees to check, each a link to their badge.
+ *
+ * @param {Object}   props         Props.
+ * @param {Array}    props.items   Attendees: {number, name}.
+ * @param {string}   props.summary What they have in common.
+ * @param {Function} props.detail  Optional: extra text for each one.
+ * @param {Function} props.onGoTo  Shows an attendee's badge.
+ * @return {Element|null} Notice.
+ */
+function AttendeeNotice( { items, summary, detail, onGoTo } ) {
+	if ( ! items.length ) {
 		return null;
 	}
-	const summary = sprintf(
-		/* translators: %d: number of attendees. */
-		_n(
-			'%d attendee has text that does not fit and is cut',
-			'%d attendees have text that does not fit and is cut',
-			overflows.length,
-			'camptix-badge-designer'
-		),
-		overflows.length
-	);
 	// A plain-text spokenMessage: without it, Notice serializes its children
 	// for screen readers, which renders the Buttons outside React and breaks
 	// the editor when the list changes.
@@ -420,7 +421,7 @@ function OverflowList( { overflows, onGoTo } ) {
 		>
 			{ summary }:
 			<ul className="ctbd-overflow-list">
-				{ overflows.slice( 0, 50 ).map( ( item ) => (
+				{ items.slice( 0, 50 ).map( ( item ) => (
 					<li key={ item.number }>
 						<Button
 							variant="link"
@@ -428,15 +429,16 @@ function OverflowList( { overflows, onGoTo } ) {
 						>
 							#{ item.number } { item.name }
 						</Button>
+						{ detail && ' (' + detail( item ) + ')' }
 					</li>
 				) ) }
 			</ul>
-			{ overflows.length > 50 && (
+			{ items.length > 50 && (
 				<span>
 					{ sprintf(
 						/* translators: %d: number of attendees not listed. */
 						__( '…and %d more.', 'camptix-badge-designer' ),
-						overflows.length - 50
+						items.length - 50
 					) }
 				</span>
 			) }
@@ -447,6 +449,7 @@ function OverflowList( { overflows, onGoTo } ) {
 function AttendeesPanel( {
 	attendees,
 	overflows,
+	missing,
 	onGoTo,
 	design,
 	updateDesign,
@@ -518,7 +521,39 @@ function AttendeesPanel( {
 						data.source
 					) }
 				</p>
-				<OverflowList overflows={ overflows } onGoTo={ onGoTo } />
+				<AttendeeNotice
+					items={ overflows }
+					summary={ sprintf(
+						/* translators: %d: number of attendees. */
+						_n(
+							'%d attendee has text that does not fit and is cut',
+							'%d attendees have text that does not fit and is cut',
+							overflows.length,
+							'camptix-badge-designer'
+						),
+						overflows.length
+					) }
+					onGoTo={ onGoTo }
+				/>
+				<AttendeeNotice
+					items={ missing }
+					summary={ sprintf(
+						/* translators: %d: number of attendees. */
+						_n(
+							'%d attendee has characters the font cannot print',
+							'%d attendees have characters the font cannot print',
+							missing.length,
+							'camptix-badge-designer'
+						),
+						missing.length
+					) }
+					detail={ ( item ) =>
+						item.scripts
+							.map( ( id ) => scriptById( id ).label )
+							.join( ', ' )
+					}
+					onGoTo={ onGoTo }
+				/>
 				<Button variant="secondary" onClick={ () => setOpen( true ) }>
 					{ __( 'View list', 'camptix-badge-designer' ) }
 				</Button>
@@ -554,6 +589,7 @@ function DocumentTab( props ) {
 			<AttendeesPanel
 				attendees={ props.attendees }
 				overflows={ props.overflows }
+				missing={ props.missing }
 				onGoTo={ props.onGoTo }
 				design={ props.design }
 				updateDesign={ props.updateDesign }
@@ -612,6 +648,11 @@ export function Sidebar( props ) {
 						layout={
 							props.selectedElement
 								? props.layouts[ props.selectedElement.id ]
+								: null
+						}
+						textStats={
+							props.selectedElement
+								? props.textStats[ props.selectedElement.id ]
 								: null
 						}
 						questions={ props.attendees.questions }

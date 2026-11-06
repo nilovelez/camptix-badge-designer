@@ -10,6 +10,9 @@ node_modules/
 /test-data/
 *.csv
 
+# Noto fonts for the JavaScript tests, downloaded by tools/fetch-test-fonts.mjs.
+/tests/fonts/
+
 # PHP log of the WordCamp sandbox.
 /sandbox/debug.log
 

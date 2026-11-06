@@ -4,15 +4,14 @@
 import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { profileQr, profileUrl } from '../../shared/qr';
-import { faceKey, resolveFace } from '../fonts';
 import { gravatarUrls } from '../../shared/gravatar';
 
 const PT_TO_MM = 25.4 / 72;
 
 function TextView( { element, layout, fonts, scale } ) {
-	const face = resolveFace( element.font, element.weight );
-	const loaded = face && fonts[ faceKey( face ) ];
-	if ( ! loaded || ! layout ) {
+	// The face the layout chose: the box's own, or Inter as its fallback.
+	const loaded = layout && fonts[ layout.faceKey ];
+	if ( ! loaded ) {
 		return null;
 	}
 	const lineHeight = ( layout.ascent - layout.descent ) * scale;

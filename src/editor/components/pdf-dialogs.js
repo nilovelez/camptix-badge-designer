@@ -316,6 +316,7 @@ export function GenerateDialog( {
 	attendees,
 	flags,
 	overflows,
+	missing,
 	onClose,
 } ) {
 	const total = attendees.length;
@@ -341,6 +342,9 @@ export function GenerateDialog( {
 	const geometry = pageGeometry( design );
 	const selectedNumbers = new Set( selected.map( ( a ) => a.number ) );
 	const cut = overflows.filter( ( item ) =>
+		selectedNumbers.has( item.number )
+	).length;
+	const unprintable = missing.filter( ( item ) =>
 		selectedNumbers.has( item.number )
 	).length;
 	const withoutQr = selected.filter( ( a ) => ! a.username ).length;
@@ -536,6 +540,18 @@ export function GenerateDialog( {
 												'camptix-badge-designer'
 											),
 											cut
+										) }
+									</span>
+								) }
+								{ unprintable > 0 && (
+									<span className="is-warning">
+										{ sprintf(
+											/* translators: %d: number of badges. */
+											__(
+												'%d with characters the font cannot print (see Attendees).',
+												'camptix-badge-designer'
+											),
+											unprintable
 										) }
 									</span>
 								) }

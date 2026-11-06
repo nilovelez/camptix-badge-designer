@@ -10,11 +10,11 @@ import { Sidebar } from './components/sidebar';
 import { BackgroundSizeDialog } from './components/background-size-dialog';
 import { GenerateDialog, PreviewDialog } from './components/pdf-dialogs';
 import { useAttendees, useDesign, withNameOption } from './use-design';
-import { faceKey, resolveFace, useFonts } from './fonts';
+import { layoutTextBox, useFonts } from './fonts';
 import { newElement } from './elements';
 import { readPdfPageSize } from './pdf';
 import { round1 } from './geometry';
-import { layoutText } from '../shared/text-layout';
+import { scriptsOf } from '../shared/scripts';
 import './editor.scss';
 
 const BACKGROUND_TYPES = {
@@ -86,17 +86,67 @@ function layoutAll( elements, fonts, attendee ) {
 		if ( element.type !== 'text' ) {
 			continue;
 		}
-		const face = resolveFace( element.font, element.weight );
-		const loaded = face && fonts[ faceKey( face ) ];
-		if ( loaded ) {
-			layouts[ element.id ] = layoutText(
-				loaded.font,
-				element,
-				attendee
-			);
+		const layout = layoutTextBox( element, attendee, fonts );
+		if ( layout ) {
+			layouts[ element.id ] = layout;
 		}
 	}
 	return layouts;
+}
+
+/**
+ * Checks every attendee's text against the fonts, to warn before printing:
+ * the attendees whose text is cut, and those with characters the box's font
+ * cannot print, printed in Inter instead or not printable at all.
+ *
+ * @param {Array}  elements Design elements.
+ * @param {Object} fonts    Loaded faces by key.
+ * @param {Array}  people   Attendees.
+ * @return {Object} {overflows, missing, byElement}: overflows and missing are
+ *   lists of {number, name} (missing also has scripts, an array of script
+ *   ids); byElement has, by element id, {fallback, missing, scripts}: the
+ *   number of attendees printed in Inter, the number with characters no
+ *   font has, and those by script id.
+ */
+function checkText( elements, fonts, people ) {
+	const overflows = [];
+	const missing = [];
+	const byElement = {};
+	for ( const person of people ) {
+		const layouts = layoutAll( elements, fonts, person );
+		let cut = false;
+		const chars = [];
+		for ( const [ id, layout ] of Object.entries( layouts ) ) {
+			if ( ! byElement[ id ] ) {
+				byElement[ id ] = { fallback: 0, missing: 0, scripts: {} };
+			}
+			const stats = byElement[ id ];
+			cut = cut || layout.overflow;
+			if ( layout.fallback ) {
+				stats.fallback++;
+			}
+			if ( layout.missing.length ) {
+				stats.missing++;
+				for ( const script of scriptsOf( layout.missing ) ) {
+					stats.scripts[ script ] =
+						( stats.scripts[ script ] || 0 ) + 1;
+				}
+				chars.push( ...layout.missing );
+			}
+		}
+		const name = person.firstName + ' ' + person.lastName;
+		if ( cut ) {
+			overflows.push( { number: person.number, name } );
+		}
+		if ( chars.length ) {
+			missing.push( {
+				number: person.number,
+				name,
+				scripts: scriptsOf( chars ),
+			} );
+		}
+	}
+	return { overflows, missing, byElement };
 }
 
 // Keys typed in these elements belong to them, not to the canvas.
@@ -183,27 +233,16 @@ function App() {
 		[ elements, fonts, attendee ]
 	);
 
-	// Attendees whose text is cut in some box, to check them before printing.
-	const overflows = useMemo( () => {
-		const result = [];
-		if ( ! attendees.data ) {
-			return result;
-		}
-		for ( const person of people ) {
-			const personLayouts = layoutAll( elements, fonts, person );
-			if (
-				Object.values( personLayouts ).some(
-					( layout ) => layout.overflow
-				)
-			) {
-				result.push( {
-					number: person.number,
-					name: person.firstName + ' ' + person.lastName,
-				} );
-			}
-		}
-		return result;
-	}, [ elements, fonts, attendees.data, people ] );
+	// Attendees whose text is cut in some box or has characters the font
+	// cannot print, to check them before printing.
+	const textCheck = useMemo(
+		() =>
+			attendees.data
+				? checkText( elements, fonts, people )
+				: { overflows: [], missing: [], byElement: {} },
+		[ elements, fonts, attendees.data, people ]
+	);
+	const overflows = textCheck.overflows;
 
 	function changeElement( next, group ) {
 		updateDesign(
@@ -465,6 +504,8 @@ function App() {
 					backgroundFile={ backgroundFile }
 					attendees={ attendees }
 					overflows={ overflows }
+					missing={ textCheck.missing }
+					textStats={ textCheck.byElement }
 					onGoTo={ ( number ) => setAttendeeIndex( number - 1 ) }
 					layouts={ layouts }
 					selectedId={ selectedId }
@@ -502,6 +543,7 @@ function App() {
 					attendees={ people }
 					flags={ ( attendees.data && attendees.data.flags ) || [] }
 					overflows={ overflows }
+					missing={ textCheck.missing }
 					onClose={ () => setPdfDialog( null ) }
 				/>
 			) }

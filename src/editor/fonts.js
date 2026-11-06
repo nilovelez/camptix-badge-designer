@@ -6,6 +6,7 @@
 import { useEffect, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import fontkit from '@pdf-lib/fontkit';
+import { layoutWithFallback } from '../shared/text-layout';
 
 const families = window.ctbdSettings.fontFamilies || [];
 const faces = new Map();
@@ -53,6 +54,52 @@ export function resolveFace( family, weight ) {
 
 export function faceKey( face ) {
 	return face.family + '|' + face.weight;
+}
+
+// The font shipped with the plugin, used when a box's font lacks characters.
+const FALLBACK_FAMILY = 'Inter';
+
+/**
+ * The faces a text box may use: its own, and Inter at the closest weight
+ * when its own is another family.
+ *
+ * @param {Object} element Text element.
+ * @return {{primary: Object|null, fallback: Object|null}} Faces.
+ */
+export function textFaces( element ) {
+	const primary = resolveFace( element.font, element.weight );
+	let fallback = resolveFace( FALLBACK_FAMILY, element.weight );
+	if ( ! primary || ! fallback || primary.family === fallback.family ) {
+		fallback = null;
+	}
+	return { primary, fallback };
+}
+
+/**
+ * Lays out a text box for one attendee with the faces loaded so far, Inter
+ * included as the fallback (see layoutWithFallback()).
+ *
+ * @param {Object} element  Text element.
+ * @param {Object} attendee Attendee.
+ * @param {Object} loaded   Loaded faces by key ({font, ...}).
+ * @return {Object|null} Layout, with faceKey: the face it uses; null until
+ *   the box's own face has loaded.
+ */
+export function layoutTextBox( element, attendee, loaded ) {
+	const { primary, fallback } = textFaces( element );
+	const own = primary && loaded[ faceKey( primary ) ];
+	if ( ! own ) {
+		return null;
+	}
+	const backup = fallback && loaded[ faceKey( fallback ) ];
+	const layout = layoutWithFallback(
+		own.font,
+		backup ? backup.font : null,
+		element,
+		attendee
+	);
+	layout.faceKey = layout.fallback ? faceKey( fallback ) : faceKey( primary );
+	return layout;
 }
 
 async function toTtf( bytes ) {
@@ -112,17 +159,19 @@ export function loadFace( face ) {
 }
 
 /**
- * Loads the faces the text elements use.
+ * The faces the text elements may use, their fallbacks included, each once.
  *
  * @param {Array} elements Design elements.
- * @return {Object} Loaded faces by key ({font, css}); missing until loaded.
+ * @return {Object[]} Faces.
  */
-export function useFonts( elements ) {
-	const [ loaded, setLoaded ] = useState( {} );
+export function neededFaces( elements ) {
 	const needed = [];
 	for ( const element of elements || [] ) {
-		if ( element.type === 'text' ) {
-			const face = resolveFace( element.font, element.weight );
+		if ( element.type !== 'text' ) {
+			continue;
+		}
+		const { primary, fallback } = textFaces( element );
+		for ( const face of [ primary, fallback ] ) {
 			if (
 				face &&
 				! needed.some( ( f ) => faceKey( f ) === faceKey( face ) )
@@ -131,6 +180,18 @@ export function useFonts( elements ) {
 			}
 		}
 	}
+	return needed;
+}
+
+/**
+ * Loads the faces the text elements use, and Inter as their fallback.
+ *
+ * @param {Array} elements Design elements.
+ * @return {Object} Loaded faces by key ({font, css}); missing until loaded.
+ */
+export function useFonts( elements ) {
+	const [ loaded, setLoaded ] = useState( {} );
+	const needed = neededFaces( elements );
 	const neededKeys = needed.map( faceKey ).sort().join( ',' );
 
 	useEffect( () => {

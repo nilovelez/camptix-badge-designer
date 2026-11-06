@@ -2,7 +2,7 @@
  * The Element tab: properties of the selected element.
  */
 import { useState } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	Button,
 	ColorPalette,
@@ -16,6 +16,7 @@ import { alignCenter, alignLeft, alignRight } from '@wordpress/icons';
 import { MmField } from './mm-field';
 import { textVariables } from '../../shared/text-layout';
 import { familyWeights, fontFamilies } from '../fonts';
+import { scriptById } from '../../shared/scripts';
 import { isSquare, QR_MIN_SIZE } from '../elements';
 
 const WEIGHT_NAMES = {
@@ -127,7 +128,88 @@ function ContentPanel( { element, change, questions } ) {
 	);
 }
 
-function TypographyPanel( { element, change } ) {
+/**
+ * What the font of a text box cannot print, for all attendees: those printed
+ * in Inter instead, and, by script, those no font here can print, with the
+ * font to install (milestone 13).
+ *
+ * @param {Object} props       Props.
+ * @param {Object} props.stats {fallback, missing, scripts} from the editor.
+ * @return {Element|null} Notices.
+ */
+function FontNotice( { stats } ) {
+	if ( ! stats || ( ! stats.fallback && ! stats.missing ) ) {
+		return null;
+	}
+	const lines = Object.entries( stats.scripts ).map( ( [ id, count ] ) => {
+		const script = scriptById( id );
+		if ( ! script.font ) {
+			return sprintf(
+				/* translators: %d: number of attendees. */
+				_n(
+					'%d attendee has emoji, symbols or other characters this font cannot print.',
+					'%d attendees have emoji, symbols or other characters this font cannot print.',
+					count,
+					'camptix-badge-designer'
+				),
+				count
+			);
+		}
+		if ( script.font === 'Inter' ) {
+			// Only when the text mixes it with a script Inter lacks.
+			return sprintf(
+				/* translators: 1: number of attendees, 2: a script, such as Latin. */
+				_n(
+					'%1$d attendee mixes %2$s with another script, and no font here has both: a text box prints in one font.',
+					'%1$d attendees mix %2$s with another script, and no font here has both: a text box prints in one font.',
+					count,
+					'camptix-badge-designer'
+				),
+				count,
+				script.label
+			);
+		}
+		return sprintf(
+			/* translators: 1: number of attendees, 2: a script, such as Japanese, 3: font names. */
+			_n(
+				'%1$d attendee uses %2$s characters this font cannot print. Install a font that has them, such as %3$s, from Appearance › Fonts; it can stay inactive.',
+				'%1$d attendees use %2$s characters this font cannot print. Install a font that has them, such as %3$s, from Appearance › Fonts; it can stay inactive.',
+				count,
+				'camptix-badge-designer'
+			),
+			count,
+			script.label,
+			script.font
+		);
+	} );
+	return (
+		<div className="ctbd-font-notice">
+			{ lines.length > 0 && (
+				<Notice status="warning" isDismissible={ false }>
+					{ lines.map( ( line ) => (
+						<p key={ line }>{ line }</p>
+					) ) }
+				</Notice>
+			) }
+			{ stats.fallback > 0 && (
+				<p className="ctbd-help">
+					{ sprintf(
+						/* translators: %d: number of attendees. */
+						_n(
+							'%d attendee prints in Inter, because this font lacks some of the letters.',
+							'%d attendees print in Inter, because this font lacks some of their letters.',
+							stats.fallback,
+							'camptix-badge-designer'
+						),
+						stats.fallback
+					) }
+				</p>
+			) }
+		</div>
+	);
+}
+
+function TypographyPanel( { element, change, stats } ) {
 	const families = fontFamilies();
 	const weights = familyWeights( element.font );
 	return (
@@ -166,6 +248,7 @@ function TypographyPanel( { element, change } ) {
 					change( { font, weight } );
 				} }
 			/>
+			<FontNotice stats={ stats } />
 			<div className="ctbd-two-columns">
 				<MmField
 					label={ __( 'Size (pt)', 'camptix-badge-designer' ) }
@@ -455,6 +538,7 @@ function PositionPanel( { element, change } ) {
 export function ElementPanel( {
 	element,
 	layout,
+	textStats,
 	questions,
 	images,
 	onPickImage,
@@ -492,7 +576,11 @@ export function ElementPanel( {
 						change={ change }
 						questions={ questions }
 					/>
-					<TypographyPanel element={ element } change={ change } />
+					<TypographyPanel
+						element={ element }
+						change={ change }
+						stats={ textStats }
+					/>
 				</>
 			) }
 			{ element.type === 'gravatar' && (
