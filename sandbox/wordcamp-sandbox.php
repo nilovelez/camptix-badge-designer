@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version of the sandbox data. Raising it makes the next request delete the
  * sandbox attendees, tickets and questions and create them again.
  */
-const CTBD_SANDBOX_VERSION = 5;
+const CTBD_SANDBOX_VERSION = 7;
 
 /*
  * Stand-ins for the WordCamp.org functions CampTix calls. On WordCamp.org
@@ -544,6 +544,8 @@ function ctbd_sandbox_attendees( $questions, $tickets ) {
 		}
 	}
 
+	ctbd_sandbox_other_scripts( $attendees );
+
 	// Two tickets bought for "unknown attendees", which CampTix stores with
 	// placeholder data until someone claims them. They get no badge.
 	foreach ( array( 1, 2 ) as $unknown ) {
@@ -568,6 +570,42 @@ function ctbd_sandbox_attendees( $questions, $tickets ) {
 	}
 
 	return $attendees;
+}
+
+/**
+ * Gives some invented attendees names in other scripts (milestone 13), to
+ * show the font check: Inter has none of the non-Latin ones but Greek and
+ * Cyrillic, and the Polish and Turkish names print in Inter when a box uses
+ * a CJK Noto font. Names replace those of attendees already built, so the
+ * random data of the rest stays the same; the badges with cut text (#36 and
+ * #91 in the guide) are left alone.
+ *
+ * @param array $attendees Attendees, changed in place.
+ */
+function ctbd_sandbox_other_scripts( &$attendees ) {
+	$names = array(
+		3  => array( 'さくら', '佐藤' ),         // Japanese, with kana.
+		7  => array( '민준', '김' ),             // Korean.
+		11 => array( 'राहुल', 'शर्मा' ),         // Devanagari (Hindi).
+		15 => array( 'محمد', 'الأحمد' ),         // Arabic.
+		19 => array( '伟', '王' ),               // Chinese (simplified).
+		23 => array( 'Łukasz', 'Wiśniewski' ),   // Polish.
+		27 => array( 'கார்த்திக்', 'சுப்பிரமணியம்' ), // Tamil.
+		33 => array( 'נועה', 'כהן' ),            // Hebrew.
+		39 => array( 'สมชาย', 'ใจดี' ),          // Thai.
+		43 => array( 'Şebnem', 'Yılmaz' ),       // Turkish.
+		47 => array( '健太', '鈴木' ),           // Japanese, kanji only.
+		51 => array( 'Γιώργος', 'Παπαδόπουλος' ), // Greek.
+		55 => array( 'Алексей', 'Иванов' ),      // Cyrillic.
+	);
+	foreach ( $names as $index => $name ) {
+		if ( ! isset( $attendees[ $index ] ) ) {
+			continue;
+		}
+		$attendees[ $index ]['title']                  = $name[0] . ' ' . $name[1];
+		$attendees[ $index ]['meta']['tix_first_name'] = $name[0];
+		$attendees[ $index ]['meta']['tix_last_name']  = $name[1];
+	}
 }
 
 /**
