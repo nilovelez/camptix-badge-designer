@@ -182,6 +182,8 @@ function ctbd_enqueue_admin_assets( $hook_suffix ) {
 		'pdfWorkerUrl' => CTBD_PLUGIN_URL . 'build/pdf.worker.min.js',
 		'fontFamilies' => ctbd_get_fonts(),
 		'palette'      => ctbd_get_palette(),
+		// Where to install fonts, or empty when the Font Library is off.
+		'fontLibrary'  => ctbd_font_library_url(),
 	);
 	wp_add_inline_script( 'ctbd-editor', 'window.ctbdSettings = ' . wp_json_encode( $settings ) . ';', 'before' );
 }

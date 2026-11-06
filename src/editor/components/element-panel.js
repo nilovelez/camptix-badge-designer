@@ -17,6 +17,7 @@ import { MmField } from './mm-field';
 import { textVariables } from '../../shared/text-layout';
 import { familyWeights, fontFamilies, isInstalled } from '../fonts';
 import { scriptById, sortScripts } from '../../shared/scripts';
+import { FontLink, InstallFontsHelp } from './font-link';
 import { isSquare, QR_MIN_SIZE } from '../elements';
 
 const WEIGHT_NAMES = {
@@ -190,12 +191,17 @@ function FontNotice( { stats } ) {
 					count
 				);
 			}
-			return sprintf(
-				/* translators: 1: a script, such as Japanese, 2: number of attendees, 3: a font name. */
-				__( '%1$s (%2$d): %3$s', 'camptix-badge-designer' ),
-				script.label,
-				count,
-				script.font
+			// The font to install, linked to the Font Library screen.
+			return (
+				<>
+					{ sprintf(
+						/* translators: 1: a script, such as Japanese, 2: number of attendees. */
+						__( '%1$s (%2$d):', 'camptix-badge-designer' ),
+						script.label,
+						count
+					) }{ ' ' }
+					<FontLink name={ script.font } />
+				</>
 			);
 		}
 	);
@@ -227,14 +233,11 @@ function FontNotice( { stats } ) {
 					) }
 				</strong>
 				<p>
-					{ __(
-						'Install a font that has them from Appearance › Fonts, to be used as a fallback for those attendees. It can stay inactive on the site.',
-						'camptix-badge-designer'
-					) }
+					<InstallFontsHelp />
 				</p>
 				<ul className="ctbd-font-notice__scripts">
-					{ pending.map( ( line ) => (
-						<li key={ line }>{ line }</li>
+					{ pending.map( ( line, index ) => (
+						<li key={ index }>{ line }</li>
 					) ) }
 					{ done.map( ( line ) => (
 						<li key={ line } className="is-done">

@@ -28,6 +28,11 @@ Runs when `wcorg_get_user_by_canonical_names()` exists.
 3. Without that column (the add-on turned off), the QR code uses the account's nicename; for a username with no account, `https://profiles.wordpress.org/<login>/`.
 4. `{username}` still prints `@<login>`.
 
+## Fonts for names in other scripts
+
+1. Appearance › Fonts (`font-library.php`) opens for organizers, and the links in the badge editor's font warnings go there. If WordCamp.org turns the Font Library off (`fontLibraryEnabled` false, or a future `wp_is_font_library_enabled` filter), the warnings show no links: then decide with the WordCamp.org team how organizers get the Noto fonts.
+2. A Noto font installed there and left inactive prints the names of its script as a fallback.
+
 ## Activity tickets
 
 1. With camptix-companion-tickets active, an attendee with a main ticket and a Contributor Day seat gets one badge, and the attendee list counts the seat as an activity ticket left out.

@@ -54,7 +54,7 @@ Everything an agent needs to resume the work lives in this repository. Do not re
 The project follows the `wp-agentic-workflow` skill (https://github.com/nilovelez/wp-agentic-workflow), on top of the official WordPress agent skills (https://github.com/WordPress/agent-skills). Without the skill, the essentials are:
 
 - Slug and text domain: `camptix-badge-designer`. Prefix for functions, constants, options and hooks: `ctbd` (`CTBD_` for constants, `Ctbd_` or a `Ctbd` namespace for classes).
-- Requires WordPress 6.8 and PHP 8.3.
+- Requires WordPress 7.0 and PHP 8.3. 7.0 is the first version with the Font Library screen for every theme (Appearance › Fonts, `font-library.php`), where organizers install the fonts the badges need (decided by Nilo, milestone 13).
 - WordPress Coding Standards: `composer install` once, then `composer lint` before every commit that touches PHP (`composer fix` for automatic fixes). Plugin Check must be clean before any release.
 - Readable, simple code: a plain loop or `if` over clever one-liners.
 - Development files stay out of the release zip through `export-ignore` in `.gitattributes`. Add any new development file or folder there.

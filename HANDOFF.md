@@ -28,7 +28,7 @@ Where the work stands, so anyone can pick it up. Update it at the end of every s
 
 ## Open questions
 
-- Minimum WordPress version: 6.8 was chosen by default and can change.
+- None at the moment. (The minimum WordPress version is 7.0, decided by Nilo in milestone 13: see `AGENTS.md`.)
 
 ## Resume
 

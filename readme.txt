@@ -1,7 +1,7 @@
 === CampTix Badge Designer ===
 Contributors: nilovelez
 Tags: camptix, wordcamp, badges, pdf, events
-Requires at least: 6.8
+Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.3
 Stable tag: 0.1.0

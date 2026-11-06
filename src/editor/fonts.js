@@ -17,6 +17,15 @@ export function fontFamilies() {
 }
 
 /**
+ * The Font Library screen, or an empty string when there is none to link.
+ *
+ * @return {string} URL.
+ */
+export function fontLibraryUrl() {
+	return window.ctbdSettings.fontLibrary || '';
+}
+
+/**
  * Weights a family has, as strings.
  *
  * @param {string} family Family name.

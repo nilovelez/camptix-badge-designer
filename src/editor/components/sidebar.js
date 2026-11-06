@@ -1,7 +1,7 @@
 /**
  * The fixed right sidebar, with the Document and Element tabs.
  */
-import { useState } from '@wordpress/element';
+import { createInterpolateElement, useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	Button,
@@ -24,7 +24,8 @@ import { AttendeesList } from './attendees-list';
 import { ElementPanel } from './element-panel';
 import { DesignPanel } from './design-panel';
 import { scriptById, sortScripts } from '../../shared/scripts';
-import { isInstalled } from '../fonts';
+import { fontLibraryUrl, isInstalled } from '../fonts';
+import { FontLink } from './font-link';
 import { BadgeTypeControl } from './badge-type';
 import { elementLabel, isPastTrim, moveInsideSafeArea } from '../elements';
 import {
@@ -497,10 +498,16 @@ function ScriptTable( { scripts } ) {
 								'camptix-badge-designer'
 							);
 						} else {
-							pending = sprintf(
-								/* translators: %s: a font name. */
-								__( 'Install %s', 'camptix-badge-designer' ),
-								script.font
+							pending = createInterpolateElement(
+								sprintf(
+									/* translators: %s: a font name. */
+									__(
+										'Install %s',
+										'camptix-badge-designer'
+									),
+									'<font />'
+								),
+								{ font: <FontLink name={ script.font } /> }
 							);
 						}
 						const both = printed > 0 && entry.unresolved > 0;
@@ -510,12 +517,10 @@ function ScriptTable( { scripts } ) {
 									<span className="is-done">
 										<span aria-hidden="true">✓ </span>
 										{ entry.families.join( ', ' ) }
-										{ both && ' (' + printed + ')' }
 									</span>
 								) }
 								{ both && <br /> }
 								{ pending }
-								{ both && ' (' + entry.unresolved + ')' }
 							</>
 						);
 						return (
@@ -537,6 +542,15 @@ function ScriptTable( { scripts } ) {
 					} ) }
 				</tbody>
 			</table>
+			{ fontLibraryUrl() &&
+				ids.some( ( id ) => scripts[ id ].unresolved > 0 ) && (
+					<p className="ctbd-help">
+						{ __(
+							'Reload this page after installing a font.',
+							'camptix-badge-designer'
+						) }
+					</p>
+				) }
 		</div>
 	);
 }
