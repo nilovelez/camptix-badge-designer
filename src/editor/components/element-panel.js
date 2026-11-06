@@ -16,7 +16,7 @@ import { alignCenter, alignLeft, alignRight } from '@wordpress/icons';
 import { MmField } from './mm-field';
 import { textVariables } from '../../shared/text-layout';
 import { familyWeights, fontFamilies } from '../fonts';
-import { scriptById } from '../../shared/scripts';
+import { scriptById, sortScripts } from '../../shared/scripts';
 import { isSquare, QR_MIN_SIZE } from '../elements';
 
 const WEIGHT_NAMES = {
@@ -141,15 +141,16 @@ function FontNotice( { stats } ) {
 	if ( ! stats || ( ! stats.fallback && ! stats.missing ) ) {
 		return null;
 	}
-	const lines = Object.entries( stats.scripts ).map( ( [ id, count ] ) => {
+	// One line per script, in a fixed order: the script, how many attendees,
+	// and the font to install. The explanation goes once, above them.
+	const lines = sortScripts( Object.keys( stats.scripts ) ).map( ( id ) => {
 		const script = scriptById( id );
+		const count = stats.scripts[ id ];
 		if ( ! script.font ) {
 			return sprintf(
 				/* translators: %d: number of attendees. */
-				_n(
-					'%d attendee has emoji, symbols or other characters this font cannot print.',
-					'%d attendees have emoji, symbols or other characters this font cannot print.',
-					count,
+				__(
+					'Emoji, symbols or other characters (%d)',
 					'camptix-badge-designer'
 				),
 				count
@@ -158,37 +159,50 @@ function FontNotice( { stats } ) {
 		if ( script.font === 'Inter' ) {
 			// Only when the text mixes it with a script Inter lacks.
 			return sprintf(
-				/* translators: 1: number of attendees, 2: a script, such as Latin. */
-				_n(
-					'%1$d attendee mixes %2$s with another script, and no font here has both: a text box prints in one font.',
-					'%1$d attendees mix %2$s with another script, and no font here has both: a text box prints in one font.',
-					count,
+				/* translators: 1: a script, such as Latin, 2: number of attendees. */
+				__(
+					'%1$s mixed with another script (%2$d): no single font has both; split the box in two',
 					'camptix-badge-designer'
 				),
-				count,
-				script.label
+				script.label,
+				count
 			);
 		}
 		return sprintf(
-			/* translators: 1: number of attendees, 2: a script, such as Japanese, 3: font names. */
-			_n(
-				'%1$d attendee uses %2$s characters this font cannot print. Install a font that has them, such as %3$s, from Appearance › Fonts; it can stay inactive.',
-				'%1$d attendees use %2$s characters this font cannot print. Install a font that has them, such as %3$s, from Appearance › Fonts; it can stay inactive.',
-				count,
-				'camptix-badge-designer'
-			),
-			count,
+			/* translators: 1: a script, such as Japanese, 2: number of attendees, 3: font names. */
+			__( '%1$s (%2$d): %3$s', 'camptix-badge-designer' ),
 			script.label,
+			count,
 			script.font
 		);
 	} );
 	return (
 		<div className="ctbd-font-notice">
-			{ lines.length > 0 && (
+			{ stats.missing > 0 && (
 				<Notice status="warning" isDismissible={ false }>
-					{ lines.map( ( line ) => (
-						<p key={ line }>{ line }</p>
-					) ) }
+					<strong>
+						{ sprintf(
+							/* translators: %d: number of attendees. */
+							_n(
+								'This font cannot print the characters of %d attendee.',
+								'This font cannot print the characters of %d attendees.',
+								stats.missing,
+								'camptix-badge-designer'
+							),
+							stats.missing
+						) }
+					</strong>
+					<p>
+						{ __(
+							'Install a font that has them from Appearance › Fonts; it can stay inactive on the site. Fonts to install, by script:',
+							'camptix-badge-designer'
+						) }
+					</p>
+					<ul className="ctbd-font-notice__scripts">
+						{ lines.map( ( line ) => (
+							<li key={ line }>{ line }</li>
+						) ) }
+					</ul>
 				</Notice>
 			) }
 			{ stats.fallback > 0 && (

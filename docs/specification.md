@@ -123,7 +123,7 @@ New elements are added with the + button. Every change can be undone and redone 
   - When the box's font lacks some characters and Inter has them all, that attendee's text prints in Inter at the closest weight, on the canvas, in Preview badge and in the PDF. A whole text uses one font, never a mix, so measuring, shrinking and cutting work as with one font. This covers, for example, a Polish or Turkish name at an event that uses Noto Sans JP, which lacks some Central European letters. The Element tab says how many attendees print in Inter.
   - Otherwise, a warning under the font selector says, by script, how many attendees need characters the font cannot print, and suggests the Noto font to install from the Font Library (it can stay inactive). The Attendees panel lists them with their scripts, like cut text, and the Generate PDF summary counts them. The PDF is still generated, as with cut text: the organizer decides.
   - The canvas shows those characters as they will print, as the font's empty boxes, never filled in from a system font, and marks the box in red with a warning, like cut text (asked for by Nilo: the canvas must never look right when the paper will not).
-  - Han characters alone are reported as "Chinese or Japanese (kanji)", since they can be either; with kana, as Japanese.
+  - Han characters alone are reported as "Chinese or Japanese kanji", since they can be either; with kana, as Japanese.
   - A text that mixes two scripts no single installed font has, such as Arabic and Latin in one box (Noto Sans Arabic has no Latin letters), can only be warned about.
   - Next phase, decided by Nilo (milestone 14): a fallback font for each script, chosen by the organizer.
 

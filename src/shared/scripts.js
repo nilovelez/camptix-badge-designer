@@ -24,7 +24,7 @@ const SCRIPTS = [
 	{
 		id: 'han',
 		pattern: 'Han',
-		label: __( 'Chinese or Japanese (kanji)', 'camptix-badge-designer' ),
+		label: __( 'Chinese or Japanese kanji', 'camptix-badge-designer' ),
 		font: 'Noto Sans SC, Noto Sans TC or Noto Sans JP',
 	},
 	{
@@ -243,8 +243,18 @@ export function scriptsOf( chars ) {
 	if ( ids.has( 'japanese' ) ) {
 		ids.delete( 'han' );
 	}
+	return sortScripts( [ ...ids ] );
+}
+
+/**
+ * Script ids in the fixed order of SCRIPTS, other characters last.
+ *
+ * @param {string[]} ids Script ids.
+ * @return {string[]} The same ids, sorted.
+ */
+export function sortScripts( ids ) {
 	const order = SCRIPTS.map( ( script ) => script.id ).concat( OTHER.id );
-	return order.filter( ( id ) => ids.has( id ) );
+	return order.filter( ( id ) => ids.includes( id ) );
 }
 
 /**
